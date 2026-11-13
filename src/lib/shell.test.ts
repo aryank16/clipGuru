@@ -21,3 +21,15 @@ describe("isActive", () => {
     expect(NAV.map((n) => n.href)).toEqual(["/videos", "/scheduled", "/settings"]);
   });
 });
+
+import { canonicalRedirect } from "./canonical";
+
+describe("canonicalRedirect", () => {
+  const app = "https://clip-guru.vercel.app";
+  it("leaves the main address alone", () => expect(canonicalRedirect("clip-guru.vercel.app", "/sign-in", app)).toBeNull());
+  it("sends a one-off deploy address to the main one, keeping path and query", () =>
+    expect(canonicalRedirect("clip-guru-b6hcs3uij-aryan-1674.vercel.app", "/sign-in?next=%2Fvideos", app)).toBe(
+      "https://clip-guru.vercel.app/sign-in?next=%2Fvideos",
+    ));
+  it("does nothing without a host", () => expect(canonicalRedirect(null, "/", app)).toBeNull());
+});

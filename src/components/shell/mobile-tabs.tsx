@@ -8,7 +8,11 @@ import { NAV, isActive } from "./nav";
 
 /** Phone bottom tab bar: the three sections with a raised "new video" button in the middle. */
 export function MobileTabs() {
-  const pathname = usePathname();
+  return <MobileTabsView pathname={usePathname()} />;
+}
+
+/** Pure view; the layout also renders it with an empty path while a dynamic route streams in. */
+export function MobileTabsView({ pathname }: { pathname: string }) {
   const [videos, scheduled, settings] = NAV;
   const tab = ({ href, label, icon: Icon }: (typeof NAV)[number]) => {
     const active = isActive(pathname, href);
