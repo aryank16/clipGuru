@@ -31,13 +31,14 @@ npm run dev                  # http://localhost:3000
 src/
   app/                 pages and REST route handlers (/api/*)
     (auth)/            sign-in, sign-up, forgot-password, reset-password
-    (app)/             signed-in pages (videos, ...)
+    (app)/             signed-in shell (sidebar / phone tabs) and its pages: videos, scheduled, settings, new
     api/auth/[...all]/ Better Auth endpoints (/api/auth/*)
     api/health/        GET /api/health
   proxy.ts             sends signed-out visitors to /sign-in
   components/
     brand/             logo and monogram
     auth/              sign-in, sign-up and password reset forms
+    shell/             sidebar, phone tab bar, page header, Instagram card, account
     ui/                Atelier Light building blocks (button, input, card, badge)
   lib/
     api/               route() wrapper, error codes, validation, cursors (API Design conventions)
