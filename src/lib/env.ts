@@ -29,6 +29,15 @@ const schema = z.object({
   /** When set, emails are sent through Resend and email verification is required. */
   RESEND_API_KEY: z.string().optional(),
   EMAIL_FROM: z.string().default("ClipGuru <onboarding@resend.dev>"),
+  /**
+   * "true" makes new accounts confirm their email before signing in. Off by default: Resend's
+   * test sender only reaches the Resend account owner until a domain is verified, and accounts
+   * made before the switch have no confirmed email.
+   */
+  REQUIRE_EMAIL_VERIFICATION: z
+    .enum(["true", "false"])
+    .default("false")
+    .transform((v) => v === "true"),
 });
 
 export type Env = z.infer<typeof schema>;

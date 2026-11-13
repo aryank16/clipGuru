@@ -97,3 +97,18 @@ describe("trustedOrigins", () => {
     vi.unstubAllEnvs();
   });
 });
+
+describe("emailVerificationRequired", () => {
+  const check = async (vars: Record<string, string>) => {
+    vi.resetModules();
+    for (const [k, v] of Object.entries(vars)) vi.stubEnv(k, v);
+    const { emailVerificationRequired } = await import("./email");
+    const result = emailVerificationRequired();
+    vi.unstubAllEnvs();
+    return result;
+  };
+  it("is off with a Resend key alone", async () => expect(await check({ RESEND_API_KEY: "re_x" })).toBe(false));
+  it("is off without a Resend key", async () => expect(await check({ REQUIRE_EMAIL_VERIFICATION: "true" })).toBe(false));
+  it("is on with both", async () =>
+    expect(await check({ RESEND_API_KEY: "re_x", REQUIRE_EMAIL_VERIFICATION: "true" })).toBe(true));
+});

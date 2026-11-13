@@ -3,7 +3,7 @@ import { memoryAdapter } from "better-auth/adapters/memory";
 import { mongodbAdapter } from "better-auth/adapters/mongodb";
 import { nextCookies } from "better-auth/next-js";
 import { db, mongoClient } from "./db";
-import { emailDeliveryEnabled, sendEmail } from "./email";
+import { emailVerificationRequired, sendEmail } from "./email";
 import { dbDriver, env, googleEnabled } from "./env";
 import { trustedOrigins } from "./origins";
 import { DEFAULT_TIME_ZONE, DEFAULT_VOICE_ID, isValidTimeZone } from "./defaults";
@@ -35,8 +35,8 @@ function createAuth() {
       minPasswordLength: 8,
       maxPasswordLength: 128,
       autoSignIn: true,
-      // Verification is required only when emails can actually be delivered.
-      requireEmailVerification: emailDeliveryEnabled(),
+      // Confirming the email is required only when emails are delivered AND REQUIRE_EMAIL_VERIFICATION=true.
+      requireEmailVerification: emailVerificationRequired(),
       resetPasswordTokenExpiresIn: 60 * 60,
       revokeSessionsOnPasswordReset: true,
       sendResetPassword: async ({ user, url }) => {
@@ -48,7 +48,7 @@ function createAuth() {
       },
     },
     emailVerification: {
-      sendOnSignUp: emailDeliveryEnabled(),
+      sendOnSignUp: emailVerificationRequired(),
       autoSignInAfterVerification: true,
       expiresIn: 60 * 60,
       sendVerificationEmail: async ({ user, url }) => {
