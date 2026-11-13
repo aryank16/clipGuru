@@ -5,6 +5,7 @@ import { nextCookies } from "better-auth/next-js";
 import { db, mongoClient } from "./db";
 import { emailDeliveryEnabled, sendEmail } from "./email";
 import { dbDriver, env, googleEnabled } from "./env";
+import { trustedOrigins } from "./origins";
 import { DEFAULT_TIME_ZONE, DEFAULT_VOICE_ID, isValidTimeZone } from "./defaults";
 
 /** In-process store used when DB_DRIVER=memory (tests, offline dev). */
@@ -23,7 +24,9 @@ function createAuth() {
     appName: "ClipGuru",
     baseURL: e.APP_URL,
     secret: e.BETTER_AUTH_SECRET,
-    trustedOrigins: [e.APP_URL],
+    // Vercel serves one deployment under several addresses (branch URL, deployment URL, production
+    // domains), so trust the app's own address plus whichever one the request came in on.
+    trustedOrigins: async (request) => trustedOrigins(request?.headers),
     database: database(),
 
     // API Design → Authentication

@@ -76,3 +76,24 @@ describe("APP_URL default", () => {
     expect((await import("./env")).env().APP_URL).toBe("https://clipguru.vercel.app");
   });
 });
+
+describe("trustedOrigins", () => {
+  it("includes APP_URL, the Vercel addresses and the request's own origin", async () => {
+    vi.resetModules();
+    vi.stubEnv("APP_URL", "https://app.example.com");
+    vi.stubEnv("VERCEL_URL", "clip-abc123.vercel.app");
+    vi.stubEnv("VERCEL_BRANCH_URL", "clip-git-dev.vercel.app");
+    const { trustedOrigins } = await import("./origins");
+    const vercel = new Headers({ host: "internal", "x-forwarded-host": "clip-other.vercel.app", "x-forwarded-proto": "https" });
+    expect(trustedOrigins(vercel)).toEqual([
+      "https://app.example.com",
+      "https://clip-abc123.vercel.app",
+      "https://clip-git-dev.vercel.app",
+      "https://clip-other.vercel.app",
+    ]);
+    expect(trustedOrigins(new Headers({ host: "127.0.0.1:3100" }))).toContain("http://127.0.0.1:3100");
+    expect(trustedOrigins(new Headers({ host: "bad host" }))).toHaveLength(3);
+    expect(trustedOrigins()).toHaveLength(3);
+    vi.unstubAllEnvs();
+  });
+});
