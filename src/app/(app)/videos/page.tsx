@@ -1,38 +1,38 @@
-import { ArrowRight, Play, Plus } from "lucide-react";
 import type { Metadata } from "next";
-import Link from "next/link";
-import { PageHeader } from "@/components/shell/page-header";
-import { buttonClasses } from "@/components/ui/button";
-import { EmptyState } from "@/components/ui/empty-state";
+import { Suspense } from "react";
+import { VideoLibrary } from "@/components/videos/library";
+import { projectsRepo } from "@/lib/projects/repo";
+import { toProject } from "@/lib/projects/types";
+import { requirePageSession } from "@/lib/session";
 
 export const metadata: Metadata = { title: "My videos" };
 
-/** My videos. The grid, filters and search arrive with F3; until then there are no videos to list. */
 export default function VideosPage() {
   return (
-    <div className="flex flex-col gap-10">
-      <PageHeader
-        title="My videos"
-        count="0 videos"
-        actions={
-          <div className="hidden lg:block">
-            <Link href="/new" className={buttonClasses("primary", "md")}>
-              <Plus className="size-4" /> New video
-            </Link>
-          </div>
-        }
-      />
-      <EmptyState
-        icon={<Play className="size-5" />}
-        title="No videos yet"
-        action={
-          <Link href="/new" className={buttonClasses("primary", "lg")}>
-            New video <ArrowRight className="size-4" />
-          </Link>
-        }
-      >
-        Start with an idea and ClipGuru writes, voices and animates it.
-      </EmptyState>
+    <Suspense fallback={<LibrarySkeleton />}>
+      <Library />
+    </Suspense>
+  );
+}
+
+async function Library() {
+  const { user } = await requirePageSession();
+  const repo = projectsRepo();
+  const [page, counts] = await Promise.all([repo.list(user.id, { filter: "all", limit: 20 }), repo.counts(user.id)]);
+  return (
+    <VideoLibrary initial={{ items: page.items.map(toProject), nextCursor: page.nextCursor }} initialCounts={counts} />
+  );
+}
+
+function LibrarySkeleton() {
+  return (
+    <div className="flex flex-col gap-8" aria-busy>
+      <div className="h-[61px] border-b border-hairline" />
+      <div className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 xl:grid-cols-4">
+        {Array.from({ length: 4 }, (_, i) => (
+          <div key={i} className="aspect-[9/19] animate-pulse rounded-xl border border-hairline bg-surface" />
+        ))}
+      </div>
     </div>
   );
 }

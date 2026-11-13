@@ -7,7 +7,11 @@ import { NAV, isActive } from "./nav";
 
 /** Desktop sidebar links; the current section is filled espresso. */
 export function SidebarNav() {
-  const pathname = usePathname();
+  return <SidebarNavView pathname={usePathname()} />;
+}
+
+/** Pure view; the layout also renders it with an empty path while a dynamic route streams in. */
+export function SidebarNavView({ pathname }: { pathname: string }) {
   return (
     <nav aria-label="Main" className="flex flex-col gap-1.5">
       {NAV.map(({ href, label, icon: Icon }) => {

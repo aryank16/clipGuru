@@ -3,8 +3,8 @@ import { Suspense } from "react";
 import { Logo } from "@/components/brand/logo";
 import { HeaderAccount, SidebarAccount } from "@/components/shell/account";
 import { InstagramCard } from "@/components/shell/instagram-card";
-import { MobileTabs } from "@/components/shell/mobile-tabs";
-import { SidebarNav } from "@/components/shell/sidebar-nav";
+import { MobileTabs, MobileTabsView } from "@/components/shell/mobile-tabs";
+import { SidebarNav, SidebarNavView } from "@/components/shell/sidebar-nav";
 
 /** Signed-in shell: sidebar on desktop, top bar + bottom tabs on phones. */
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -15,7 +15,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <Link href="/videos" className="px-2">
             <Logo />
           </Link>
-          <SidebarNav />
+          <Suspense fallback={<SidebarNavView pathname="" />}>
+            <SidebarNav />
+          </Suspense>
         </div>
         <div className="flex flex-col gap-5">
           <InstagramCard />
@@ -35,7 +37,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </header>
 
       <main className="min-w-0 px-4 pt-6 pb-28 sm:px-8 lg:px-14 lg:pt-12 lg:pb-16">{children}</main>
-      <MobileTabs />
+      <Suspense fallback={<MobileTabsView pathname="" />}>
+        <MobileTabs />
+      </Suspense>
     </div>
   );
 }

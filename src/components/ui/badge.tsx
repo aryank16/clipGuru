@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
-type Tone = "neutral" | "dark" | "progress" | "success" | "muted";
+export type Tone = "neutral" | "dark" | "progress" | "success" | "muted" | "danger";
 
 const tones: Record<Tone, string> = {
   neutral: "bg-surface text-espresso border border-hairline",
@@ -9,6 +9,7 @@ const tones: Record<Tone, string> = {
   progress: "bg-surface text-espresso border border-hairline",
   success: "bg-success/10 text-success border border-success/30",
   muted: "bg-surface text-taupe border border-hairline",
+  danger: "bg-danger/10 text-danger border border-danger/30",
 };
 
 /** Small uppercase mono pill, as on video cards ("READY", "01:14"). */
