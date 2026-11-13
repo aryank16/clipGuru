@@ -64,3 +64,18 @@ browser at sign-up), `defaultVoiceId` (George) and `onboardedAt`.
 - Without `RESEND_API_KEY`, verification and reset emails are printed to the server log and email
   verification is not required (fine for internal testing).
 - To try sign-in without Atlas: `DB_DRIVER=memory npm run dev` (data is lost on restart).
+
+## Deploy (Vercel)
+
+The Vercel project builds every push. `main` is production; `dev` gets a preview at its branch URL.
+
+Environment variables to set in Vercel (Settings → Environment Variables, for Production and Preview):
+
+| Key | Needed for |
+| --- | --- |
+| `MONGODB_URI` | Sign-in (required). Atlas must allow `0.0.0.0/0` in Network Access, since Vercel has no fixed IPs. |
+| `BETTER_AUTH_SECRET` | Sign-in (required, 32+ characters). |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Google sign-in (optional). Redirect URI: `<site URL>/api/auth/callback/google`. |
+| `RESEND_API_KEY` | Real verification and reset emails (optional). |
+
+`APP_URL` can be left unset: it defaults to the deployment's own address.
