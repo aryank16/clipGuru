@@ -3,23 +3,34 @@
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { buttonClasses } from "@/components/ui/button";
 import { projectsApi } from "./api";
 
-/** Creates the project once (even under React's double effects) and replaces /new with it. */
+/**
+ * Creates a project each time /new is shown, then replaces /new with it.
+ *
+ * Next keeps a visited page mounted (hidden) and re-runs its effects when it's shown again, so this must
+ * not remember "already started" across visits. The short timer is cancelled by React's dev double-mount,
+ * so development doesn't create two videos.
+ */
 export function StartVideo() {
   const router = useRouter();
-  const started = useRef(false);
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
-    if (started.current) return;
-    started.current = true;
-    projectsApi
-      .create()
-      .then((p) => router.replace(`/videos/${p.id}`))
-      .catch(() => setFailed(true));
+    let active = true;
+    const timer = setTimeout(() => {
+      setFailed(false);
+      projectsApi
+        .create()
+        .then((p) => active && router.replace(`/videos/${p.id}`))
+        .catch(() => active && setFailed(true));
+    }, 0);
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
   }, [router]);
 
   return (
