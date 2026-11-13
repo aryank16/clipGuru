@@ -4,9 +4,20 @@ import { z } from "zod";
  * Server environment, validated on first use. Each feature adds its keys here.
  * Keys for features that have not shipped yet stay optional.
  */
+/**
+ * On Vercel, fall back to the deployment's own address when APP_URL isn't set:
+ * the production domain on main, the branch URL on previews (e.g. dev).
+ */
+function defaultAppUrl(): string {
+  const v = process.env;
+  const host =
+    v.VERCEL_ENV === "production" ? v.VERCEL_PROJECT_PRODUCTION_URL : (v.VERCEL_BRANCH_URL ?? v.VERCEL_URL);
+  return host ? `https://${host}` : "http://localhost:3000";
+}
+
 const schema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
-  APP_URL: z.string().url().default("http://localhost:3000"),
+  APP_URL: z.string().url().default(defaultAppUrl),
 
   // F1 Sign-in
   MONGODB_URI: z.string().optional(),

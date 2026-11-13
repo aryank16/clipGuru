@@ -58,3 +58,21 @@ describe("dbDriver", () => {
     expect(d()).toBe("memory");
   });
 });
+
+describe("APP_URL default", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.resetModules();
+  });
+
+  it("uses the Vercel branch URL on previews and the production domain on main", async () => {
+    vi.stubEnv("APP_URL", undefined);
+    vi.stubEnv("VERCEL_ENV", "preview");
+    vi.stubEnv("VERCEL_BRANCH_URL", "clipguru-git-dev-team.vercel.app");
+    expect((await import("./env")).env().APP_URL).toBe("https://clipguru-git-dev-team.vercel.app");
+    vi.resetModules();
+    vi.stubEnv("VERCEL_ENV", "production");
+    vi.stubEnv("VERCEL_PROJECT_PRODUCTION_URL", "clipguru.vercel.app");
+    expect((await import("./env")).env().APP_URL).toBe("https://clipguru.vercel.app");
+  });
+});
