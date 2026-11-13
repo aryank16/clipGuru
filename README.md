@@ -31,13 +31,14 @@ npm run dev                  # http://localhost:3000
 src/
   app/                 pages and REST route handlers (/api/*)
     (auth)/            sign-in, sign-up, forgot-password, reset-password
-    (app)/             signed-in pages (videos, ...)
+    (app)/             signed-in shell (sidebar / phone tabs) and its pages: videos, scheduled, settings, new
     api/auth/[...all]/ Better Auth endpoints (/api/auth/*)
     api/health/        GET /api/health
   proxy.ts             sends signed-out visitors to /sign-in
   components/
     brand/             logo and monogram
     auth/              sign-in, sign-up and password reset forms
+    shell/             sidebar, phone tab bar, page header, Instagram card, account
     ui/                Atelier Light building blocks (button, input, card, badge)
   lib/
     api/               route() wrapper, error codes, validation, cursors (API Design conventions)
@@ -61,8 +62,10 @@ Better Auth with email + password and Google, stored in MongoDB (`user`, `sessio
 browser at sign-up), `defaultVoiceId` (George) and `onboardedAt`.
 
 - Google sign-in appears enabled only when `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are set.
-- Without `RESEND_API_KEY`, verification and reset emails are printed to the server log and email
-  verification is not required (fine for internal testing).
+- With `RESEND_API_KEY`, reset emails go to real inboxes; without it they are printed to the server log.
+  The default sender `onboarding@resend.dev` only delivers to the Resend account's own email; verify a
+  domain in Resend and set `EMAIL_FROM` to send to anyone.
+- Confirming the email at sign-up is off unless `REQUIRE_EMAIL_VERIFICATION=true` (and emails are on).
 - To try sign-in without Atlas: `DB_DRIVER=memory npm run dev` (data is lost on restart).
 
 ## Deploy (Vercel)
@@ -76,6 +79,8 @@ Environment variables to set in Vercel (Settings → Environment Variables, for 
 | `MONGODB_URI` | Sign-in (required). Atlas must allow `0.0.0.0/0` in Network Access, since Vercel has no fixed IPs. |
 | `BETTER_AUTH_SECRET` | Sign-in (required, 32+ characters). |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Google sign-in (optional). Redirect URI: `<site URL>/api/auth/callback/google`. |
-| `RESEND_API_KEY` | Real verification and reset emails (optional). |
+| `RESEND_API_KEY` | Real reset emails (optional). |
+| `EMAIL_FROM` | Sender, e.g. `ClipGuru <hello@yourdomain.com>` once the domain is verified in Resend (optional). |
+| `REQUIRE_EMAIL_VERIFICATION` | `true` to make new accounts confirm their email (optional, off by default). |
 
 `APP_URL` can be left unset: it defaults to the deployment's own address.
