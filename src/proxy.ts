@@ -1,5 +1,7 @@
 import { getSessionCookie } from "better-auth/cookies";
 import { NextResponse, type NextRequest } from "next/server";
+import { canonicalRedirect } from "@/lib/canonical";
+import { env } from "@/lib/env";
 
 /** Pages a signed-out visitor may open. Everything else in the app needs a session. */
 const AUTH_PAGES = ["/sign-in", "/sign-up", "/forgot-password", "/reset-password"];
@@ -10,6 +12,13 @@ const AUTH_PAGES = ["/sign-in", "/sign-up", "/forgot-password", "/reset-password
  */
 export function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
+
+  // On Vercel, keep everyone on the app's main address (see canonicalRedirect).
+  if (process.env.VERCEL === "1") {
+    const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
+    const target = canonicalRedirect(host, pathname + search, env().APP_URL);
+    if (target) return new NextResponse(null, { status: 308, headers: { Location: target } });
+  }
   const hasSession = Boolean(getSessionCookie(request));
   const isAuthPage = AUTH_PAGES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 

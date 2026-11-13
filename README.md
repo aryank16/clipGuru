@@ -83,4 +83,6 @@ Environment variables to set in Vercel (Settings → Environment Variables, for 
 | `EMAIL_FROM` | Sender, e.g. `ClipGuru <hello@yourdomain.com>` once the domain is verified in Resend (optional). |
 | `REQUIRE_EMAIL_VERIFICATION` | `true` to make new accounts confirm their email (optional, off by default). |
 
-`APP_URL` can be left unset: it defaults to the deployment's own address.
+`APP_URL` can be left unset: it defaults to the deployment's own address (the production domain on
+`main`, the branch URL on previews). On Vercel, pages opened on any other address of the deployment
+are redirected there, so Google sign-in starts and finishes on the same address.
