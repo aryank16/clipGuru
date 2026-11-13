@@ -1,10 +1,10 @@
 import { Logo } from "@/components/brand/logo";
 
-/** Two-column auth layout from the Stitch "Sign in" / "Create account" screens. */
+/** Two-column auth layout: brand headline on the left, the form on the right. */
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="grid min-h-dvh lg:grid-cols-2">
-      <aside className="relative hidden flex-col justify-between overflow-hidden border-r border-hairline bg-gradient-to-br from-surface to-paper px-12 py-14 lg:flex xl:px-20">
+      <aside className="relative hidden flex-col gap-16 overflow-hidden border-r border-hairline bg-gradient-to-br from-surface to-paper px-12 py-14 lg:flex xl:px-20">
         <Logo />
         <div className="flex flex-col gap-12">
           <h1 className="font-display text-7xl font-black uppercase leading-[0.92] tracking-tight xl:text-8xl">
@@ -18,7 +18,6 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           </h1>
           <PhonePreview />
         </div>
-        <span className="eyebrow">ClipGuru · Atelier Studio · V1</span>
       </aside>
 
       <main className="flex flex-col px-4 py-8 sm:px-8 lg:justify-center lg:px-16 xl:px-24">

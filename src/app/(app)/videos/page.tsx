@@ -11,7 +11,7 @@ export const metadata: Metadata = { title: "My videos" };
 export default function VideosPage() {
   return (
     <main className="mx-auto flex max-w-3xl flex-col gap-10 px-4 py-12 sm:px-8">
-      <Logo caption="Atelier Studio · V1" />
+      <Logo />
       <Suspense fallback={<Card className="h-40 animate-pulse" />}>
         <Welcome />
       </Suspense>
