@@ -30,12 +30,22 @@ npm run dev                  # http://localhost:3000
 ```
 src/
   app/                 pages and REST route handlers (/api/*)
+    (auth)/            sign-in, sign-up, forgot-password, reset-password
+    (app)/             signed-in pages (videos, ...)
+    api/auth/[...all]/ Better Auth endpoints (/api/auth/*)
     api/health/        GET /api/health
+  proxy.ts             sends signed-out visitors to /sign-in
   components/
     brand/             logo and monogram
+    auth/              sign-in, sign-up and password reset forms
     ui/                Atelier Light building blocks (button, input, card, badge)
   lib/
     api/               route() wrapper, error codes, validation, cursors (API Design conventions)
+    auth.ts            Better Auth config (email + password, Google, MongoDB)
+    auth-client.ts     browser auth client
+    session.ts         getSession / requirePageSession / requireApiSession
+    db.ts              shared MongoClient
+    email.ts           Resend, or log to console when no key
     env.ts             validated server environment
     cn.ts              class name helper
 ```
@@ -43,3 +53,14 @@ src/
 Every `/api` route is wrapped in `route()` from `src/lib/api/route.ts`, which adds `X-Request-Id` and
 `Cache-Control: no-store`, checks the `Origin` on writes, and returns errors as
 `{ "error": { "code", "message", "details" } }` with the codes listed in `src/lib/api/errors.ts`.
+
+## Sign-in
+
+Better Auth with email + password and Google, stored in MongoDB (`user`, `session`, `account`,
+`verification`). Sessions last 7 days and refresh daily. The user record carries `timeZone` (from the
+browser at sign-up), `defaultVoiceId` (George) and `onboardedAt`.
+
+- Google sign-in appears enabled only when `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are set.
+- Without `RESEND_API_KEY`, verification and reset emails are printed to the server log and email
+  verification is not required (fine for internal testing).
+- To try sign-in without Atlas: `DB_DRIVER=memory npm run dev` (data is lost on restart).

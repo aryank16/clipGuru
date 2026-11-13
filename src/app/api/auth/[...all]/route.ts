@@ -1,0 +1,8 @@
+import { toNextJsHandler } from "better-auth/next-js";
+import { auth } from "@/lib/auth";
+
+/** Better Auth's own endpoints: sign-up, sign-in, Google, verify, reset, sign-out, get-session. */
+const handler = (req: Request) => toNextJsHandler(auth()).POST(req);
+const getHandler = (req: Request) => toNextJsHandler(auth()).GET(req);
+
+export { getHandler as GET, handler as POST };
