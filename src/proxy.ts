@@ -27,9 +27,9 @@ export function proxy(request: NextRequest) {
     if (pathname !== "/") url.searchParams.set("next", pathname + search);
     return NextResponse.redirect(url);
   }
-  if (hasSession && isAuthPage && pathname !== "/reset-password") {
-    return NextResponse.redirect(new URL("/videos", request.url));
-  }
+  // Signed-in visitors on an auth page are sent on by the auth layout, which checks the session for real.
+  // Doing it here from the cookie alone loops forever when the cookie is stale (e.g. after the secret changes):
+  // /videos rejects it -> /sign-in -> cookie present -> /videos -> ...
   return NextResponse.next();
 }
 
