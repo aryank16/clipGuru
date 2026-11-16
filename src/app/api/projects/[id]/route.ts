@@ -2,6 +2,7 @@ import { json, parseBody, route } from "@/lib/api/route";
 import { projectsRepo } from "@/lib/projects/repo";
 import { patchBody } from "@/lib/projects/schemas";
 import { projectService } from "@/lib/projects/service";
+import { storyboards } from "@/lib/storyboard";
 import { requireApiSession } from "@/lib/session";
 
 type Ctx = { params: Promise<{ id: string }> };
@@ -11,7 +12,8 @@ export const GET = route<Ctx>(async (req, { params }) => {
   const { user } = await requireApiSession(req);
   const { id } = await params;
   const project = await projectService(projectsRepo()).get(user.id, id);
-  return json({ project, storyboard: null, latestRender: null, posts: [] });
+  const storyboard = project.currentVersion > 0 ? await storyboards().get(user.id, id) : null;
+  return json({ project, storyboard, latestRender: null, posts: [] });
 });
 
 /** PATCH /api/projects/:id — rename, edit the brief or pick a voice. Needs the current rev. */

@@ -4,8 +4,7 @@ import { CHAT_TEXT_MAX } from "./types";
 export const chatBody = z
   .object({
     rev: z.number().int().min(0),
-    // The storyboard step joins the same endpoint in F8.
-    step: z.literal("idea"),
+    step: z.enum(["idea", "storyboard"]),
     text: z
       .string()
       .trim()

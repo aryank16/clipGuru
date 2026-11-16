@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { json, parseBody, route } from "@/lib/api/route";
 import { auth } from "@/lib/auth";
+import { storyboardRepo } from "@/lib/storyboard/repo";
 import { chatRepo } from "@/lib/chat/repo";
 import { deleteMeBody, patchMeBody, toMe } from "@/lib/me";
 import { projectsRepo } from "@/lib/projects/repo";
@@ -36,6 +37,7 @@ export const DELETE = route(async (req) => {
   // Scheduled posts (F13) get cancelled here once they exist.
   await projectsRepo().deleteAllForUser(user.id);
   await chatRepo().deleteAllForUser(user.id);
+  await storyboardRepo().deleteAllForUser(user.id);
   const ctx = await auth().$context;
   await ctx.internalAdapter.deleteUser(user.id); // also removes sessions and linked sign-in methods
   const res = NextResponse.json({ deleted: true }, { status: 202 });

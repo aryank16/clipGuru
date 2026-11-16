@@ -43,11 +43,23 @@ export const fakeChatModel: LanguageModelV4 = {
   provider: "fake",
   modelId: "fake-chat",
   supportedUrls: {},
-  async doGenerate() {
-    throw new Error("The fake chat model only streams.");
+  async doGenerate({ prompt }) {
+    // Only the storyboard writer calls generate; it always asks for JSON.
+    const text = textOf(prompt[prompt.length - 1]);
+    await new Promise((r) => setTimeout(r, 1200));
+    if (/\bfail\b/i.test(text)) throw new Error("fake outage");
+    const json = JSON.stringify(fakeStoryboard(text));
+    return {
+      content: [{ type: "text", text: json }],
+      finishReason: { unified: "stop", raw: "stop" },
+      usage,
+      warnings: [],
+    };
   },
   async doStream({ prompt }) {
     const last = prompt[prompt.length - 1];
+    const system = prompt[0]?.role === "system" ? prompt[0].content : "";
+    if (system.includes("storyboard assistant")) return storyboardChat(last);
     if (last.role === "tool") {
       const wasIdeas = last.content.some((c) => c.type === "tool-result" && c.toolName === "suggestIdeas");
       const reply = wasIdeas
@@ -55,13 +67,7 @@ export const fakeChatModel: LanguageModelV4 = {
         : "I've updated the brief. Who is this video for, and what should they remember?";
       return { stream: stream([{ type: "stream-start", warnings: [] }, ...textParts(reply), finish("stop")]) };
     }
-    const userText =
-      last.role === "user"
-        ? last.content
-            .map((c) => (c.type === "text" ? c.text : ""))
-            .join(" ")
-            .trim()
-        : "";
+    const userText = textOf(last);
     if (/\bfail\b/i.test(userText)) {
       return { stream: stream([{ type: "stream-start", warnings: [] }, { type: "error", error: new Error("fake outage") }]) };
     }
@@ -95,3 +101,128 @@ export const fakeChatModel: LanguageModelV4 = {
     };
   },
 };
+
+type Message = Parameters<LanguageModelV4["doStream"]>[0]["prompt"][number];
+
+function textOf(m: Message | undefined): string {
+  if (!m || m.role !== "user") return "";
+  return m.content
+    .map((c) => (c.type === "text" ? c.text : ""))
+    .join(" ")
+    .trim();
+}
+
+/** Storyboard chat: a revise tool call, then a short confirmation. */
+function storyboardChat(last: Message) {
+  if (last.role === "tool") {
+    const reply = "Done. I've updated the storyboard; the changed scenes are marked.";
+    return { stream: stream([{ type: "stream-start", warnings: [] }, ...textParts(reply), finish("stop")]) };
+  }
+  const userText = textOf(last);
+  if (/\bfail\b/i.test(userText)) {
+    return { stream: stream([{ type: "stream-start", warnings: [] }, { type: "error", error: new Error("fake outage") }]) };
+  }
+  if (/\?$/.test(userText)) {
+    const reply = "Good question. The storyboard has a title, a few explaining scenes and a summary to close.";
+    return { stream: stream([{ type: "stream-start", warnings: [] }, ...textParts(reply), finish("stop")]) };
+  }
+  return {
+    stream: stream([
+      { type: "stream-start", warnings: [] },
+      { type: "tool-call", toolCallId: `call-${Date.now()}`, toolName: "reviseStoryboard", input: JSON.stringify({ instruction: userText }) },
+      finish("tool-calls"),
+    ]),
+  };
+}
+
+type RawScene = { type: string; narration: string; heading: string; [k: string]: unknown };
+
+/**
+ * The writer's three prompts: a fixed six-scene storyboard for a brief, a whole storyboard with
+ * scene 2's heading changed for a revision, or one scene reworded for "Rewrite scene N".
+ */
+function fakeStoryboard(prompt: string): { title: string; scenes: RawScene[] } {
+  const current = prompt.match(/^\{"title".*$/m);
+  if (current) {
+    const sb = JSON.parse(current[0]) as { title: string; scenes: RawScene[] };
+    const rewrite = prompt.match(/Rewrite scene (\d+)/);
+    if (rewrite) {
+      const s = sb.scenes[Number(rewrite[1]) - 1];
+      if (s) {
+        s.narration = `Put another way, ${s.narration.charAt(0).toLowerCase()}${s.narration.slice(1)}`;
+        s.heading = `${s.heading} (new take)`.slice(0, 60);
+      }
+    } else if (/shorter|remove/i.test(prompt) && sb.scenes.length > 4) {
+      sb.scenes.splice(sb.scenes.length - 2, 1);
+    } else if (sb.scenes[1]) {
+      sb.scenes[1].heading = `Revised: ${sb.scenes[1].heading.replace(/^Revised: /, "")}`.slice(0, 60);
+    }
+    return sb;
+  }
+  const topic = prompt.match(/^Topic: (.*)$/m)?.[1]?.trim() || "this idea";
+  return {
+    title: topic,
+    scenes: [
+      {
+        type: "title",
+        heading: topic,
+        subtitle: "What it is, how it works, why it matters",
+        icon: "Sparkles",
+        narration: `Let's explore ${topic}. In the next minute you will see what it is, how it works, and why it matters to you every single day.`,
+      },
+      {
+        type: "focus",
+        heading: "What it is",
+        icon: "Lightbulb",
+        items: [
+          { label: "Simple idea", cue: "simple" },
+          { label: "Big effect", cue: "effect" },
+        ],
+        narration:
+          "At its heart, this is a simple idea. One small cause leads to a surprisingly big effect, and once you see the pattern, you start noticing it everywhere around you.",
+      },
+      {
+        type: "flow",
+        heading: "How it works",
+        items: [
+          { icon: "Play", label: "Start", cue: "starts" },
+          { icon: "RefreshCw", label: "Change", cue: "changes" },
+          { icon: "Check", label: "Result", cue: "result" },
+        ],
+        narration:
+          "Here is how it works. Everything starts with a single input. That input changes as it moves through the system, step by step. The result is something new, built from those small steps.",
+      },
+      {
+        type: "stat",
+        value: "3",
+        heading: "Steps to remember",
+        icon: "ListOrdered",
+        items: [{ label: "3", cue: "three" }],
+        narration:
+          "In fact, you only need to remember three steps. Start, change, result. Hold on to those, and the whole idea falls neatly into place for you.",
+      },
+      {
+        type: "iconList",
+        heading: "Why it matters",
+        items: [
+          { icon: "Sun", label: "Daily life", cue: "daily" },
+          { icon: "Target", label: "Better choices", cue: "choices" },
+          { icon: "Brain", label: "Clear thinking", cue: "thinking" },
+        ],
+        narration:
+          "Why does it matter? It shapes your daily life in quiet ways. It helps you make better choices. And it trains clear thinking you can use anywhere.",
+      },
+      {
+        type: "summary",
+        heading: "Key takeaways",
+        items: [
+          { label: "A simple cause", cue: "simple" },
+          { label: "Step by step", cue: "step" },
+          { label: "Seen everywhere", cue: "everywhere" },
+        ],
+        narration:
+          "So, to sum up. A simple cause, working step by step, creates effects you can see everywhere. Now you will never look at it the same way again.",
+      },
+    ],
+  };
+}

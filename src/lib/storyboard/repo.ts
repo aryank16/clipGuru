@@ -1,0 +1,129 @@
+import "server-only";
+import { randomBytes } from "node:crypto";
+import { MongoServerError, ObjectId, type Collection } from "mongodb";
+import { db } from "../db";
+import { dbDriver } from "../env";
+import type { StoryboardVersionRecord } from "./types";
+
+/** Storyboard versions (Database Design → storyboard_versions). Append-only; every method is scoped to one user. */
+export interface StoryboardRepo {
+  /** Returns false when that version number already exists for the project (two writers raced). */
+  insert(record: StoryboardVersionRecord): Promise<boolean>;
+  get(userId: string, projectId: string, version: number): Promise<StoryboardVersionRecord | null>;
+  /** Newest first, without the storyboards themselves. */
+  list(userId: string, projectId: string): Promise<Omit<StoryboardVersionRecord, "storyboard">[]>;
+  remove(userId: string, projectId: string, version: number): Promise<void>;
+  deleteAllForUser(userId: string): Promise<number>;
+  newId(): string;
+}
+
+// ── MongoDB ──────────────────────────────────────────────────────────────────
+
+type Doc = Omit<StoryboardVersionRecord, "id"> & { _id: ObjectId };
+
+let indexesReady: Promise<unknown> | null = null;
+
+function collection(): Collection<Doc> {
+  const c = db().collection<Doc>("storyboard_versions");
+  indexesReady ??= c
+    .createIndexes([{ key: { projectId: 1, version: -1 }, unique: true }, { key: { userId: 1 } }])
+    .catch((err) => {
+      indexesReady = null;
+      console.error("[storyboard] index creation failed", err);
+    });
+  return c;
+}
+
+function fromDoc({ _id, ...rest }: Doc): StoryboardVersionRecord {
+  return { id: _id.toHexString(), ...rest };
+}
+
+const mongoRepo: StoryboardRepo = {
+  newId: () => new ObjectId().toHexString(),
+
+  async insert(record) {
+    const { id, ...rest } = record;
+    // The unique index is what stops two versions with one number, so it must exist first.
+    await indexesReady;
+    try {
+      await collection().insertOne({ _id: new ObjectId(id), ...rest });
+      return true;
+    } catch (err) {
+      if (err instanceof MongoServerError && err.code === 11000) return false;
+      throw err;
+    }
+  },
+
+  async get(userId, projectId, version) {
+    const d = await collection().findOne({ userId, projectId, version });
+    return d ? fromDoc(d) : null;
+  },
+
+  async list(userId, projectId) {
+    const docs = await collection()
+      .find({ userId, projectId }, { projection: { storyboard: 0 } })
+      .sort({ version: -1 })
+      .toArray();
+    return docs.map((d) => fromDoc(d as Doc));
+  },
+
+  async remove(userId, projectId, version) {
+    await collection().deleteOne({ userId, projectId, version });
+  },
+
+  async deleteAllForUser(userId) {
+    return (await collection().deleteMany({ userId })).deletedCount;
+  },
+};
+
+// ── Memory (DB_DRIVER=memory) ────────────────────────────────────────────────
+
+const g = globalThis as unknown as { __memoryStoryboards?: Map<string, StoryboardVersionRecord> };
+const store = (g.__memoryStoryboards ??= new Map());
+const key = (projectId: string, version: number) => `${projectId}:${version}`;
+
+export const memoryStoryboards: StoryboardRepo = {
+  newId: () => randomBytes(12).toString("hex"),
+
+  async insert(record) {
+    const k = key(record.projectId, record.version);
+    if (store.has(k)) return false;
+    store.set(k, structuredClone(record));
+    return true;
+  },
+
+  async get(userId, projectId, version) {
+    const r = store.get(key(projectId, version));
+    return r && r.userId === userId ? structuredClone(r) : null;
+  },
+
+  async list(userId, projectId) {
+    return [...store.values()]
+      .filter((r) => r.userId === userId && r.projectId === projectId)
+      .sort((a, b) => b.version - a.version)
+      .map((r) => {
+        const copy: Partial<StoryboardVersionRecord> = structuredClone(r);
+        delete copy.storyboard;
+        return copy as Omit<StoryboardVersionRecord, "storyboard">;
+      });
+  },
+
+  async remove(userId, projectId, version) {
+    const r = store.get(key(projectId, version));
+    if (r && r.userId === userId) store.delete(key(projectId, version));
+  },
+
+  async deleteAllForUser(userId) {
+    let n = 0;
+    for (const [k, r] of store) if (r.userId === userId && store.delete(k)) n++;
+    return n;
+  },
+};
+
+export function resetMemoryStoryboards() {
+  store.clear();
+}
+
+export function storyboardRepo(): StoryboardRepo {
+  return dbDriver() === "memory" ? memoryStoryboards : mongoRepo;
+}

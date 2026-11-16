@@ -1,13 +1,13 @@
 import type { Brief } from "../brief";
 
-/** Chat messages (API Design → ChatMessage). The storyboard step joins in F8. */
+/** Chat messages (API Design → ChatMessage). Each step has its own conversation. */
 export const CHAT_STEPS = ["idea", "storyboard"] as const;
 export type ChatStep = (typeof CHAT_STEPS)[number];
 
 export type Idea = { title: string; hook: string };
 
 /** What a reply changed, so the UI can show it again after a reload. */
-export type ToolResult = { brief?: Brief; ideas?: Idea[] } | null;
+export type ToolResult = { brief?: Brief; ideas?: Idea[]; storyboard?: { version: number; changedScenes: number[] } } | null;
 
 export type ChatMessageRecord = {
   id: string;

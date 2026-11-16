@@ -1,9 +1,10 @@
 "use client";
 
-import { ArrowRight, ChevronDown, Clock, Plus, X } from "lucide-react";
+import { ArrowRight, ChevronDown, Clock, Lock, Plus, X } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 import { Status, type SaveState } from "@/components/account/save";
-import { Button } from "@/components/ui/button";
+import { Button, buttonClasses } from "@/components/ui/button";
 import { BRIEF_LIMITS, briefComplete, TONE_PRESETS, type Brief } from "@/lib/brief";
 import { cn } from "@/lib/cn";
 
@@ -13,7 +14,8 @@ const control =
 
 /**
  * The brief beside the chat. The chat fills it in; every field can be edited by hand and saves on
- * blur. Locked while a reply is streaming, so the two can't overwrite each other.
+ * blur. Disabled while a reply is streaming, so the two can't overwrite each other, and read-only
+ * once the storyboard exists (`storyboardHref`).
  */
 export function BriefPanel({
   brief,
@@ -21,15 +23,23 @@ export function BriefPanel({
   save,
   saveState,
   saveError,
+  storyboardHref,
+  onWrite,
+  writeError,
 }: {
   brief: Brief;
   locked: boolean;
   save: (next: Brief) => void;
   saveState: SaveState;
   saveError: string | null;
+  storyboardHref: string | null;
+  onWrite: () => void;
+  writeError: string | null;
 }) {
   const [open, setOpen] = useState(false);
   const ready = briefComplete(brief);
+  const done = storyboardHref !== null;
+  locked = locked || done;
 
   return (
     <section
@@ -108,14 +118,38 @@ export function BriefPanel({
       </div>
 
       <div className="flex flex-col gap-2">
-        <Button size="lg" disabled className="w-full uppercase tracking-wide">
-          Write storyboard <ArrowRight className="size-4" />
-        </Button>
-        <p className="text-center text-sm text-taupe">
-          {ready
-            ? "Your brief is ready. Writing the storyboard arrives in the next update."
-            : "Add a topic and at least one key point to continue."}
-        </p>
+        {done ? (
+          <>
+            <Link href={storyboardHref} className={buttonClasses("primary", "lg", "w-full uppercase tracking-wide")}>
+              Open storyboard <ArrowRight className="size-4" />
+            </Link>
+            <p className="flex items-center justify-center gap-1.5 text-center text-sm text-taupe">
+              <Lock className="size-3.5" aria-hidden /> The brief is locked now that the storyboard exists.
+            </p>
+          </>
+        ) : (
+          <>
+            <Button
+              size="lg"
+              disabled={!ready || locked}
+              onClick={onWrite}
+              className="w-full uppercase tracking-wide"
+            >
+              Write storyboard <ArrowRight className="size-4" />
+            </Button>
+            {writeError ? (
+              <p role="alert" className="text-center text-sm text-danger">
+                {writeError}
+              </p>
+            ) : (
+              <p className="text-center text-sm text-taupe">
+                {ready
+                  ? "Your brief is ready. The brief locks once the storyboard is written."
+                  : "Add a topic and at least one key point to continue."}
+              </p>
+            )}
+          </>
+        )}
       </div>
     </section>
   );

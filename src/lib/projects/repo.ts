@@ -8,7 +8,9 @@ import { countsFrom, cursorFor, escapeRegex, readCursor } from "./shared";
 import { FILTER_STATUSES, type FilterCounts, type ProjectFilter, type ProjectRecord } from "./types";
 
 export type ListOptions = { filter: ProjectFilter; q?: string; limit: number; cursor?: string };
-export type Patch = Partial<Pick<ProjectRecord, "title" | "brief" | "voiceId">>;
+export type Patch = Partial<
+  Pick<ProjectRecord, "title" | "brief" | "voiceId" | "status" | "step" | "briefLockedAt" | "currentVersion">
+>;
 
 /** Every method is scoped to one user; another user's project behaves as missing. */
 export interface ProjectsRepo {
