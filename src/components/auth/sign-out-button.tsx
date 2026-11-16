@@ -14,7 +14,7 @@ export function SignOutButton({ compact = false }: { compact?: boolean }) {
     <Button
       variant={compact ? "ghost" : "secondary"}
       size={compact ? "sm" : "md"}
-      className={compact ? "size-9 px-0 text-taupe hover:text-espresso" : undefined}
+      className={compact ? "size-11 px-0 text-taupe hover:text-espresso" : undefined}
       aria-label={compact ? "Sign out" : undefined}
       title={compact ? "Sign out" : undefined}
       disabled={busy}

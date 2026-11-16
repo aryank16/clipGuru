@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { VideoLibrary } from "@/components/videos/library";
 import { projectsRepo } from "@/lib/projects/repo";
+import { toMe } from "@/lib/me";
 import { toProject } from "@/lib/projects/types";
 import { requirePageSession } from "@/lib/session";
 
@@ -19,6 +21,9 @@ async function Library() {
   const { user } = await requirePageSession();
   const repo = projectsRepo();
   const [page, counts] = await Promise.all([repo.list(user.id, { filter: "all", limit: 20 }), repo.counts(user.id)]);
+  // New accounts see the welcome screen first, once, whichever way they signed up. Accounts that
+  // already have videos (made before the welcome screen existed, or via New video) skip it.
+  if (!toMe(user).onboarded && counts.all === 0) redirect("/welcome");
   return (
     <VideoLibrary initial={{ items: page.items.map(toProject), nextCursor: page.nextCursor }} initialCounts={counts} />
   );

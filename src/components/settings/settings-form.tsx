@@ -1,66 +1,18 @@
 "use client";
 
-import { Check, Pause, Play } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
+import { patchMe, Status, useSaver } from "@/components/account/save";
+import { VoicePicker } from "@/components/account/voice-picker";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
-import { cn } from "@/lib/cn";
 import type { Me } from "@/lib/me";
 import { NAME_MAX } from "@/lib/me";
 import type { TimeZoneOption } from "@/lib/timezones";
 import type { Voice } from "@/lib/voices";
 
 const noopSubscribe = () => () => {};
-
-type SaveState = "idle" | "saving" | "saved" | "error";
-
-async function patchMe(body: Partial<Pick<Me, "name" | "timeZone" | "defaultVoiceId">>): Promise<Me> {
-  const res = await fetch("/api/me", {
-    method: "PATCH",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  const data = await res.json().catch(() => null);
-  if (!res.ok) throw new Error(Object.values(data?.error?.details ?? {})[0] as string ?? data?.error?.message ?? "Couldn't save.");
-  return data as Me;
-}
-
-function Status({ state, error }: { state: SaveState; error?: string | null }) {
-  if (state === "saving") return <span className="text-sm text-taupe">Saving…</span>;
-  if (state === "saved")
-    return (
-      <span className="flex items-center gap-1.5 text-sm text-success" role="status">
-        <Check className="size-4" /> Saved
-      </span>
-    );
-  if (state === "error") return <span className="text-sm text-danger" role="alert">{error}</span>;
-  return null;
-}
-
-/** Runs a save, shows Saving… / Saved / the error, and clears "Saved" after a moment. */
-function useSaver() {
-  const [state, setState] = useState<SaveState>("idle");
-  const [error, setError] = useState<string | null>(null);
-  const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
-  useEffect(() => () => clearTimeout(timer.current), []);
-  async function run<T>(fn: () => Promise<T>): Promise<T | undefined> {
-    clearTimeout(timer.current);
-    setState("saving");
-    setError(null);
-    try {
-      const out = await fn();
-      setState("saved");
-      timer.current = setTimeout(() => setState("idle"), 2500);
-      return out;
-    } catch (e) {
-      setState("error");
-      setError((e as Error).message);
-    }
-  }
-  return { state, error, run };
-}
 
 export function SettingsForm({
   me,
@@ -157,92 +109,16 @@ function AccountSection({ me, hasPassword }: { me: Me; hasPassword: boolean }) {
 }
 
 function VoiceSection({ current, voices }: { current: string; voices: Voice[] }) {
-  const [selected, setSelected] = useState(current);
-  const [playing, setPlaying] = useState<string | null>(null);
-  const audio = useRef<HTMLAudioElement | null>(null);
   const { state, error, run } = useSaver();
-
-  useEffect(() => () => audio.current?.pause(), []);
-
-  function toggle(v: Voice) {
-    if (playing === v.id) {
-      audio.current?.pause();
-      setPlaying(null);
-      return;
-    }
-    audio.current?.pause();
-    const a = new Audio(v.previewUrl);
-    a.onended = () => setPlaying(null);
-    audio.current = a;
-    a.play().then(() => setPlaying(v.id)).catch(() => setPlaying(null));
-  }
-
-  async function choose(id: string) {
-    if (id === selected) return;
-    const before = selected;
-    setSelected(id);
-    const out = await run(() => patchMe({ defaultVoiceId: id }));
-    if (!out) setSelected(before);
-  }
-
   return (
     <Card className="flex flex-col gap-5 p-6 sm:p-8">
       <SectionHeader index="02" eyebrow="Narrator" title="Default voice" aside={<Status state={state} error={error} />} />
       <p className="text-taupe">New videos start with this voice. You can still change it on each video.</p>
-      <div role="radiogroup" aria-label="Default voice" className="flex flex-col gap-3">
-        {voices.map((v) => {
-          const on = v.id === selected;
-          return (
-            <div
-              key={v.id}
-              className={cn(
-                "flex items-center gap-4 rounded-xl border px-4 py-4 transition-colors sm:px-5",
-                on ? "border-sand-gold bg-sand-gold/10" : "border-hairline hover:border-taupe/40",
-              )}
-            >
-              <button
-                type="button"
-                role="radio"
-                aria-checked={on}
-                onClick={() => choose(v.id)}
-                className="flex min-w-0 flex-1 items-center gap-4 text-left"
-              >
-                <span
-                  className={cn(
-                    "flex size-5 shrink-0 items-center justify-center rounded-full border-2",
-                    on ? "border-espresso" : "border-taupe/50",
-                  )}
-                  aria-hidden
-                >
-                  {on ? <span className="size-2.5 rounded-full bg-espresso" /> : null}
-                </span>
-                <span className="min-w-0">
-                  <span className="block font-semibold">
-                    {v.name}
-                    <span className="ml-2 font-normal text-taupe">
-                      {v.accent} {v.gender}
-                    </span>
-                  </span>
-                  <span className="block text-sm text-taupe">{v.description}</span>
-                </span>
-              </button>
-              <button
-                type="button"
-                onClick={() => toggle(v)}
-                aria-label={playing === v.id ? `Stop ${v.name} sample` : `Play ${v.name} sample`}
-                className={cn(
-                  "flex size-11 shrink-0 items-center justify-center rounded-full border transition-colors",
-                  playing === v.id
-                    ? "border-espresso-deep bg-espresso-deep text-surface"
-                    : "border-hairline bg-surface text-espresso hover:border-taupe/40",
-                )}
-              >
-                {playing === v.id ? <Pause className="size-4" /> : <Play className="ml-0.5 size-4" />}
-              </button>
-            </div>
-          );
-        })}
-      </div>
+      <VoicePicker
+        current={current}
+        voices={voices}
+        onPick={async (id) => Boolean(await run(() => patchMe({ defaultVoiceId: id })))}
+      />
     </Card>
   );
 }
