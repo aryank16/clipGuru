@@ -23,10 +23,12 @@ export type PreviewHandle = { playScene: (index: number) => void };
 export default function PreviewPlayer({
   storyboard,
   onScene,
+  onReady,
   control,
 }: {
   storyboard: Storyboard;
   onScene: (index: number) => void;
+  onReady: () => void;
   control: RefObject<PreviewHandle | null>;
 }) {
   const player = useRef<PlayerRef>(null);
@@ -53,10 +55,16 @@ export default function PreviewPlayer({
     playScene(index: number) {
       const p = player.current;
       if (!p || starts[index] === undefined) return;
-      p.seekTo(starts[index]);
+      // A moment in, once the scene has faded in (its start is just before its first word and
+      // still shows the last scene's caption).
+      const next = starts[index + 1] ?? Math.ceil(props.durationSec * FPS);
+      p.seekTo(Math.min(starts[index] + 12, Math.max(starts[index], next - 1)));
       p.play();
     },
   }));
+
+  // Lets the page replay a scene chip pressed while the player was still loading.
+  useEffect(() => onReady(), [onReady]);
 
   useEffect(() => {
     const p = player.current;

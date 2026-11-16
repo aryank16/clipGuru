@@ -107,11 +107,17 @@ export function StoryboardStep({
   const previewBox = useRef<HTMLElement>(null);
   const [playing, setPlaying] = useState(0);
   const onScene = useCallback((i: number) => setPlaying(i), []);
+  const pendingScene = useRef<number | null>(null);
+  const onPreviewReady = useCallback(() => {
+    if (pendingScene.current !== null) preview.current?.playScene(pendingScene.current);
+    pendingScene.current = null;
+  }, []);
   function playScene(i: number) {
-    preview.current?.playScene(i);
+    if (preview.current) preview.current.playScene(i);
+    else pendingScene.current = i;
     // On phones the preview sits below the scenes.
     const box = previewBox.current?.getBoundingClientRect();
-    if (box && (box.top > window.innerHeight || box.bottom < 0)) previewBox.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    if (box && window.innerWidth < 1024 && (box.top < 80 || box.bottom > window.innerHeight)) previewBox.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
   const saver = useSaver();
   const base = `/api/projects/${project.id}`;
@@ -339,14 +345,14 @@ export function StoryboardStep({
           <section
             ref={previewBox}
             aria-label="Preview"
-            className="flex flex-col gap-3 rounded-xl border border-hairline bg-surface-warm/60 p-4"
+            className="scroll-mt-24 flex flex-col gap-3 rounded-xl border border-hairline bg-surface-warm/60 p-4"
           >
             <div className="flex items-center justify-between gap-2 font-mono text-xs uppercase tracking-wider text-taupe">
               <span>9:16 reel preview</span>
               <span>Scene {String(playing + 1).padStart(2, "0")}</span>
             </div>
             <div className="mx-auto w-full max-w-72">
-              <PreviewPlayer storyboard={storyboard} onScene={onScene} control={preview} />
+              <PreviewPlayer storyboard={storyboard} onScene={onScene} onReady={onPreviewReady} control={preview} />
             </div>
             <p className="text-center text-xs text-taupe">Silent preview with estimated timing. The voiceover comes later.</p>
           </section>
