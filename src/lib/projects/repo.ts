@@ -22,6 +22,8 @@ export interface ProjectsRepo {
   /** Apply `patch` if the stored rev still equals `rev`; returns the updated record or null. */
   update(userId: string, id: string, rev: number, patch: Patch, now: Date): Promise<ProjectRecord | null>;
   setDeleted(userId: string, id: string, deletedAt: Date | null, now: Date): Promise<ProjectRecord | null>;
+  /** Hard-deletes every project of a user (account deletion). Returns how many went. */
+  deleteAllForUser(userId: string): Promise<number>;
   newId(): string;
 }
 
@@ -58,6 +60,10 @@ function collection(): Collection<Doc> {
 
 const mongoRepo: ProjectsRepo = {
   newId: () => new ObjectId().toHexString(),
+
+  async deleteAllForUser(userId) {
+    return (await collection().deleteMany({ userId })).deletedCount;
+  },
 
   async list(userId, { filter, q, limit, cursor }) {
     const where: Filter<Doc> = { userId, deletedAt: null };
