@@ -3,8 +3,8 @@
 import { ArrowRight, Clapperboard, Lightbulb, Loader2, PanelsTopLeft, Send } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { patchMe, Status, useSaver } from "@/components/settings/save";
-import { VoicePicker } from "@/components/settings/voice-picker";
+import { patchMe, Status, useSaver } from "@/components/account/save";
+import { VoicePicker } from "@/components/account/voice-picker";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import type { Voice } from "@/lib/voices";
@@ -22,16 +22,20 @@ export function Welcome({ firstName, voices, currentVoice }: { firstName: string
   const [leaving, setLeaving] = useState<"start" | "skip" | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  /** Marks the welcome as seen, then moves on; on failure stays here and says so. */
+  // Start and Skip wait for a voice save in progress, so the first video uses the voice just picked.
+  const busy = leaving !== null || voiceSaver.state === "saving";
+
+  /** Marks the welcome as seen, then moves on; on failure stays here and says why. */
   async function finish(to: "/new" | "/videos", which: "start" | "skip") {
     setLeaving(which);
     setError(null);
     try {
       await patchMe({ onboarded: true });
       router.replace(to);
-    } catch {
+      router.refresh();
+    } catch (e) {
       setLeaving(null);
-      setError("Couldn't continue. Check your connection and try again.");
+      setError(e instanceof TypeError ? "Couldn't reach ClipGuru. Check your connection and try again." : (e as Error).message);
     }
   }
 
@@ -57,7 +61,11 @@ export function Welcome({ firstName, voices, currentVoice }: { firstName: string
             <h2 className="text-2xl font-bold">Pick your narrator</h2>
             <p className="text-taupe">Play a sample and choose the voice for your videos. You can change it any time in Settings.</p>
           </div>
-          <VoicePicker current={currentVoice} voices={voices} run={voiceSaver.run} />
+          <VoicePicker
+            current={currentVoice}
+            voices={voices}
+            onPick={async (id) => Boolean(await voiceSaver.run(() => patchMe({ defaultVoiceId: id })))}
+          />
         </Card>
 
         <Card className="flex flex-col gap-6 p-6 sm:p-8">
@@ -69,7 +77,7 @@ export function Welcome({ firstName, voices, currentVoice }: { firstName: string
             </p>
           </div>
           <div className="mt-auto flex flex-col gap-3">
-            <Button size="lg" className="w-full justify-between" disabled={leaving !== null} onClick={() => finish("/new", "start")}>
+            <Button size="lg" className="w-full justify-between" disabled={busy} onClick={() => finish("/new", "start")}>
               Start with an idea
               {leaving === "start" ? <Loader2 className="size-4 animate-spin" /> : <ArrowRight className="size-4" />}
             </Button>
@@ -104,7 +112,7 @@ export function Welcome({ firstName, voices, currentVoice }: { firstName: string
             {error}
           </p>
         ) : null}
-        <Button variant="ghost" disabled={leaving !== null} onClick={() => finish("/videos", "skip")}>
+        <Button variant="ghost" disabled={busy} onClick={() => finish("/videos", "skip")}>
           {leaving === "skip" ? <Loader2 className="size-4 animate-spin" /> : null}
           Skip for now, go to My videos
         </Button>

@@ -5,3 +5,8 @@ export function initials(name: string): string {
   const letters = parts.length > 1 ? parts[0][0] + parts[parts.length - 1][0] : parts[0].slice(0, 2);
   return letters.toUpperCase();
 }
+
+/** First word of a name for greetings ("Maya Lindqvist" → "Maya"), or "there" when the name is empty. */
+export function firstName(name: string): string {
+  return name.trim().split(/\s+/)[0] || "there";
+}

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { NAV, isActive } from "@/components/shell/nav";
-import { initials } from "./initials";
+import { firstName, initials } from "./initials";
 
 describe("initials", () => {
   it("uses first and last word", () => expect(initials("Aryan K Test")).toBe("AT"));
@@ -32,4 +32,10 @@ describe("canonicalRedirect", () => {
       "https://clip-guru.vercel.app/sign-in?next=%2Fvideos",
     ));
   it("does nothing without a host", () => expect(canonicalRedirect(null, "/", app)).toBeNull());
+});
+
+describe("firstName", () => {
+  it("takes the first word", () => expect(firstName("  Maya   Lindqvist ")).toBe("Maya"));
+  it("keeps a single name", () => expect(firstName("Aryan")).toBe("Aryan"));
+  it("falls back for an empty name", () => expect(firstName("   ")).toBe("there"));
 });

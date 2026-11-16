@@ -19,10 +19,11 @@ export default function VideosPage() {
 
 async function Library() {
   const { user } = await requirePageSession();
-  // New accounts see the welcome screen first (once), whichever way they signed up.
-  if (!toMe(user).onboarded) redirect("/welcome");
   const repo = projectsRepo();
   const [page, counts] = await Promise.all([repo.list(user.id, { filter: "all", limit: 20 }), repo.counts(user.id)]);
+  // New accounts see the welcome screen first, once, whichever way they signed up. Accounts that
+  // already have videos (made before the welcome screen existed, or via New video) skip it.
+  if (!toMe(user).onboarded && counts.all === 0) redirect("/welcome");
   return (
     <VideoLibrary initial={{ items: page.items.map(toProject), nextCursor: page.nextCursor }} initialCounts={counts} />
   );

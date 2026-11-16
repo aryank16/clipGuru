@@ -4,8 +4,9 @@ import { Check } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { Me } from "@/lib/me";
 
-type SaveState = "idle" | "saving" | "saved" | "error";
+export type SaveState = "idle" | "saving" | "saved" | "error";
 
+/** PATCH /api/me. Throws with the server's message (first field error, else the error message). */
 export async function patchMe(
   body: Partial<Pick<Me, "name" | "timeZone" | "defaultVoiceId">> & { onboarded?: true },
 ): Promise<Me> {
@@ -15,39 +16,19 @@ export async function patchMe(
     body: JSON.stringify(body),
   });
   const data = await res.json().catch(() => null);
-  if (!res.ok)
-    throw new Error(
-      (Object.values(data?.error?.details ?? {})[0] as string) ??
-        data?.error?.message ??
-        "Couldn't save.",
-    );
+  if (!res.ok) throw new Error((Object.values(data?.error?.details ?? {})[0] as string) ?? data?.error?.message ?? "Couldn't save.");
   return data as Me;
 }
 
-export function Status({
-  state,
-  error,
-}: {
-  state: SaveState;
-  error?: string | null;
-}) {
-  if (state === "saving")
-    return <span className="text-sm text-taupe">Saving…</span>;
+export function Status({ state, error }: { state: SaveState; error?: string | null }) {
+  if (state === "saving") return <span className="text-sm text-taupe">Saving…</span>;
   if (state === "saved")
     return (
-      <span
-        className="flex items-center gap-1.5 text-sm text-success"
-        role="status"
-      >
+      <span className="flex items-center gap-1.5 text-sm text-success" role="status">
         <Check className="size-4" /> Saved
       </span>
     );
-  if (state === "error")
-    return (
-      <span className="text-sm text-danger" role="alert">
-        {error}
-      </span>
-    );
+  if (state === "error") return <span className="text-sm text-danger" role="alert">{error}</span>;
   return null;
 }
 

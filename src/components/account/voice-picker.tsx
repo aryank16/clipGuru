@@ -4,22 +4,27 @@ import { Pause, Play } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
 import type { Voice } from "@/lib/voices";
-import { patchMe } from "./save";
 
-/** George / Alice radio list with a sample to play; choosing one saves it as the default voice at once. */
+/**
+ * George / Alice radio list with a sample to play. Picking a voice shows it at once and calls `onPick`;
+ * if that save fails, the list goes back to the last voice that was saved. Only the newest pick counts,
+ * so quick changes can't end up showing a voice that was never saved.
+ */
 export function VoicePicker({
   current,
   voices,
-  run,
+  onPick,
 }: {
   current: string;
   voices: Voice[];
-  /** The caller's saver, so it can show Saving… / Saved where it wants. */
-  run: <T>(fn: () => Promise<T>) => Promise<T | undefined>;
+  /** Saves the pick; resolves true when it was saved. */
+  onPick: (id: string) => Promise<boolean>;
 }) {
   const [selected, setSelected] = useState(current);
   const [playing, setPlaying] = useState<string | null>(null);
   const audio = useRef<HTMLAudioElement | null>(null);
+  const saved = useRef(current);
+  const latest = useRef(0);
 
   useEffect(() => () => audio.current?.pause(), []);
 
@@ -33,25 +38,21 @@ export function VoicePicker({
     const a = new Audio(v.previewUrl);
     a.onended = () => setPlaying(null);
     audio.current = a;
-    a.play()
-      .then(() => setPlaying(v.id))
-      .catch(() => setPlaying(null));
+    a.play().then(() => setPlaying(v.id)).catch(() => setPlaying(null));
   }
 
   async function choose(id: string) {
     if (id === selected) return;
-    const before = selected;
+    const call = ++latest.current;
     setSelected(id);
-    const out = await run(() => patchMe({ defaultVoiceId: id }));
-    if (!out) setSelected(before);
+    const ok = await onPick(id);
+    if (ok) saved.current = id;
+    if (call !== latest.current) return;
+    if (!ok) setSelected(saved.current);
   }
 
   return (
-    <div
-      role="radiogroup"
-      aria-label="Default voice"
-      className="flex flex-col gap-3"
-    >
+    <div role="radiogroup" aria-label="Default voice" className="flex flex-col gap-3">
       {voices.map((v) => {
         const on = v.id === selected;
         return (
@@ -59,9 +60,7 @@ export function VoicePicker({
             key={v.id}
             className={cn(
               "flex items-center gap-4 rounded-xl border px-4 py-4 transition-colors sm:px-5",
-              on
-                ? "border-sand-gold bg-sand-gold/10"
-                : "border-hairline hover:border-taupe/40",
+              on ? "border-sand-gold bg-sand-gold/10" : "border-hairline hover:border-taupe/40",
             )}
           >
             <button
@@ -78,9 +77,7 @@ export function VoicePicker({
                 )}
                 aria-hidden
               >
-                {on ? (
-                  <span className="size-2.5 rounded-full bg-espresso" />
-                ) : null}
+                {on ? <span className="size-2.5 rounded-full bg-espresso" /> : null}
               </span>
               <span className="min-w-0">
                 <span className="block font-semibold">
@@ -89,19 +86,13 @@ export function VoicePicker({
                     {v.accent} {v.gender}
                   </span>
                 </span>
-                <span className="block text-sm text-taupe">
-                  {v.description}
-                </span>
+                <span className="block text-sm text-taupe">{v.description}</span>
               </span>
             </button>
             <button
               type="button"
               onClick={() => toggle(v)}
-              aria-label={
-                playing === v.id
-                  ? `Stop ${v.name} sample`
-                  : `Play ${v.name} sample`
-              }
+              aria-label={playing === v.id ? `Stop ${v.name} sample` : `Play ${v.name} sample`}
               className={cn(
                 "flex size-11 shrink-0 items-center justify-center rounded-full border transition-colors",
                 playing === v.id
@@ -109,11 +100,7 @@ export function VoicePicker({
                   : "border-hairline bg-surface text-espresso hover:border-taupe/40",
               )}
             >
-              {playing === v.id ? (
-                <Pause className="size-4" />
-              ) : (
-                <Play className="ml-0.5 size-4" />
-              )}
+              {playing === v.id ? <Pause className="size-4" /> : <Play className="ml-0.5 size-4" />}
             </button>
           </div>
         );

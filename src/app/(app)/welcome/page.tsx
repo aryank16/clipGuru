@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { Welcome } from "@/components/welcome/welcome";
+import { firstName } from "@/lib/initials";
 import { toMe } from "@/lib/me";
 import { requirePageSession } from "@/lib/session";
 import { VOICES } from "@/lib/voices";
@@ -24,6 +25,3 @@ async function WelcomeLoader() {
   return <Welcome firstName={firstName(me.name)} voices={VOICES} currentVoice={me.defaultVoiceId ?? VOICES[0].id} />;
 }
 
-function firstName(name: string): string {
-  return name.trim().split(/\s+/)[0] || "there";
-}

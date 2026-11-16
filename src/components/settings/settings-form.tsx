@@ -2,6 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useSyncExternalStore } from "react";
+import { patchMe, Status, useSaver } from "@/components/account/save";
+import { VoicePicker } from "@/components/account/voice-picker";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
@@ -9,8 +11,6 @@ import type { Me } from "@/lib/me";
 import { NAME_MAX } from "@/lib/me";
 import type { TimeZoneOption } from "@/lib/timezones";
 import type { Voice } from "@/lib/voices";
-import { patchMe, Status, useSaver } from "./save";
-import { VoicePicker } from "./voice-picker";
 
 const noopSubscribe = () => () => {};
 
@@ -28,21 +28,11 @@ export function SettingsForm({
   return (
     <div className="flex max-w-3xl flex-col gap-6">
       <AccountSection me={me} hasPassword={hasPassword} />
-      <VoiceSection
-        current={me.defaultVoiceId ?? voices[0].id}
-        voices={voices}
-      />
+      <VoiceSection current={me.defaultVoiceId ?? voices[0].id} voices={voices} />
       <TimeZoneSection current={me.timeZone} options={timeZones} />
       <Card className="flex flex-col gap-5 p-6 sm:p-8">
-        <SectionHeader
-          index="04"
-          eyebrow="Instagram"
-          title="Instagram account"
-        />
-        <p className="text-taupe">
-          Not connected. Connecting your Instagram account comes in a later
-          update.
-        </p>
+        <SectionHeader index="04" eyebrow="Instagram" title="Instagram account" />
+        <p className="text-taupe">Not connected. Connecting your Instagram account comes in a later update.</p>
       </Card>
       <DeleteSection email={me.email} />
     </div>
@@ -69,12 +59,7 @@ function AccountSection({ me, hasPassword }: { me: Me; hasPassword: boolean }) {
 
   return (
     <Card className="flex flex-col gap-6 p-6 sm:p-8">
-      <SectionHeader
-        index="01"
-        eyebrow="Account"
-        title="Profile"
-        aside={<SignOutButton />}
-      />
+      <SectionHeader index="01" eyebrow="Account" title="Profile" aside={<SignOutButton />} />
       <form onSubmit={save} className="grid gap-5 sm:grid-cols-2">
         <div className="flex flex-col gap-2">
           <label htmlFor="display-name" className="text-sm font-medium">
@@ -100,11 +85,7 @@ function AccountSection({ me, hasPassword }: { me: Me; hasPassword: boolean }) {
           </p>
         </div>
         <div className="flex min-h-9 items-center gap-4 sm:col-span-2">
-          <Button
-            type="submit"
-            size="sm"
-            disabled={!dirty || state === "saving"}
-          >
+          <Button type="submit" size="sm" disabled={!dirty || state === "saving"}>
             Save name
           </Button>
           <Status state={state} error={error} />
@@ -114,16 +95,11 @@ function AccountSection({ me, hasPassword }: { me: Me; hasPassword: boolean }) {
         <div>
           <p className="text-sm font-medium">Password</p>
           <p className="text-sm text-taupe">
-            {hasPassword
-              ? "Change it with a reset link sent to your email."
-              : "You sign in with Google."}
+            {hasPassword ? "Change it with a reset link sent to your email." : "You sign in with Google."}
           </p>
         </div>
         {hasPassword ? (
-          <a
-            href="/forgot-password"
-            className="text-sm font-medium underline underline-offset-4"
-          >
+          <a href="/forgot-password" className="text-sm font-medium underline underline-offset-4">
             Change password
           </a>
         ) : null}
@@ -132,37 +108,22 @@ function AccountSection({ me, hasPassword }: { me: Me; hasPassword: boolean }) {
   );
 }
 
-function VoiceSection({
-  current,
-  voices,
-}: {
-  current: string;
-  voices: Voice[];
-}) {
+function VoiceSection({ current, voices }: { current: string; voices: Voice[] }) {
   const { state, error, run } = useSaver();
   return (
     <Card className="flex flex-col gap-5 p-6 sm:p-8">
-      <SectionHeader
-        index="02"
-        eyebrow="Narrator"
-        title="Default voice"
-        aside={<Status state={state} error={error} />}
+      <SectionHeader index="02" eyebrow="Narrator" title="Default voice" aside={<Status state={state} error={error} />} />
+      <p className="text-taupe">New videos start with this voice. You can still change it on each video.</p>
+      <VoicePicker
+        current={current}
+        voices={voices}
+        onPick={async (id) => Boolean(await run(() => patchMe({ defaultVoiceId: id })))}
       />
-      <p className="text-taupe">
-        New videos start with this voice. You can still change it on each video.
-      </p>
-      <VoicePicker current={current} voices={voices} run={run} />
     </Card>
   );
 }
 
-function TimeZoneSection({
-  current,
-  options,
-}: {
-  current: string;
-  options: TimeZoneOption[];
-}) {
+function TimeZoneSection({ current, options }: { current: string; options: TimeZoneOption[] }) {
   const [tz, setTz] = useState(current);
   const { state, error, run } = useSaver();
   const browserTz = useSyncExternalStore(
@@ -180,15 +141,8 @@ function TimeZoneSection({
 
   return (
     <Card className="flex flex-col gap-5 p-6 sm:p-8">
-      <SectionHeader
-        index="03"
-        eyebrow="Scheduling"
-        title="Time zone"
-        aside={<Status state={state} error={error} />}
-      />
-      <p className="text-taupe">
-        Scheduled Instagram posts go out at the time you pick in this zone.
-      </p>
+      <SectionHeader index="03" eyebrow="Scheduling" title="Time zone" aside={<Status state={state} error={error} />} />
+      <p className="text-taupe">Scheduled Instagram posts go out at the time you pick in this zone.</p>
       <label htmlFor="tz" className="sr-only">
         Time zone
       </label>
@@ -204,9 +158,7 @@ function TimeZoneSection({
           </option>
         ))}
       </select>
-      {browserTz &&
-      browserTz !== tz &&
-      options.some((o) => o.id === browserTz) ? (
+      {browserTz && browserTz !== tz && options.some((o) => o.id === browserTz) ? (
         <button
           type="button"
           onClick={() => change(browserTz)}
@@ -226,34 +178,24 @@ function DeleteSection({ email }: { email: string }) {
       <SectionHeader index="05" eyebrow="Danger zone" title="Delete account" />
       <div className="flex flex-wrap items-center justify-between gap-4">
         <p className="max-w-lg text-taupe">
-          Deletes your account and all your videos for good. This can&apos;t be
-          undone.
+          Deletes your account and all your videos for good. This can&apos;t be undone.
         </p>
         <Button variant="danger" size="sm" onClick={() => setOpen(true)}>
           Delete account
         </Button>
       </div>
-      {open ? (
-        <DeleteDialog email={email} onClose={() => setOpen(false)} />
-      ) : null}
+      {open ? <DeleteDialog email={email} onClose={() => setOpen(false)} /> : null}
     </Card>
   );
 }
 
-function DeleteDialog({
-  email,
-  onClose,
-}: {
-  email: string;
-  onClose: () => void;
-}) {
+function DeleteDialog({ email, onClose }: { email: string; onClose: () => void }) {
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) =>
-      e.key === "Escape" && !busy && onClose();
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && !busy && onClose();
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [busy, onClose]);
@@ -278,10 +220,7 @@ function DeleteDialog({
   }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-espresso/30 p-4 sm:items-center"
-      onMouseDown={() => !busy && onClose()}
-    >
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-espresso/30 p-4 sm:items-center" onMouseDown={() => !busy && onClose()}>
       <form
         role="dialog"
         aria-modal="true"
@@ -294,11 +233,8 @@ function DeleteDialog({
           Delete your account?
         </h2>
         <p className="text-taupe">
-          This deletes{" "}
-          <span className="font-medium text-espresso">{email}</span> and every
-          video in it. Type{" "}
-          <span className="font-mono font-semibold text-espresso">DELETE</span>{" "}
-          to confirm.
+          This deletes <span className="font-medium text-espresso">{email}</span> and every video in it. Type{" "}
+          <span className="font-mono font-semibold text-espresso">DELETE</span> to confirm.
         </p>
         <input
           autoFocus
@@ -317,11 +253,7 @@ function DeleteDialog({
           <Button variant="secondary" onClick={onClose} disabled={busy}>
             Cancel
           </Button>
-          <Button
-            type="submit"
-            variant="danger"
-            disabled={text !== "DELETE" || busy}
-          >
+          <Button type="submit" variant="danger" disabled={text !== "DELETE" || busy}>
             {busy ? "Deleting…" : "Delete for good"}
           </Button>
         </div>
