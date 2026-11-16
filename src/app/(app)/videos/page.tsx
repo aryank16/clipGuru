@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { VideoLibrary } from "@/components/videos/library";
 import { projectsRepo } from "@/lib/projects/repo";
+import { toMe } from "@/lib/me";
 import { toProject } from "@/lib/projects/types";
 import { requirePageSession } from "@/lib/session";
 
@@ -17,6 +19,8 @@ export default function VideosPage() {
 
 async function Library() {
   const { user } = await requirePageSession();
+  // New accounts see the welcome screen first (once), whichever way they signed up.
+  if (!toMe(user).onboarded) redirect("/welcome");
   const repo = projectsRepo();
   const [page, counts] = await Promise.all([repo.list(user.id, { filter: "all", limit: 20 }), repo.counts(user.id)]);
   return (

@@ -30,7 +30,7 @@ export function SignUpForm({ googleEnabled }: { googleEnabled: boolean }) {
       email,
       password,
       timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      callbackURL: "/videos",
+      callbackURL: "/welcome",
     });
     if (error) {
       setError(authErrorMessage(error.code, error.message));
@@ -42,7 +42,7 @@ export function SignUpForm({ googleEnabled }: { googleEnabled: boolean }) {
       setSentTo(email);
       return;
     }
-    router.replace("/videos");
+    router.replace("/welcome");
     router.refresh();
   }
 
@@ -65,7 +65,7 @@ export function SignUpForm({ googleEnabled }: { googleEnabled: boolean }) {
   return (
     <div className="flex flex-col gap-8">
       <AuthHeading>Create account</AuthHeading>
-      <GoogleButton enabled={googleEnabled} callbackURL="/videos" />
+      <GoogleButton enabled={googleEnabled} callbackURL="/welcome" />
       <OrDivider />
       <form onSubmit={onSubmit} className="flex flex-col gap-5" noValidate>
         <Field label="Name" htmlFor="name">
