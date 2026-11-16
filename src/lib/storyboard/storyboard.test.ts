@@ -193,3 +193,14 @@ describe("storyboard chat", () => {
     await expect(sbChat.storyboardChat(deps, { userId: A, projectId: p.id, rev: p.rev, text: "hi" })).rejects.toMatchObject({ code: "NOT_FOUND" });
   });
 });
+
+describe("icons", () => {
+  it("only hands out icons the video can draw", async () => {
+    const { icons } = await import("lucide");
+    const { resolveIcon, SUGGESTED_ICONS } = await import("./icons");
+    for (const name of ["Cheese", "Moped", "cloud-rain", "Home", "nonsense-icon", ...SUGGESTED_ICONS]) {
+      expect(icons).toHaveProperty(resolveIcon(name));
+    }
+    expect(resolveIcon("cloud-rain")).toBe("CloudRain");
+  });
+});
