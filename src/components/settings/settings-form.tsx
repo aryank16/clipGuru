@@ -110,11 +110,16 @@ function AccountSection({ me, hasPassword }: { me: Me; hasPassword: boolean }) {
       <SectionHeader index="01" eyebrow="Account" title="Profile" aside={<SignOutButton />} />
       <form onSubmit={save} className="grid gap-5 sm:grid-cols-2">
         <div className="flex flex-col gap-2">
-          <label htmlFor="name" className="text-sm font-medium">
+          <label htmlFor="display-name" className="text-sm font-medium">
             Name
           </label>
+          {/* The browser must not fill this with the name saved in its own profile: the field shows
+              the account's saved name, and a filled-in value would look saved when it isn't. */}
           <input
-            id="name"
+            id="display-name"
+            autoComplete="off"
+            data-1p-ignore
+            data-lpignore="true"
             value={name}
             maxLength={NAME_MAX}
             onChange={(e) => setName(e.target.value)}
