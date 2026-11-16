@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { ApiError } from "../api/errors";
+import { emptyBrief } from "../brief";
 import { memoryProjects, resetMemoryProjects } from "./memory";
 import { listQuery, patchBody } from "./schemas";
 import { projectService } from "./service";
@@ -101,10 +102,10 @@ describe("projects", () => {
 
   it("duplicates title and brief into a fresh video", async () => {
     const p = await svc.create(A);
-    await svc.patch(A, p.id, { rev: 0, title: "Tides", brief: { topic: "Tides" } });
+    await svc.patch(A, p.id, { rev: 0, title: "Tides", brief: { ...emptyBrief(), title: "Tides" } });
     tick();
     const copy = await svc.duplicate(A, p.id);
-    expect(copy).toMatchObject({ title: "Tides (copy)", brief: { topic: "Tides" }, rev: 0, status: "idea" });
+    expect(copy).toMatchObject({ title: "Tides (copy)", brief: { title: "Tides" }, rev: 0, status: "idea" });
     expect(copy.id).not.toBe(p.id);
     expect(copyTitle("x".repeat(120))).toHaveLength(120);
   });
