@@ -17,6 +17,12 @@ function newer(a: ProjectRecord, b: ProjectRecord): number {
 export const memoryProjects: ProjectsRepo = {
   newId: () => randomBytes(12).toString("hex"),
 
+  async deleteAllForUser(userId) {
+    let n = 0;
+    for (const [id, r] of store) if (r.userId === userId && store.delete(id)) n++;
+    return n;
+  },
+
   async list(userId, { filter, q, limit, cursor }) {
     const statuses = FILTER_STATUSES[filter];
     const needle = q?.toLowerCase();
