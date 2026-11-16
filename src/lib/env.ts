@@ -38,6 +38,12 @@ const schema = z.object({
     .enum(["true", "false"])
     .default("false")
     .transform((v) => v === "true"),
+
+  // F6 Idea chat
+  GEMINI_API_KEY: z.string().optional(),
+  GEMINI_MODEL: z.string().default("gemini-3.5-flash"),
+  /** "fake" answers chats with a scripted model (local end-to-end tests). Never in production. */
+  AI_DRIVER: z.enum(["gemini", "fake"]).optional(),
 });
 
 export type Env = z.infer<typeof schema>;
@@ -69,3 +75,8 @@ export function dbDriver(): "mongodb" | "memory" {
 }
 
 export const googleEnabled = () => Boolean(env().GOOGLE_CLIENT_ID && env().GOOGLE_CLIENT_SECRET);
+
+/** Which model answers chats. "fake" only when asked for, and only alongside the memory database. */
+export function aiDriver(): "gemini" | "fake" {
+  return env().AI_DRIVER === "fake" && dbDriver() === "memory" ? "fake" : "gemini";
+}

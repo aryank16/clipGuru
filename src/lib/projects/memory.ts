@@ -17,6 +17,11 @@ function newer(a: ProjectRecord, b: ProjectRecord): number {
 export const memoryProjects: ProjectsRepo = {
   newId: () => randomBytes(12).toString("hex"),
 
+  async markHasChat(userId, id) {
+    const r = store.get(id);
+    if (r && r.userId === userId) r.hasChat = true;
+  },
+
   async deleteAllForUser(userId) {
     let n = 0;
     for (const [id, r] of store) if (r.userId === userId && store.delete(id)) n++;

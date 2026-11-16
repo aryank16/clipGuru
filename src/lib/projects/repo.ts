@@ -22,6 +22,8 @@ export interface ProjectsRepo {
   /** Apply `patch` if the stored rev still equals `rev`; returns the updated record or null. */
   update(userId: string, id: string, rev: number, patch: Patch, now: Date): Promise<ProjectRecord | null>;
   setDeleted(userId: string, id: string, deletedAt: Date | null, now: Date): Promise<ProjectRecord | null>;
+  /** Notes that the project has a chat. Not an edit, so the rev stays. */
+  markHasChat(userId: string, id: string): Promise<void>;
   /** Hard-deletes every project of a user (account deletion). Returns how many went. */
   deleteAllForUser(userId: string): Promise<number>;
   newId(): string;
@@ -60,6 +62,11 @@ function collection(): Collection<Doc> {
 
 const mongoRepo: ProjectsRepo = {
   newId: () => new ObjectId().toHexString(),
+
+  async markHasChat(userId, id) {
+    const _id = oid(id);
+    if (_id) await collection().updateOne({ _id, userId, hasChat: false }, { $set: { hasChat: true } });
+  },
 
   async deleteAllForUser(userId) {
     return (await collection().deleteMany({ userId })).deletedCount;
