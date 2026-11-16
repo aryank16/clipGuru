@@ -7,7 +7,7 @@ export type ChatStep = (typeof CHAT_STEPS)[number];
 export type Idea = { title: string; hook: string };
 
 /** What a reply changed, so the UI can show it again after a reload. */
-export type ToolResult = { brief: Brief } | { ideas: Idea[] } | null;
+export type ToolResult = { brief?: Brief; ideas?: Idea[] } | null;
 
 export type ChatMessageRecord = {
   id: string;

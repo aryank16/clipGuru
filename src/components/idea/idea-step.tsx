@@ -24,7 +24,7 @@ function toUiMessages(items: ChatMessage[]): IdeaMessage[] {
   return items.map((m) => {
     const parts: IdeaMessage["parts"] = [];
     if (m.text) parts.push({ type: "text", text: m.text });
-    if (m.toolResult && "ideas" in m.toolResult) parts.push({ type: "data-ideas", data: { ideas: m.toolResult.ideas } });
+    if (m.toolResult?.ideas) parts.push({ type: "data-ideas", data: { ideas: m.toolResult.ideas } });
     return { id: m.id, role: m.role, parts, metadata: m.status === "failed" ? { failed: true } : undefined };
   });
 }
@@ -78,38 +78,51 @@ export function IdeaStep({ project, initialMessages }: { project: Project; initi
 
   const busy = status === "submitted" || status === "streaming";
 
+  // Brief saves run one at a time, and a chat message waits for them, so each request
+  // carries the rev the previous save returned (on a slow database they would otherwise 409).
+  const pending = useRef<Promise<unknown>>(Promise.resolve());
+  function afterSaves<T>(fn: () => Promise<T>): Promise<T> {
+    const run = pending.current.then(fn);
+    pending.current = run.catch(() => undefined);
+    return run;
+  }
+
   function send(text: string) {
     const t = text.trim();
     if (!t || busy) return;
     clearError();
-    void sendMessage({ text: t }, { body: { rev: rev.current } });
+    void afterSaves(() => sendMessage({ text: t }, { body: { rev: rev.current } }));
   }
 
-  async function saveBrief(next: Brief) {
+  function saveBrief(next: Brief) {
     const prev = brief;
     const prevTitle = title;
     // Like the chat, the video's name follows the topic until the person renames the video.
     const followTitle = next.title && next.title !== title && (title === DEFAULT_TITLE || title === brief.title);
     setBrief(next);
     if (followTitle) setTitle(next.title);
-    const saved = await saver.run(async () => {
-      const res = await fetch(`/api/projects/${project.id}`, {
-        method: "PATCH",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ rev: rev.current, brief: next, ...(followTitle ? { title: next.title } : {}) }),
+    void afterSaves(async () => {
+      const saved = await saver.run(async () => {
+        const res = await fetch(`/api/projects/${project.id}`, {
+          method: "PATCH",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ rev: rev.current, brief: next, ...(followTitle ? { title: next.title } : {}) }),
+        }).catch(() => {
+          throw new Error("Couldn't reach ClipGuru. Check your connection and try again.");
+        });
+        const data = await res.json().catch(() => null);
+        if (!res.ok) {
+          if (data?.error?.code === "REV_CONFLICT") throw new Error("Changed in another tab. Reload to see the latest.");
+          throw new Error((Object.values(data?.error?.details ?? {})[0] as string) ?? data?.error?.message ?? "Couldn't save.");
+        }
+        return data as Project;
       });
-      const data = await res.json().catch(() => null);
-      if (!res.ok) {
-        if (data?.error?.code === "REV_CONFLICT") throw new Error("Changed in another tab. Reload to see the latest.");
-        throw new Error((Object.values(data?.error?.details ?? {})[0] as string) ?? data?.error?.message ?? "Couldn't save.");
+      if (saved) rev.current = saved.rev;
+      else {
+        setBrief(prev);
+        setTitle(prevTitle);
       }
-      return data as Project;
     });
-    if (saved) rev.current = saved.rev;
-    else {
-      setBrief(prev);
-      setTitle(prevTitle);
-    }
   }
 
   return (

@@ -66,10 +66,8 @@ export function historyMessages(history: ChatMessageRecord[]): ModelMessage[] {
     .map((m): ModelMessage => {
       if (m.role === "user") return { role: "user", content: m.text };
       let note = "";
-      if (m.toolResult && "brief" in m.toolResult) note = "\n[Updated the brief]";
-      if (m.toolResult && "ideas" in m.toolResult) {
-        note = `\n[Suggested ideas: ${m.toolResult.ideas.map((i) => i.title).join("; ")}]`;
-      }
+      if (m.toolResult?.brief) note += "\n[Updated the brief]";
+      if (m.toolResult?.ideas) note += `\n[Suggested ideas: ${m.toolResult.ideas.map((i) => i.title).join("; ")}]`;
       return { role: "assistant", content: (m.text + note).trim() || "(no reply)" };
     });
 }
@@ -221,11 +219,11 @@ export async function ideaChat(
           case "tool-result":
             if (part.toolName === "updateBrief") {
               const data = part.output as BriefData;
-              toolResult = { brief: data.brief };
+              toolResult = { ...toolResult, brief: data.brief };
               writer.write({ type: "data-brief", data });
             } else if (part.toolName === "suggestIdeas") {
               const data = part.output as IdeasData;
-              toolResult = { ideas: data.ideas };
+              toolResult = { ...toolResult, ideas: data.ideas };
               writer.write({ type: "data-ideas", data });
             }
             break;

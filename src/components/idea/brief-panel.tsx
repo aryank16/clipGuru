@@ -94,7 +94,7 @@ export function BriefPanel({
         <div className="grid grid-cols-2 gap-3">
           <div className={fieldBox}>
             <span className="eyebrow">Length</span>
-            <span className="flex items-center gap-1.5 font-mono text-sm text-espresso">
+            <span className="flex items-center gap-1.5 whitespace-nowrap font-mono text-xs text-espresso sm:text-sm">
               <Clock className="size-4 text-taupe" aria-hidden /> 60–90 s (auto)
             </span>
           </div>
