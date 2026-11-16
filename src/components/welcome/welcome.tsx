@@ -7,6 +7,7 @@ import { patchMe, Status, useSaver } from "@/components/account/save";
 import { VoicePicker } from "@/components/account/voice-picker";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { cn } from "@/lib/cn";
 import type { Voice } from "@/lib/voices";
 
 const STEPS = [
@@ -43,7 +44,13 @@ export function Welcome({ firstName, voices, currentVoice }: { firstName: string
     <div className="flex flex-col gap-10 sm:gap-14">
       <header className="flex flex-col gap-5">
         <span className="eyebrow">Getting started</span>
-        <h1 className="break-words font-display text-5xl font-black uppercase leading-[0.95] tracking-tight sm:text-7xl">
+        <h1
+          className={cn(
+            "break-words font-display font-black uppercase leading-[0.95] tracking-tight",
+            // Long names get a smaller size so they wrap between words, not inside one.
+            firstName.length > 10 ? "text-3xl sm:text-6xl" : "text-5xl sm:text-7xl",
+          )}
+        >
           Welcome,
           <br />
           {firstName}.
