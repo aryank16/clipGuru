@@ -21,7 +21,7 @@ export type Word = { text: string; start: number; end: number };
 export type VideoProps = {
   storyboard: Storyboard;
   words: Word[];
-  /** A file in public/ or a full URL; null for a silent preview. */
+  /** A file in public/, an app path (/api/…) or a full URL; null for a silent preview. */
   audioSrc: string | null;
   durationSec: number;
   accent?: string;

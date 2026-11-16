@@ -75,7 +75,7 @@ export const Explainer: React.FC<VideoProps> = ({ storyboard, words, audioSrc, d
   return (
     <AbsoluteFill style={{ background: theme.bg, fontFamily: theme.font }}>
       <Background />
-      {audioSrc && <Audio src={/^https?:/.test(audioSrc) ? audioSrc : staticFile(audioSrc)} />}
+      {audioSrc && <Audio src={/^(https?:|\/)/.test(audioSrc) ? audioSrc : staticFile(audioSrc)} />}
       {storyboard.scenes.map((scene, i) => {
         const t = timings[i];
         const from = Math.round(t.startSec * fps);

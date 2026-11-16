@@ -12,27 +12,33 @@ import type { Storyboard } from "@/lib/storyboard/types";
 import { Explainer } from "@/video/Explainer";
 import { FPS, HEIGHT, WIDTH } from "@/video/theme";
 import { computeSceneTimings, estimateWords } from "@/video/timing";
-import type { VideoProps } from "@/video/types";
+import type { VideoProps, Word } from "@/video/types";
 
 export type PreviewHandle = { playScene: (index: number) => void };
 
+/** A recorded voiceover: the audio and when each narration word is spoken. */
+export type PreviewVoice = { audioSrc: string; words: Word[]; durationSec: number };
+
 /**
- * The storyboard played with the real video scenes, silent, with timing estimated from the narration
- * (the voiceover replaces it in F9). Loaded only in the browser.
+ * The storyboard played with the real video scenes. With a voiceover the scenes follow the spoken
+ * words; without one it is silent, with timing estimated from the narration. Loaded only in the browser.
  */
 export default function PreviewPlayer({
   storyboard,
+  voice,
   onScene,
   onReady,
   control,
 }: {
   storyboard: Storyboard;
+  voice: PreviewVoice | null;
   onScene: (index: number) => void;
   onReady: () => void;
   control: RefObject<PreviewHandle | null>;
 }) {
   const player = useRef<PlayerRef>(null);
   const props = useMemo((): VideoProps => {
+    if (voice) return { storyboard, words: voice.words, audioSrc: voice.audioSrc, durationSec: voice.durationSec };
     const est = estimateWords(storyboard.scenes);
     return {
       storyboard,
@@ -40,7 +46,7 @@ export default function PreviewPlayer({
       audioSrc: null,
       durationSec: est.durationSec,
     };
-  }, [storyboard]);
+  }, [storyboard, voice]);
   const starts = useMemo(
     () =>
       computeSceneTimings(

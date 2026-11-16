@@ -44,6 +44,15 @@ const schema = z.object({
   GEMINI_MODEL: z.string().default("gemini-3.5-flash"),
   /** "fake" answers chats with a scripted model (local end-to-end tests). Never in production. */
   AI_DRIVER: z.enum(["gemini", "fake"]).optional(),
+
+  // F9 Voiceover
+  ELEVENLABS_API_KEY: z.string().optional(),
+  ELEVENLABS_MODEL: z.string().default("eleven_multilingual_v2"),
+  /** Cloudflare R2 (S3 API) for audio and video files. All four are needed. */
+  R2_ACCOUNT_ID: z.string().optional(),
+  R2_ACCESS_KEY_ID: z.string().optional(),
+  R2_SECRET_ACCESS_KEY: z.string().optional(),
+  R2_BUCKET: z.string().default("clipguru-media"),
 });
 
 export type Env = z.infer<typeof schema>;
@@ -79,4 +88,17 @@ export const googleEnabled = () => Boolean(env().GOOGLE_CLIENT_ID && env().GOOGL
 /** Which model answers chats. "fake" only when asked for, and only alongside the memory database. */
 export function aiDriver(): "gemini" | "fake" {
   return env().AI_DRIVER === "fake" && dbDriver() === "memory" ? "fake" : "gemini";
+}
+
+/** Who records the voice: ElevenLabs, the fake voice (local tests only), or nobody yet. */
+export function voiceDriver(): "elevenlabs" | "fake" | null {
+  if (aiDriver() === "fake") return "fake";
+  return env().ELEVENLABS_API_KEY ? "elevenlabs" : null;
+}
+
+/** Where files go: R2, an in-process store (memory database only), or nowhere yet. */
+export function storageDriver(): "r2" | "memory" | null {
+  const e = env();
+  if (e.R2_ACCOUNT_ID && e.R2_ACCESS_KEY_ID && e.R2_SECRET_ACCESS_KEY) return "r2";
+  return dbDriver() === "memory" ? "memory" : null;
 }
