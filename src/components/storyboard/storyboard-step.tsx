@@ -351,7 +351,8 @@ export function StoryboardStep({
               <span>9:16 reel preview</span>
               <span>Scene {String(playing + 1).padStart(2, "0")}</span>
             </div>
-            <div className="mx-auto w-full max-w-72">
+            {/* On phones the player fits between the header and the tab bar. */}
+            <div className="mx-auto w-full max-w-72 max-lg:max-w-[max(11rem,min(18rem,calc((100dvh-15rem)*9/16)))]">
               <PreviewPlayer storyboard={storyboard} onScene={onScene} onReady={onPreviewReady} control={preview} />
             </div>
             <p className="text-center text-xs text-taupe">Silent preview with estimated timing. The voiceover comes later.</p>
