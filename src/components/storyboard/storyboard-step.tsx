@@ -15,6 +15,7 @@ import {
   Sparkles,
   Trash2,
   Undo2,
+  X,
 } from "lucide-react";
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { Status, useSaver } from "@/components/account/save";
@@ -54,6 +55,13 @@ function toUiMessages(items: ChatMessage[]): SbMessage[] {
   }));
 }
 
+/** The video changed somewhere else (another tab); the page loads the latest version. */
+class Conflict extends Error {
+  constructor() {
+    super("Changed in another tab.");
+  }
+}
+
 /** Sends a storyboard change; resolves with the saved version or throws a sentence for the person. */
 async function send(url: string, method: string, body: unknown): Promise<Saved> {
   const res = await fetch(url, {
@@ -65,7 +73,7 @@ async function send(url: string, method: string, body: unknown): Promise<Saved> 
   });
   const data = await res.json().catch(() => null);
   if (!res.ok) {
-    if (data?.error?.code === "REV_CONFLICT") throw new Error("Changed in another tab. Reload to see the latest.");
+    if (data?.error?.code === "REV_CONFLICT") throw new Conflict();
     throw new Error(data?.error?.message ?? "Couldn't save. Try again.");
   }
   return data as Saved;
@@ -97,6 +105,37 @@ export function StoryboardStep({
     return run;
   }
 
+  const [notice, setNotice] = useState<string | null>(null);
+
+  /** After a conflict: load what the other tab saved and say why the change didn't stick. */
+  async function loadLatest() {
+    const res = await fetch(base).catch(() => null);
+    const data = res?.ok ? ((await res.json()) as { project: Project; storyboard: StoryboardVersion | null }) : null;
+    if (!data?.storyboard) {
+      setNotice("This video changed in another tab. Reload the page to see the latest version.");
+      return;
+    }
+    accept({ version: data.storyboard, rev: data.project.rev, warnings: [] });
+    setVoiceId(data.project.voiceId);
+    setNotice("This video changed in another tab, so your last change wasn't saved. The latest version is shown now.");
+  }
+
+  /** Runs a save; a conflict loads the latest version instead of showing an error. */
+  async function save<T>(fn: () => Promise<T>): Promise<T | undefined> {
+    setNotice(null);
+    let conflict = false;
+    const out = await saver.run(async () => {
+      try {
+        return await fn();
+      } catch (e) {
+        if (e instanceof Conflict) conflict = true;
+        throw e;
+      }
+    });
+    if (conflict) await loadLatest();
+    return out;
+  }
+
   function accept(s: Saved) {
     saved.current = s.version;
     rev.current = s.rev;
@@ -122,6 +161,9 @@ export function StoryboardStep({
     onData: (part) => {
       if (part.type === "data-storyboard") accept(part.data);
     },
+    onError: (e) => {
+      if (e.message.includes("REV_CONFLICT")) void afterSaves(loadLatest);
+    },
   });
   const chatBusy = status === "submitted" || status === "streaming";
   const busy = chatBusy || action !== null;
@@ -137,7 +179,7 @@ export function StoryboardStep({
   function edit(next: Storyboard) {
     setStoryboard(next);
     void afterSaves(async () => {
-      const out = await saver.run(() =>
+      const out = await save(() =>
         send(`${base}/storyboard`, "PUT", { rev: rev.current, baseVersion: saved.current.version, storyboard: next }),
       );
       if (out) accept(out);
@@ -149,7 +191,7 @@ export function StoryboardStep({
     if (busy) return;
     setAction(kind === "undo" ? { kind } : { kind: "regen", index: kind.regen });
     void afterSaves(async () => {
-      const out = await saver.run(() =>
+      const out = await save(() =>
         kind === "undo"
           ? send(`${base}/storyboard/undo`, "POST", { rev: rev.current })
           : send(`${base}/storyboard/scenes/${kind.regen}/regenerate`, "POST", { rev: rev.current }),
@@ -164,7 +206,7 @@ export function StoryboardStep({
     const prev = voiceId;
     setVoiceId(id);
     void afterSaves(async () => {
-      const out = await saver.run(async () => {
+      const out = await save(async () => {
         const res = await fetch(base, {
           method: "PATCH",
           headers: { "content-type": "application/json" },
@@ -173,6 +215,7 @@ export function StoryboardStep({
           throw new Error("Couldn't reach ClipGuru. Check your connection and try again.");
         });
         const data = await res.json().catch(() => null);
+        if (data?.error?.code === "REV_CONFLICT") throw new Conflict();
         if (!res.ok) throw new Error(data?.error?.message ?? "Couldn't save.");
         return data as Project;
       });
@@ -184,7 +227,8 @@ export function StoryboardStep({
   const scenes = storyboard.scenes;
   const seconds = scenes.reduce((n, s) => n + sceneSeconds(s), 0);
   const outOfRange = seconds < LENGTH_RANGE.min || seconds > LENGTH_RANGE.max;
-  const changed = new Set(version.storyboard === storyboard ? version.changedScenes : []);
+  // Version 1 is all new, so nothing is marked; later versions mark what they changed.
+  const changed = new Set(version.version > 1 && version.storyboard === storyboard ? version.changedScenes : []);
 
   const update = (i: number, scene: Scene) => edit({ ...storyboard, scenes: scenes.map((s, j) => (j === i ? scene : s)) });
   const move = (i: number, d: -1 | 1) => {
@@ -222,6 +266,22 @@ export function StoryboardStep({
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(300px,360px)] lg:items-start lg:gap-10">
         <div className="flex min-w-0 flex-col gap-6">
+          {notice && (
+            <div
+              role="alert"
+              className="flex items-start justify-between gap-3 rounded-lg border border-sand-gold bg-sand-gold/15 px-4 py-3 text-sm text-espresso"
+            >
+              <span>{notice}</span>
+              <button
+                type="button"
+                onClick={() => setNotice(null)}
+                className="-my-2 -mr-2 inline-flex size-10 shrink-0 items-center justify-center rounded-md text-taupe hover:text-espresso"
+              >
+                <X className="size-4" />
+                <span className="sr-only">Dismiss</span>
+              </button>
+            </div>
+          )}
           <ol className="flex flex-col gap-4" aria-label="Scenes">
             {scenes.map((scene, i) => (
               <SceneCard

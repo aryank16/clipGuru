@@ -194,9 +194,8 @@ export function IdeaStep({
         const data = await res.json().catch(() => null);
         // Someone else already wrote it (another tab): just open it.
         if (res.ok || data?.error?.code === "STORYBOARD_EXISTS") {
-          // This page stays mounted in the background after navigating, so it shows the locked state.
+          // Stays on the writing state until step 2 shows; the brief is locked from here on.
           setWritten(true);
-          setWriting(false);
           router.push(`/videos/${project.id}/storyboard`);
           return;
         }

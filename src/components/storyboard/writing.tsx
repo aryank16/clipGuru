@@ -1,14 +1,14 @@
 import { Loader2 } from "lucide-react";
 
-/** Shown while Gemini writes version 1 (design: 14-writing-storyboard). */
-export function WritingStoryboard() {
+/** Shown while Gemini writes version 1 (design: 14-writing-storyboard), and while step 2 loads. */
+export function WritingStoryboard({ loading = false }: { loading?: boolean }) {
   return (
     <section aria-live="polite" aria-busy className="flex flex-col gap-6">
       <div className="flex flex-col gap-2">
         <span className="flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-taupe">
-          <Loader2 className="size-4 animate-spin" aria-hidden /> Writing your storyboard…
+          <Loader2 className="size-4 animate-spin" aria-hidden /> {loading ? "Opening the storyboard…" : "Writing your storyboard…"}
         </span>
-        <p className="text-taupe">This takes about 20 seconds. The script and scenes are written together.</p>
+        {!loading && <p className="text-taupe">This takes about 20 seconds. The script and scenes are written together.</p>}
       </div>
       <ol className="flex flex-col gap-4" aria-hidden>
         {[0, 1, 2, 3].map((i) => (

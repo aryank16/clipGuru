@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { StoryboardStep } from "@/components/storyboard/storyboard-step";
+import { WritingStoryboard } from "@/components/storyboard/writing";
 import { chatRepo } from "@/lib/chat/repo";
 import { toChatMessage } from "@/lib/chat/types";
 import { projectsRepo } from "@/lib/projects/repo";
@@ -14,7 +15,7 @@ export const metadata: Metadata = { title: "Storyboard" };
 /** Step 2: the script and scenes. Without a storyboard yet, back to step 1. */
 export default function StoryboardPage({ params }: { params: Promise<{ id: string }> }) {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<WritingStoryboard loading />}>
       <Storyboard params={params} />
     </Suspense>
   );
