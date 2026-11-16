@@ -11,13 +11,15 @@ import {
   Loader2,
   Mic,
   Pencil,
+  Play,
   RefreshCw,
   Sparkles,
   Trash2,
   Undo2,
   X,
 } from "lucide-react";
-import { useEffect, useRef, useState, type KeyboardEvent } from "react";
+import dynamic from "next/dynamic";
+import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { Status, useSaver } from "@/components/account/save";
 import { describeError } from "@/components/idea/idea-step";
 import { StepTabs } from "@/components/idea/step-tabs";
@@ -40,6 +42,13 @@ import {
   type StoryboardVersion,
 } from "@/lib/storyboard/types";
 import { VOICES } from "@/lib/voices";
+import type { PreviewHandle } from "./preview-player";
+
+// The player and the scenes only run in the browser.
+const PreviewPlayer = dynamic(() => import("./preview-player"), {
+  ssr: false,
+  loading: () => <div className="aspect-[9/16] w-full animate-pulse rounded-lg bg-paper" />,
+});
 
 type Saved = { version: StoryboardVersion; rev: number; warnings: string[]; project?: Project };
 type SbMessage = UIMessage<{ failed?: boolean }, { storyboard: Saved }>;
@@ -94,6 +103,22 @@ export function StoryboardStep({
   const [action, setAction] = useState<{ kind: "regen"; index: number } | { kind: "undo" } | null>(null);
   const rev = useRef(project.rev);
   const saved = useRef(initialVersion);
+  const preview = useRef<PreviewHandle | null>(null);
+  const previewBox = useRef<HTMLElement>(null);
+  const [playing, setPlaying] = useState(0);
+  const onScene = useCallback((i: number) => setPlaying(i), []);
+  const pendingScene = useRef<number | null>(null);
+  const onPreviewReady = useCallback(() => {
+    if (pendingScene.current !== null) preview.current?.playScene(pendingScene.current);
+    pendingScene.current = null;
+  }, []);
+  function playScene(i: number) {
+    if (preview.current) preview.current.playScene(i);
+    else pendingScene.current = i;
+    // On phones the preview sits below the scenes.
+    const box = previewBox.current?.getBoundingClientRect();
+    if (box && window.innerWidth < 1024 && (box.top < 80 || box.bottom > window.innerHeight)) previewBox.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
   const saver = useSaver();
   const base = `/api/projects/${project.id}`;
 
@@ -291,6 +316,8 @@ export function StoryboardStep({
                 index={i}
                 count={scenes.length}
                 changed={changed.has(i)}
+                playing={playing === i}
+                onPlay={() => playScene(i)}
                 busy={busy}
                 regenerating={action?.kind === "regen" && action.index === i}
                 onChange={(s) => update(i, s)}
@@ -315,7 +342,21 @@ export function StoryboardStep({
         </div>
 
         <aside className="flex flex-col gap-6 lg:sticky lg:top-8">
-          <Preview title={storyboard.title} />
+          <section
+            ref={previewBox}
+            aria-label="Preview"
+            className="scroll-mt-24 flex flex-col gap-3 rounded-xl border border-hairline bg-surface-warm/60 p-4"
+          >
+            <div className="flex items-center justify-between gap-2 font-mono text-xs uppercase tracking-wider text-taupe">
+              <span>9:16 reel preview</span>
+              <span>Scene {String(playing + 1).padStart(2, "0")}</span>
+            </div>
+            {/* On phones the player fits between the header and the tab bar. */}
+            <div className="mx-auto w-full max-w-72 max-lg:max-w-[max(11rem,min(18rem,calc((100dvh-15rem)*9/16)))]">
+              <PreviewPlayer storyboard={storyboard} onScene={onScene} onReady={onPreviewReady} control={preview} />
+            </div>
+            <p className="text-center text-xs text-taupe">Silent preview with estimated timing. The voiceover comes later.</p>
+          </section>
           <VoicePicker value={voiceId} disabled={busy} onPick={pickVoice} />
           <div className="flex flex-col gap-2">
             <Button size="lg" disabled className="w-full uppercase tracking-wide">
@@ -336,6 +377,8 @@ function SceneCard({
   changed,
   busy,
   regenerating,
+  playing,
+  onPlay,
   onChange,
   onMove,
   onRemove,
@@ -347,6 +390,8 @@ function SceneCard({
   changed: boolean;
   busy: boolean;
   regenerating: boolean;
+  playing: boolean;
+  onPlay: () => void;
   onChange: (s: Scene) => void;
   onMove: (d: -1 | 1) => void;
   onRemove: () => void;
@@ -387,14 +432,19 @@ function SceneCard({
         </span>
       )}
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-hairline px-4 py-3 sm:px-5">
-        <span
+        <button
+          type="button"
+          onClick={onPlay}
+          title="Play this scene in the preview"
           className={cn(
-            "rounded px-2 py-1 font-mono text-xs font-semibold",
-            changed ? "bg-sand-gold/50 text-espresso" : "bg-surface-warm text-espresso",
+            "inline-flex h-10 items-center gap-1.5 rounded px-2 font-mono text-xs font-semibold hover:ring-2 hover:ring-sand-gold/50",
+            playing ? "bg-espresso-deep text-surface" : changed ? "bg-sand-gold/50 text-espresso" : "bg-surface-warm text-espresso",
           )}
         >
+          <Play className="size-3" aria-hidden />
           SC {String(n).padStart(2, "0")}
-        </span>
+          <span className="sr-only">: play scene {n} in the preview</span>
+        </button>
         <span className="font-mono text-xs uppercase tracking-wider text-taupe">{SCENE_LABELS[scene.type]}</span>
         {scene.type === "stat" && <span className="font-display text-lg font-black">{scene.value}</span>}
         <label htmlFor={`scene-${n}-heading`} className="sr-only">
@@ -642,18 +692,6 @@ function ChatPanel({
           </button>
           <div className="px-2">{saveStatus}</div>
         </div>
-      </div>
-    </section>
-  );
-}
-
-function Preview({ title }: { title: string }) {
-  return (
-    <section aria-label="Preview" className="flex flex-col gap-3 rounded-xl border border-hairline bg-surface-warm/60 p-4">
-      <span className="font-mono text-xs uppercase tracking-wider text-taupe">9:16 reel preview</span>
-      <div className="mx-auto flex aspect-[9/16] w-full max-w-60 flex-col items-center justify-center gap-3 rounded-lg border border-hairline bg-paper px-6 text-center">
-        <span className="font-display text-xl font-black uppercase leading-tight tracking-tight">{title}</span>
-        <span className="text-sm text-taupe">The live preview arrives in the next update.</span>
       </div>
     </section>
   );

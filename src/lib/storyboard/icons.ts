@@ -1,5 +1,6 @@
 import "server-only";
-import { icons } from "lucide-react";
+// The same icon set the video draws with (src/video/components/DrawIcon), so a name that passes here renders.
+import { icons } from "lucide";
 
 const names = Object.keys(icons);
 const lower = new Map(names.map((n) => [n.toLowerCase(), n]));
