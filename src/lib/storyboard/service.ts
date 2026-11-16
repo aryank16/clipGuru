@@ -30,6 +30,9 @@ export type VersionSummary = Omit<StoryboardVersion, "storyboard">;
 
 type Deps = { projects: ProjectsRepo; storyboards: StoryboardRepo; writer: StoryboardWriter; now?: () => Date };
 
+/** How long a version without its project update counts as in flight, before it is an orphan. */
+const ORPHAN_WAIT_MS = 1500;
+
 function warningsFor(sb: Storyboard): Warning[] {
   const s = estSeconds(sb);
   return s < LENGTH_RANGE.min || s > LENGTH_RANGE.max ? ["LENGTH_OUT_OF_RANGE"] : [];
@@ -89,19 +92,35 @@ export function storyboardService({ projects, storyboards, writer, now = () => n
         ? new ApiError("STORYBOARD_EXISTS", "This video already has a storyboard.")
         : new ApiError("REV_CONFLICT", undefined, { currentRev: latest.rev });
     };
-    if (!(await storyboards.insert(record))) throw await conflict();
+    if (!(await storyboards.insert(record))) {
+      // Version N+1 exists but the project still points at N: either another save is between its
+      // insert and its project update (milliseconds), or one died there and left an orphan. Give
+      // the first case time to land; if nothing moved, the version is an orphan, so clear it and retry.
+      await new Promise((r) => setTimeout(r, ORPHAN_WAIT_MS));
+      const latest = await projects.get(p.userId, p.id);
+      const orphan = latest && latest.rev === p.rev ? await storyboards.get(p.userId, p.id, record.version) : null;
+      if (!orphan) throw await conflict();
+      await storyboards.remove(p.userId, orphan.id);
+      if (!(await storyboards.insert(record))) throw await conflict();
+    }
     const first = record.version === 1;
-    const updated = await projects.update(
-      p.userId,
-      p.id,
-      p.rev,
-      first
-        ? { currentVersion: 1, status: "storyboard", step: "storyboard", briefLockedAt: t }
-        : { currentVersion: record.version },
-      t,
-    );
+    let updated: ProjectRecord | null;
+    try {
+      updated = await projects.update(
+        p.userId,
+        p.id,
+        p.rev,
+        first
+          ? { currentVersion: 1, status: "storyboard", step: "storyboard", briefLockedAt: t }
+          : { currentVersion: record.version },
+        t,
+      );
+    } catch (err) {
+      await storyboards.remove(p.userId, record.id).catch(() => undefined);
+      throw err;
+    }
     if (!updated) {
-      await storyboards.remove(p.userId, p.id, record.version);
+      await storyboards.remove(p.userId, record.id);
       throw await conflict();
     }
     return { version: toStoryboardVersion(record), project: toProject(updated), rev: updated.rev, warnings: warningsFor(storyboard) };

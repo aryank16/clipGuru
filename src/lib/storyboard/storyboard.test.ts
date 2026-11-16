@@ -139,6 +139,30 @@ describe("storyboard service", () => {
   });
 });
 
+describe("storyboard recovery", () => {
+  it("removes the version when the project update throws", async () => {
+    const p = await projectWithBrief();
+    const v1 = await svc().generate(A, p.id, p.rev);
+    const flaky = { ...projects.memoryProjects, update: async () => { throw new Error("network blip"); } };
+    const bad = svcMod.storyboardService({ projects: flaky, storyboards: repo.memoryStoryboards, writer: writer.geminiWriter });
+    await expect(bad.regenerateScene(A, p.id, 1, { rev: v1.rev })).rejects.toThrow("network blip");
+    const out = await svc().regenerateScene(A, p.id, 1, { rev: v1.rev });
+    expect(out.version.version).toBe(2);
+  });
+
+  it("clears a version left behind by a save that died before its project update", async () => {
+    const p = await projectWithBrief();
+    const v1 = await svc().generate(A, p.id, p.rev);
+    const orphan = await repo.memoryStoryboards.get(A, p.id, 1);
+    await repo.memoryStoryboards.insert({ ...orphan!, id: "orphan", version: 2, parentVersion: 1 });
+    const sb = structuredClone(v1.version.storyboard);
+    sb.scenes[1].narration = "Light bends in raindrops.";
+    const out = await svc().save(A, p.id, { rev: v1.rev, baseVersion: 1, storyboard: sb });
+    expect(out.version).toMatchObject({ version: 2, changedScenes: [1] });
+    expect((await svc().get(A, p.id)).storyboard.scenes[1].narration).toBe("Light bends in raindrops.");
+  });
+});
+
 describe("storyboard chat", () => {
   async function readSse(res: Response) {
     return (await res.text())

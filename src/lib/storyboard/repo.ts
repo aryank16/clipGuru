@@ -12,7 +12,8 @@ export interface StoryboardRepo {
   get(userId: string, projectId: string, version: number): Promise<StoryboardVersionRecord | null>;
   /** Newest first, without the storyboards themselves. */
   list(userId: string, projectId: string): Promise<Omit<StoryboardVersionRecord, "storyboard">[]>;
-  remove(userId: string, projectId: string, version: number): Promise<void>;
+  /** Removes one version by its id (an insert whose project update didn't happen). */
+  remove(userId: string, id: string): Promise<void>;
   deleteAllForUser(userId: string): Promise<number>;
   newId(): string;
 }
@@ -27,6 +28,7 @@ function collection(): Collection<Doc> {
   const c = db().collection<Doc>("storyboard_versions");
   indexesReady ??= c
     .createIndexes([{ key: { projectId: 1, version: -1 }, unique: true }, { key: { userId: 1 } }])
+    .then(() => true)
     .catch((err) => {
       indexesReady = null;
       console.error("[storyboard] index creation failed", err);
@@ -44,7 +46,11 @@ const mongoRepo: StoryboardRepo = {
   async insert(record) {
     const { id, ...rest } = record;
     // The unique index is what stops two versions with one number, so it must exist first.
-    await indexesReady;
+    await collection();
+    if (!(await indexesReady)) {
+      indexesReady = null;
+      throw new Error("storyboard_versions unique index is missing");
+    }
     try {
       await collection().insertOne({ _id: new ObjectId(id), ...rest });
       return true;
@@ -67,8 +73,8 @@ const mongoRepo: StoryboardRepo = {
     return docs.map((d) => fromDoc(d as Doc));
   },
 
-  async remove(userId, projectId, version) {
-    await collection().deleteOne({ userId, projectId, version });
+  async remove(userId, id) {
+    if (ObjectId.isValid(id)) await collection().deleteOne({ _id: new ObjectId(id), userId });
   },
 
   async deleteAllForUser(userId) {
@@ -108,9 +114,8 @@ export const memoryStoryboards: StoryboardRepo = {
       });
   },
 
-  async remove(userId, projectId, version) {
-    const r = store.get(key(projectId, version));
-    if (r && r.userId === userId) store.delete(key(projectId, version));
+  async remove(userId, id) {
+    for (const [k, r] of store) if (r.id === id && r.userId === userId) store.delete(k);
   },
 
   async deleteAllForUser(userId) {
