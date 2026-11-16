@@ -279,7 +279,11 @@ export function StoryboardStep({
     setVoiceError(null);
     const key = voiceKey;
     const v = version.version;
-    void afterSaves(async () => {
+    // Waits for saves already queued (such as a voice change), but edits made while it records
+    // don't wait behind it: it records the version it was asked for.
+    const before = pending.current;
+    void (async () => {
+      await before;
       try {
         const res = await fetch(`${base}/voiceover`, {
           method: "POST",
@@ -296,7 +300,7 @@ export function StoryboardStep({
       } finally {
         setRecording(false);
       }
-    });
+    })();
   }
 
   // Only while the cards show exactly the saved version (not an edit on its way).
