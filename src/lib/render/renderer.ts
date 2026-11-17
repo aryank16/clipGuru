@@ -148,9 +148,12 @@ export function sandboxRenderer(): Renderer {
       const progress = await getRenderProgress({ sandboxId, cmdId });
       if (progress.stage === "expired") return { state: "failed", message: "The renderer stopped before the video was done." };
       if (progress.stage === "error") return { state: "failed", message: progress.message };
+      // The render script writes "done" to its progress file once the MP4 is on disk, but its process
+      // doesn't always exit after that, so the file (not the exit code) says when it's finished.
+      if (progress.stage === "done") return { state: "done" };
       const cmd = await (await Sandbox.get({ sandboxId })).getCommand(cmdId);
       if (cmd.exitCode === 0) return { state: "done" };
-      return { state: "running", progress: progress.overallProgress };
+      return { state: "running", progress: "overallProgress" in progress ? progress.overallProgress : 0 };
     },
 
     async save(sandboxId, { props, videoKey, thumbKey, thumbFrame, storage }) {
