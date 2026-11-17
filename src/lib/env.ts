@@ -15,6 +15,12 @@ function defaultAppUrl(): string {
   return host ? `https://${host}` : "http://localhost:3000";
 }
 
+/**
+ * Keys and ids never contain spaces, so a value pasted twice or with stray line breaks
+ * (easy to do in the Vercel form, where sensitive values can't be seen) reads as its first word.
+ */
+const oneToken = z.string().transform((v) => v.trim().split(/\s+/)[0] ?? "");
+
 const schema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   APP_URL: z.string().url().default(defaultAppUrl),
@@ -48,13 +54,13 @@ const schema = z.object({
   AI_DRIVER: z.enum(["gemini", "fake"]).optional(),
 
   // F9 Voiceover
-  ELEVENLABS_API_KEY: z.string().trim().optional(),
+  ELEVENLABS_API_KEY: oneToken.optional(),
   ELEVENLABS_MODEL: z.string().default("eleven_multilingual_v2"),
   /** Cloudflare R2 (S3 API) for audio and video files. All four are needed. */
-  R2_ACCOUNT_ID: z.string().trim().optional(),
-  R2_ACCESS_KEY_ID: z.string().trim().optional(),
-  R2_SECRET_ACCESS_KEY: z.string().trim().optional(),
-  R2_BUCKET: z.string().trim().default("clipguru-media"),
+  R2_ACCOUNT_ID: oneToken.optional(),
+  R2_ACCESS_KEY_ID: oneToken.optional(),
+  R2_SECRET_ACCESS_KEY: oneToken.optional(),
+  R2_BUCKET: oneToken.default("clipguru-media"),
 });
 
 export type Env = z.infer<typeof schema>;
