@@ -120,6 +120,8 @@ export function sandboxRenderer(): Renderer {
       // Installs Chrome, FFmpeg and the renderer; the sandbox lives 15 minutes unless extended.
       const sandbox = await createSandbox({ resources: { vcpus: 4 }, timeoutInMilliseconds: 15 * 60_000 });
       try {
+        // addBundleToSandbox (4.0.541) creates the bundle's subfolders but not the root folder itself.
+        await sandbox.mkDir("remotion-bundle");
         await addBundleToSandbox({ sandbox, bundleDir: BUNDLE_DIR });
       } catch (err) {
         await sandbox.stop().catch(() => undefined);
