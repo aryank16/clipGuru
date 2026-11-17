@@ -7,9 +7,7 @@ for (const weight of ["400", "500", "600", "700"]) {
   loadFont({ family: fontFamily, url: staticFile(`fonts/poppins-latin-${weight}-normal.woff2`), weight });
 }
 
-export const FPS = 30;
-export const WIDTH = 1080;
-export const HEIGHT = 1920;
+export { FPS, HEIGHT, WIDTH } from "./format";
 
 export const theme = {
   font: fontFamily,

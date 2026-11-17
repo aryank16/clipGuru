@@ -40,3 +40,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# video bundle for the renderer (npm run bundle:video)
+/.remotion-bundle/

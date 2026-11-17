@@ -11,6 +11,11 @@ export interface Storage {
   put(key: string, body: Uint8Array, contentType: string): Promise<void>;
   /** A short-lived link the browser can fetch the file from. */
   signedUrl(key: string, seconds?: number): Promise<string>;
+  /**
+   * A link that lets someone else upload one file (the render sandbox sends the MP4 straight to R2).
+   * Null for the memory store, which only takes bytes through put().
+   */
+  signedPutUrl(key: string, seconds?: number): Promise<string | null>;
   /** Only the memory store can hand bytes back (R2 files are fetched through signed links). */
   read?(key: string): Promise<{ body: Uint8Array; contentType: string } | null>;
   deletePrefix(prefix: string): Promise<number>;
@@ -58,6 +63,13 @@ function r2(): Storage {
       return signed.url;
     },
 
+    async signedPutUrl(key, seconds = 3600) {
+      const signed = await client.sign(new Request(`${url(key)}?X-Amz-Expires=${seconds}`, { method: "PUT" }), {
+        aws: { signQuery: true },
+      });
+      return signed.url;
+    },
+
     async deletePrefix(prefix) {
       let n = 0;
       for (let round = 0; round < 50; round++) {
@@ -89,6 +101,9 @@ export const memoryStorage: Storage = {
   },
   async signedUrl(key) {
     return `memory://${key}`;
+  },
+  async signedPutUrl() {
+    return null;
   },
   async read(key) {
     return files.get(key) ?? null;

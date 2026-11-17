@@ -219,6 +219,7 @@ export function IdeaStep({
         current="idea"
         projectId={project.id}
         hasStoryboard={storyboardHref !== null}
+        hasVideo={project.step === "generate" || project.step === "post"}
       />
 
       <header className="flex flex-col gap-3 border-b border-hairline pb-6">
