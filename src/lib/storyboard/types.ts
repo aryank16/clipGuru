@@ -122,7 +122,6 @@ export function toStoryboardVersion(r: StoryboardVersionRecord): StoryboardVersi
 
 /** George reads about 2.45 words a second (measured on the prototype renders). */
 export const WORDS_PER_SECOND = 2.45;
-export const LENGTH_RANGE = { min: 60, max: 90 } as const;
 
 export function splitWords(s: string): string[] {
   return s.split(/\s+/).filter(Boolean);

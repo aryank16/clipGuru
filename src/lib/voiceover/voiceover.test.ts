@@ -57,7 +57,7 @@ const storyboards = () =>
 async function projectWithStoryboard() {
   const ps = projectSvc.projectService(projects.memoryProjects);
   const p = await ps.create(A);
-  const brief = { title: "How rainbows form", audience: "", keyPoints: ["Light bends"], angle: "", tone: "", targetSeconds: 75 };
+  const brief = { title: "How rainbows form", audience: "", keyPoints: ["Light bends"], angle: "", tone: "", targetSeconds: 75, length: "auto" as const };
   const withBrief = await ps.patch(A, p.id, { rev: 0, brief });
   const saved = await storyboards().generate(A, p.id, withBrief.rev);
   return saved;

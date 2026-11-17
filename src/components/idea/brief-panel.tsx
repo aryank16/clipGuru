@@ -5,7 +5,15 @@ import Link from "next/link";
 import { useState } from "react";
 import { Status, type SaveState } from "@/components/account/save";
 import { Button, buttonClasses } from "@/components/ui/button";
-import { BRIEF_LIMITS, briefComplete, TONE_PRESETS, type Brief } from "@/lib/brief";
+import {
+  BRIEF_LIMITS,
+  briefComplete,
+  TONE_PRESETS,
+  VIDEO_LENGTH_IDS,
+  VIDEO_LENGTHS,
+  type Brief,
+  type VideoLength,
+} from "@/lib/brief";
 import { cn } from "@/lib/cn";
 
 const fieldBox = "flex flex-col gap-2 rounded-lg border border-hairline bg-paper/40 px-4 py-3";
@@ -101,19 +109,12 @@ export function BriefPanel({
           disabled={locked}
           onSave={(angle) => save({ ...brief, angle })}
         />
-        <div className="grid grid-cols-2 gap-3">
-          <div className={fieldBox}>
-            <span className="eyebrow">Length</span>
-            <span className="flex items-center gap-1.5 whitespace-nowrap font-mono text-xs text-espresso sm:text-sm">
-              <Clock className="size-4 text-taupe" aria-hidden /> 60–90 s (auto)
-            </span>
-          </div>
-          <div className={fieldBox}>
-            <span className="eyebrow">Format</span>
-            <span className="w-fit rounded bg-espresso-deep px-2 py-0.5 font-mono text-xs uppercase tracking-wide text-surface">
-              9:16 vertical
-            </span>
-          </div>
+        <Length value={brief.length} disabled={locked} onSave={(length) => save({ ...brief, length })} />
+        <div className={cn(fieldBox, "flex-row items-center justify-between")}>
+          <span className="eyebrow">Format</span>
+          <span className="w-fit rounded bg-espresso-deep px-2 py-0.5 font-mono text-xs uppercase tracking-wide text-surface">
+            9:16 vertical
+          </span>
         </div>
       </div>
 
@@ -289,6 +290,45 @@ function KeyPoints({ points, disabled, onSave }: { points: string[]; disabled: b
           <Plus className="size-4" /> Add a point
         </button>
       )}
+    </fieldset>
+  );
+}
+
+const LENGTH_HINTS: Record<VideoLength, string> = {
+  auto: "ClipGuru sizes it to the idea, up to 90 s.",
+  short: "A quick one-idea clip, under 30 s.",
+  medium: "A short explainer, 30 to 60 s.",
+  long: "A full explainer, 60 to 90 s.",
+};
+
+/** Auto or one of three ranges. Saves at once, like the tone chips. */
+function Length({ value, disabled, onSave }: { value: VideoLength; disabled: boolean; onSave: (v: VideoLength) => void }) {
+  return (
+    <fieldset className={fieldBox}>
+      <legend className="sr-only">Length</legend>
+      <span className="eyebrow flex items-center gap-1.5" aria-hidden>
+        <Clock className="size-3.5" /> Length
+      </span>
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        {VIDEO_LENGTH_IDS.map((id) => (
+          <button
+            key={id}
+            type="button"
+            aria-pressed={value === id}
+            disabled={disabled}
+            onClick={() => value !== id && onSave(id)}
+            className={cn(
+              "min-h-9 whitespace-nowrap rounded-md border px-2 font-mono text-xs transition-colors disabled:opacity-60 sm:text-sm",
+              value === id
+                ? "border-sand-gold bg-sand-gold/30 font-medium text-espresso"
+                : "border-hairline text-taupe hover:border-taupe/40 hover:text-espresso",
+            )}
+          >
+            {VIDEO_LENGTHS[id].label}
+          </button>
+        ))}
+      </div>
+      <p className="text-xs text-taupe">{LENGTH_HINTS[value]}</p>
     </fieldset>
   );
 }

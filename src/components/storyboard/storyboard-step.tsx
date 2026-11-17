@@ -24,6 +24,7 @@ import { Status, useSaver } from "@/components/account/save";
 import { describeError } from "@/components/idea/idea-step";
 import { StepTabs } from "@/components/idea/step-tabs";
 import { Button } from "@/components/ui/button";
+import { lengthRange, toBrief, VIDEO_LENGTHS } from "@/lib/brief";
 import { CHAT_TEXT_MAX, type ChatMessage } from "@/lib/chat/types";
 import { cn } from "@/lib/cn";
 import type { Project } from "@/lib/projects/types";
@@ -31,7 +32,6 @@ import {
   cueMarks,
   editableHeading,
   formatDuration,
-  LENGTH_RANGE,
   MIN_SCENES,
   SCENE_LABELS,
   sceneSeconds,
@@ -313,7 +313,13 @@ export function StoryboardStep({
 
   const scenes = storyboard.scenes;
   const seconds = scenes.reduce((n, s) => n + sceneSeconds(s), 0);
-  const outOfRange = seconds < LENGTH_RANGE.min || seconds > LENGTH_RANGE.max;
+  const length = toBrief(project.brief).length;
+  const range = lengthRange({ length });
+  const outOfRange = seconds < range.min || seconds > range.max;
+  const rangeNote =
+    length === "auto"
+      ? seconds < range.min ? `Shorter than ${range.min} s` : `Longer than ${range.max} s`
+      : `${seconds < range.min ? "Shorter" : "Longer"} than the ${VIDEO_LENGTHS[length].label} you picked`;
   // Version 1 is all new, so nothing is marked; later versions mark what they changed.
   const changed = new Set(version.version > 1 && version.storyboard === storyboard ? version.changedScenes : []);
 
@@ -345,7 +351,7 @@ export function StoryboardStep({
           </span>
           {outOfRange && (
             <span className="text-danger" role="status">
-              {seconds < LENGTH_RANGE.min ? "Shorter" : "Longer"} than {LENGTH_RANGE.min}–{LENGTH_RANGE.max} s
+              {rangeNote}
             </span>
           )}
         </p>

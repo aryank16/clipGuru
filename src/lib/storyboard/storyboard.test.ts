@@ -40,7 +40,7 @@ function svc() {
 
 async function projectWithBrief(complete = true) {
   const p = await projectSvc.projectService(projects.memoryProjects).create(A);
-  const brief = { title: "How rainbows form", audience: "", keyPoints: complete ? ["Light bends"] : [], angle: "", tone: "", targetSeconds: 75 };
+  const brief = { title: "How rainbows form", audience: "", keyPoints: complete ? ["Light bends"] : [], angle: "", tone: "", targetSeconds: 75, length: "long" as const };
   return projectSvc.projectService(projects.memoryProjects).patch(A, p.id, { rev: 0, brief });
 }
 

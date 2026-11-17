@@ -13,7 +13,7 @@ import type { Voice } from "@/lib/voices";
 const STEPS = [
   { icon: Lightbulb, title: "Idea", text: "Chat about a topic until the idea is clear." },
   { icon: PanelsTopLeft, title: "Storyboard", text: "Review the script and scenes, and ask for changes." },
-  { icon: Clapperboard, title: "Video", text: "Get a 60–90 second explainer with voiceover and captions." },
+  { icon: Clapperboard, title: "Video", text: "Get a short explainer, up to 90 seconds, with voiceover and captions." },
   { icon: Send, title: "Post", text: "Download it, or post or schedule it to Instagram." },
 ];
 
