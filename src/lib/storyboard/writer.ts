@@ -156,7 +156,7 @@ async function ask(prompt: string): Promise<z.infer<typeof rawStoryboard>> {
       prompt,
       output: Output.object({ schema: rawStoryboard, name: "storyboard" }),
       temperature: 0.8,
-      maxRetries: 2,
+      maxRetries: 1, // each try already walks the backup models
     });
     return output;
   } catch (err) {

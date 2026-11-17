@@ -105,7 +105,7 @@ export async function runChat(
     messages: [...historyMessages(history), { role: "user", content: text }],
     tools: s.tools(project),
     stopWhen: stepCountIs(3),
-    maxRetries: 2,
+    maxRetries: 1, // each try already walks the backup models
     temperature: 0.7,
   });
 

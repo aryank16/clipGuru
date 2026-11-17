@@ -39,6 +39,14 @@ describe("model fallback", () => {
     expect(b.doGenerate).not.toHaveBeenCalled();
   });
 
+  it("skips a backup model that no longer exists", async () => {
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    const a = model("a", () => Promise.reject(busy(503)));
+    const gone = model("preview", () => Promise.reject(busy(404)));
+    const c = model("c", () => Promise.resolve("ok"));
+    expect(await withFallback([a, gone, c]).doStream(opts)).toBe("ok");
+  });
+
   it("throws the last model's error when all are busy", async () => {
     vi.spyOn(console, "warn").mockImplementation(() => {});
     const a = model("a", () => Promise.reject(busy(503)));

@@ -17,9 +17,11 @@ export function withFallback(models: LanguageModelV4[]): LanguageModelV4 {
       try {
         return await call(m);
       } catch (err) {
-        if (!isBusy(err) || i === models.length - 1) throw err;
+        // A backup model that no longer exists (Google retires preview ids) is skipped too.
+        const gone = i > 0 && APICallError.isInstance(err) && err.statusCode === 404;
+        if (!(isBusy(err) || gone) || i === models.length - 1) throw err;
         last = err;
-        console.warn(`[ai] ${m.modelId} is busy (${(err as APICallError).statusCode}), trying ${models[i + 1].modelId}`);
+        console.warn(`[ai] ${m.modelId} unavailable (${(err as APICallError).statusCode}), trying ${models[i + 1].modelId}`);
       }
     }
     throw last;
