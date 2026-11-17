@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Built by scripts/bundle-video.mjs
+    ".remotion-bundle/**",
   ]),
 ]);
 

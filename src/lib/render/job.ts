@@ -159,7 +159,10 @@ export async function renderJob(steps: Steps, renderId: string, deps: JobDeps): 
       await deps.projects.setRenderState(userId, projectId, { status: "ready", step: "generate", latestRenderId: renderId }, current.finishedAt ?? now());
       return;
     }
-    if (current?.status !== "running") return; // failed or timed out meanwhile
+    if (current?.status !== "running") {
+      await deps.renderer().stop(sandboxId); // failed or timed out meanwhile: just free the machine
+      return;
+    }
     await stage("finish");
     const props = await propsFor(deps, userId, projectId, version, voice.voiceoverId);
     const prefix = renderPrefix(userId, projectId, renderId);
