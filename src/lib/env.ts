@@ -42,6 +42,8 @@ const schema = z.object({
   // F6 Idea chat
   GEMINI_API_KEY: z.string().optional(),
   GEMINI_MODEL: z.string().default("gemini-3.5-flash"),
+  /** Tried in order while GEMINI_MODEL is busy (comma separated). */
+  GEMINI_FALLBACK_MODELS: z.string().default("gemini-3-flash-preview,gemini-2.5-flash"),
   /** "fake" answers chats with a scripted model (local end-to-end tests). Never in production. */
   AI_DRIVER: z.enum(["gemini", "fake"]).optional(),
 
