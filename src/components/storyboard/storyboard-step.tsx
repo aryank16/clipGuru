@@ -19,11 +19,12 @@ import {
   X,
 } from "lucide-react";
 import dynamic from "next/dynamic";
-import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { Status, useSaver } from "@/components/account/save";
 import { describeError } from "@/components/idea/idea-step";
 import { StepTabs } from "@/components/idea/step-tabs";
 import { Button } from "@/components/ui/button";
+import { lengthRange, toBrief, VIDEO_LENGTHS } from "@/lib/brief";
 import { CHAT_TEXT_MAX, type ChatMessage } from "@/lib/chat/types";
 import { cn } from "@/lib/cn";
 import type { Project } from "@/lib/projects/types";
@@ -31,7 +32,6 @@ import {
   cueMarks,
   editableHeading,
   formatDuration,
-  LENGTH_RANGE,
   MIN_SCENES,
   SCENE_LABELS,
   sceneSeconds,
@@ -41,6 +41,7 @@ import {
   type Storyboard,
   type StoryboardVersion,
 } from "@/lib/storyboard/types";
+import type { Voiceover } from "@/lib/voiceover/types";
 import { VOICES } from "@/lib/voices";
 import type { PreviewHandle } from "./preview-player";
 
@@ -121,6 +122,12 @@ export function StoryboardStep({
   }
   const saver = useSaver();
   const base = `/api/projects/${project.id}`;
+
+  // The recorded voice for one storyboard version in one voice; the preview uses it while both match.
+  const [voiced, setVoiced] = useState<{ key: string; voiceover: Voiceover } | null>(null);
+  const [recording, setRecording] = useState(false);
+  const [voiceError, setVoiceError] = useState<{ key: string; text: string } | null>(null);
+  const voiceKey = `${version.version}:${voiceId}`;
 
   // Changes run one at a time, so each carries the rev and version the one before returned.
   const pending = useRef<Promise<unknown>>(Promise.resolve());
@@ -249,9 +256,70 @@ export function StoryboardStep({
     });
   }
 
+  // A recording made earlier for this version and voice shows up without recording again.
+  useEffect(() => {
+    let live = true;
+    void afterSaves(async () => {
+      const res = await fetch(`${base}/voiceover?version=${version.version}`).catch(() => null);
+      const data = res?.ok ? ((await res.json()) as { voiceover: Voiceover | null }) : null;
+      if (live && data?.voiceover && data.voiceover.voiceId === voiceId) {
+        setVoiced({ key: `${version.version}:${voiceId}`, voiceover: data.voiceover });
+      }
+    });
+    return () => {
+      live = false;
+    };
+    // afterSaves and base are stable for the page's life.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [version.version, voiceId]);
+
+  function recordVoice() {
+    if (recording || busy) return;
+    setRecording(true);
+    setVoiceError(null);
+    const key = voiceKey;
+    const v = version.version;
+    // Waits for saves already queued (such as a voice change), but edits made while it records
+    // don't wait behind it: it records the version it was asked for.
+    const before = pending.current;
+    void (async () => {
+      await before;
+      try {
+        const res = await fetch(`${base}/voiceover`, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ version: v }),
+        }).catch(() => {
+          throw new Error("Couldn't reach ClipGuru. Check your connection and try again.");
+        });
+        const data = await res.json().catch(() => null);
+        if (!res.ok) throw new Error(data?.error?.message ?? "Couldn't record the voice. Try again.");
+        setVoiced({ key, voiceover: (data as { voiceover: Voiceover }).voiceover });
+      } catch (e) {
+        setVoiceError({ key, text: e instanceof Error ? e.message : "Couldn't record the voice. Try again." });
+      } finally {
+        setRecording(false);
+      }
+    })();
+  }
+
+  // Only while the cards show exactly the saved version (not an edit on its way).
+  const voice = voiced && voiced.key === voiceKey && storyboard === version.storyboard ? voiced.voiceover : null;
+  const previewVoice = useMemo(
+    () => (voice ? { audioSrc: voice.audioUrl, words: voice.words, durationSec: voice.durationSec } : null),
+    [voice],
+  );
+  const voiceName = VOICES.find((v) => v.id === voiceId)?.name ?? "the narrator";
+
   const scenes = storyboard.scenes;
   const seconds = scenes.reduce((n, s) => n + sceneSeconds(s), 0);
-  const outOfRange = seconds < LENGTH_RANGE.min || seconds > LENGTH_RANGE.max;
+  const length = toBrief(project.brief).length;
+  const range = lengthRange({ length });
+  const outOfRange = seconds < range.min || seconds > range.max;
+  const rangeNote =
+    length === "auto"
+      ? seconds < range.min ? `Shorter than ${range.min} s` : `Longer than ${range.max} s`
+      : `${seconds < range.min ? "Shorter" : "Longer"} than the ${VIDEO_LENGTHS[length].label} you picked`;
   // Version 1 is all new, so nothing is marked; later versions mark what they changed.
   const changed = new Set(version.version > 1 && version.storyboard === storyboard ? version.changedScenes : []);
 
@@ -283,7 +351,7 @@ export function StoryboardStep({
           </span>
           {outOfRange && (
             <span className="text-danger" role="status">
-              {seconds < LENGTH_RANGE.min ? "Shorter" : "Longer"} than {LENGTH_RANGE.min}–{LENGTH_RANGE.max} s
+              {rangeNote}
             </span>
           )}
         </p>
@@ -353,11 +421,44 @@ export function StoryboardStep({
             </div>
             {/* On phones the player fits between the header and the tab bar. */}
             <div className="mx-auto w-full max-w-72 max-lg:max-w-[max(11rem,min(18rem,calc((100dvh-15rem)*9/16)))]">
-              <PreviewPlayer storyboard={storyboard} onScene={onScene} onReady={onPreviewReady} control={preview} />
+              <PreviewPlayer
+                storyboard={storyboard}
+                voice={previewVoice}
+                onScene={onScene}
+                onReady={onPreviewReady}
+                control={preview}
+              />
             </div>
-            <p className="text-center text-xs text-taupe">Silent preview with estimated timing. The voiceover comes later.</p>
+            {voice ? (
+              <p className="flex items-center justify-center gap-1.5 text-center text-xs text-taupe" role="status">
+                <Mic className="size-3.5 text-sand-gold" aria-hidden />
+                With {voice.voiceName}&rsquo;s voice · {formatDuration(Math.floor(voice.durationSec))}. Press play to listen.
+              </p>
+            ) : (
+              <div className="flex flex-col items-center gap-2">
+                <Button
+                  variant="secondary"
+                  onClick={recordVoice}
+                  disabled={recording || busy}
+                  aria-busy={recording}
+                  className="w-full"
+                >
+                  {recording ? <Loader2 className="size-4 animate-spin" aria-hidden /> : <Mic className="size-4" aria-hidden />}
+                  {recording ? `Recording ${voiceName}…` : `Listen with ${voiceName}’s voice`}
+                </Button>
+                <p className="text-center text-xs text-taupe" role="status">
+                  {voiceError?.key === voiceKey ? (
+                    <span className="text-danger">{voiceError.text}</span>
+                  ) : recording ? (
+                    "This takes about 20 seconds."
+                  ) : (
+                    "Silent preview with estimated timing until you add the voice."
+                  )}
+                </p>
+              </div>
+            )}
           </section>
-          <VoicePicker value={voiceId} disabled={busy} onPick={pickVoice} />
+          <VoicePicker value={voiceId} disabled={busy || recording} onPick={pickVoice} />
           <div className="flex flex-col gap-2">
             <Button size="lg" disabled className="w-full uppercase tracking-wide">
               Generate video <ArrowRight className="size-4" />

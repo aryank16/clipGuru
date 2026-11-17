@@ -1,12 +1,11 @@
 import { ApiError } from "../api/errors";
-import { briefComplete, toBrief, type Brief } from "../brief";
+import { briefComplete, lengthRange, toBrief, type Brief } from "../brief";
 import type { ProjectsRepo } from "../projects/repo";
 import { toProject, type Project, type ProjectRecord } from "../projects/types";
 import type { StoryboardRepo } from "./repo";
 import {
   changedScenes,
   estSeconds,
-  LENGTH_RANGE,
   MIN_SCENES,
   repairCues,
   toStoryboardVersion,
@@ -20,7 +19,7 @@ import {
 /** The AI side, injected so tests and the fake driver can stand in for Gemini. */
 export type StoryboardWriter = {
   write(brief: Brief): Promise<Storyboard>;
-  revise(current: Storyboard, instruction: string): Promise<Storyboard>;
+  revise(current: Storyboard, instruction: string, length?: Pick<Brief, "length">): Promise<Storyboard>;
   rewriteScene(current: Storyboard, index: number, instruction?: string): Promise<Scene>;
 };
 
@@ -33,9 +32,10 @@ type Deps = { projects: ProjectsRepo; storyboards: StoryboardRepo; writer: Story
 /** How long a version without its project update counts as in flight, before it is an orphan. */
 const ORPHAN_WAIT_MS = 1500;
 
-function warningsFor(sb: Storyboard): Warning[] {
+function warningsFor(sb: Storyboard, brief: Brief): Warning[] {
   const s = estSeconds(sb);
-  return s < LENGTH_RANGE.min || s > LENGTH_RANGE.max ? ["LENGTH_OUT_OF_RANGE"] : [];
+  const range = lengthRange(brief);
+  return s < range.min || s > range.max ? ["LENGTH_OUT_OF_RANGE"] : [];
 }
 
 /**
@@ -123,7 +123,7 @@ export function storyboardService({ projects, storyboards, writer, now = () => n
       await storyboards.remove(p.userId, record.id);
       throw await conflict();
     }
-    return { version: toStoryboardVersion(record), project: toProject(updated), rev: updated.rev, warnings: warningsFor(storyboard) };
+    return { version: toStoryboardVersion(record), project: toProject(updated), rev: updated.rev, warnings: warningsFor(storyboard, toBrief(p.brief)) };
   }
 
   return {

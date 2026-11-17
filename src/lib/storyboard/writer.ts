@@ -3,11 +3,10 @@ import { generateText, Output } from "ai";
 import { z } from "zod";
 import { chatModel } from "../ai/model";
 import { ApiError } from "../api/errors";
-import type { Brief } from "../brief";
+import { lengthRange, lengthText, targetSecondsFor, type Brief } from "../brief";
 import type { StoryboardWriter } from "./service";
 import { resolveIcon, SUGGESTED_ICONS } from "./icons";
 import {
-  LENGTH_RANGE,
   repairCues,
   SCENE_TYPES,
   storyboardSchema,
@@ -141,11 +140,24 @@ export function toRaw(s: Scene): RawScene {
   }
 }
 
-function lengthRule(seconds: number) {
-  const target = Math.round(seconds * WORDS_PER_SECOND);
-  const min = Math.max(Math.round(LENGTH_RANGE.min * WORDS_PER_SECOND), Math.round(target * 0.9));
-  const max = Math.min(Math.round(LENGTH_RANGE.max * WORDS_PER_SECOND), Math.round(target * 1.1));
-  return { min, max, text: `The narration must total ${min} to ${max} words (about ${seconds} seconds).` };
+function lengthRule(brief: Brief) {
+  const words = (sec: number) => Math.round(sec * WORDS_PER_SECOND);
+  if (brief.length === "auto") {
+    // Auto: the writer sizes it to the idea, from a quick 30 s up to 90 s.
+    const min = words(30);
+    const max = words(lengthRange(brief).max);
+    return {
+      min,
+      max,
+      text: `Size the video to the idea: a simple topic can be 30 to 45 seconds, a richer one up to 90. The narration must total ${min} to ${max} words.`,
+    };
+  }
+  const range = lengthRange(brief);
+  const seconds = targetSecondsFor(brief);
+  const min = Math.max(words(range.min), Math.round(words(seconds) * 0.9));
+  const max = Math.min(words(range.max), Math.round(words(seconds) * 1.1));
+  const scenes = seconds <= 30 ? "Use 3 or 4 scenes. " : seconds <= 50 ? "Use 4 to 6 scenes. " : "";
+  return { min, max, text: `${scenes}The narration must total ${min} to ${max} words (about ${seconds} seconds).` };
 }
 
 async function ask(prompt: string): Promise<z.infer<typeof rawStoryboard>> {
@@ -156,7 +168,7 @@ async function ask(prompt: string): Promise<z.infer<typeof rawStoryboard>> {
       prompt,
       output: Output.object({ schema: rawStoryboard, name: "storyboard" }),
       temperature: 0.8,
-      maxRetries: 2,
+      maxRetries: 1, // each try already walks the backup models
     });
     return output;
   } catch (err) {
@@ -186,7 +198,7 @@ function briefText(b: Brief): string {
 
 /** Version 1 from the brief. Retries once or twice when the length is off. */
 export async function writeStoryboard(brief: Brief): Promise<Storyboard> {
-  const rule = lengthRule(brief.targetSeconds);
+  const rule = lengthRule(brief);
   const base = `${briefText(brief)}\n\n${rule.text}`;
   let prompt = base;
   let best: Storyboard | null = null;
@@ -205,14 +217,19 @@ export async function writeStoryboard(brief: Brief): Promise<Storyboard> {
 }
 
 /** The whole storyboard with a change applied (chat revisions). Keeps scenes the change doesn't touch. */
-export async function reviseStoryboard(current: Storyboard, instruction: string): Promise<Storyboard> {
+export async function reviseStoryboard(
+  current: Storyboard,
+  instruction: string,
+  length: Pick<Brief, "length"> = { length: "auto" },
+): Promise<Storyboard> {
+  const range = lengthRange(length);
   const prompt = [
     `Here is the current storyboard as JSON:`,
     JSON.stringify({ title: current.title, scenes: current.scenes.map(toRaw) }),
     ``,
     `Apply this change and return the whole storyboard: ${instruction}`,
-    `Change only what the request needs; copy every other scene exactly. Keep the total length 60 to 90 seconds `
-      + `(${Math.round(LENGTH_RANGE.min * WORDS_PER_SECOND)} to ${Math.round(LENGTH_RANGE.max * WORDS_PER_SECOND)} words) unless the request is about length.`,
+    `Change only what the request needs; copy every other scene exactly. Keep the total length ${lengthText(length)} `
+      + `(${Math.round(range.min * WORDS_PER_SECOND)} to ${Math.round(range.max * WORDS_PER_SECOND)} words) unless the request is about length.`,
   ].join("\n");
   const sb = build(current.topic, await ask(prompt));
   if (sb.scenes.length < 3) throw new ApiError("AI_UNAVAILABLE", "That change didn't come out right. Try saying it another way.");

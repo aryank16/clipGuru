@@ -15,6 +15,12 @@ function defaultAppUrl(): string {
   return host ? `https://${host}` : "http://localhost:3000";
 }
 
+/**
+ * Keys and ids never contain spaces, so a value pasted twice or with stray line breaks
+ * (easy to do in the Vercel form, where sensitive values can't be seen) reads as its first word.
+ */
+const oneToken = z.string().transform((v) => v.trim().split(/\s+/)[0] ?? "");
+
 const schema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   APP_URL: z.string().url().default(defaultAppUrl),
@@ -40,10 +46,21 @@ const schema = z.object({
     .transform((v) => v === "true"),
 
   // F6 Idea chat
-  GEMINI_API_KEY: z.string().optional(),
+  GEMINI_API_KEY: oneToken.optional(),
   GEMINI_MODEL: z.string().default("gemini-3.5-flash"),
+  /** Tried in order while GEMINI_MODEL is busy (comma separated). */
+  GEMINI_FALLBACK_MODELS: z.string().default("gemini-3-flash-preview,gemini-2.5-flash"),
   /** "fake" answers chats with a scripted model (local end-to-end tests). Never in production. */
   AI_DRIVER: z.enum(["gemini", "fake"]).optional(),
+
+  // F9 Voiceover
+  ELEVENLABS_API_KEY: oneToken.optional(),
+  ELEVENLABS_MODEL: z.string().default("eleven_multilingual_v2"),
+  /** Cloudflare R2 (S3 API) for audio and video files. All four are needed. */
+  R2_ACCOUNT_ID: oneToken.optional(),
+  R2_ACCESS_KEY_ID: oneToken.optional(),
+  R2_SECRET_ACCESS_KEY: oneToken.optional(),
+  R2_BUCKET: oneToken.default("clipguru-media"),
 });
 
 export type Env = z.infer<typeof schema>;
@@ -79,4 +96,17 @@ export const googleEnabled = () => Boolean(env().GOOGLE_CLIENT_ID && env().GOOGL
 /** Which model answers chats. "fake" only when asked for, and only alongside the memory database. */
 export function aiDriver(): "gemini" | "fake" {
   return env().AI_DRIVER === "fake" && dbDriver() === "memory" ? "fake" : "gemini";
+}
+
+/** Who records the voice: ElevenLabs, the fake voice (local tests only), or nobody yet. */
+export function voiceDriver(): "elevenlabs" | "fake" | null {
+  if (aiDriver() === "fake") return "fake";
+  return env().ELEVENLABS_API_KEY ? "elevenlabs" : null;
+}
+
+/** Where files go: R2, an in-process store (memory database only), or nowhere yet. */
+export function storageDriver(): "r2" | "memory" | null {
+  const e = env();
+  if (e.R2_ACCOUNT_ID && e.R2_ACCESS_KEY_ID && e.R2_SECRET_ACCESS_KEY) return "r2";
+  return dbDriver() === "memory" ? "memory" : null;
 }

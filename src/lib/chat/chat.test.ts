@@ -1,5 +1,5 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import { briefComplete, emptyBrief, mergeBrief, toBrief } from "../brief";
+import { briefComplete, emptyBrief, lengthRange, mergeBrief, targetSecondsFor, toBrief } from "../brief";
 import { ApiError } from "../api/errors";
 
 vi.mock("server-only", () => ({}));
@@ -43,6 +43,23 @@ describe("brief", () => {
       keyPoints: ["Moon"],
       targetSeconds: 75,
     });
+  });
+
+  it("keeps a picked length and falls back to auto", () => {
+    expect(toBrief({ title: "Tides" }).length).toBe("auto");
+    expect(toBrief({ title: "Tides", length: "huge" }).length).toBe("auto");
+    expect(toBrief({ title: "Tides", length: "short" }).length).toBe("short");
+    expect(mergeBrief(emptyBrief(), { length: "medium" }).length).toBe("medium");
+  });
+
+  it("sizes each length choice", () => {
+    const b = { ...emptyBrief(), keyPoints: ["a", "b"] };
+    expect(lengthRange({ length: "short" })).toEqual({ min: 10, max: 30 });
+    expect(lengthRange({ length: "medium" })).toEqual({ min: 30, max: 60 });
+    expect(lengthRange({ length: "long" })).toEqual({ min: 60, max: 90 });
+    expect(targetSecondsFor({ ...b, length: "short" })).toBe(25);
+    expect(targetSecondsFor({ ...b, length: "long" })).toBe(75);
+    expect(targetSecondsFor({ ...b, length: "medium" })).toBe(45);
   });
 
   it("merges updates without wiping fields with blanks", () => {
