@@ -46,7 +46,7 @@ const schema = z.object({
     .transform((v) => v === "true"),
 
   // F6 Idea chat
-  GEMINI_API_KEY: z.string().optional(),
+  GEMINI_API_KEY: oneToken.optional(),
   GEMINI_MODEL: z.string().default("gemini-3.5-flash"),
   /** Tried in order while GEMINI_MODEL is busy (comma separated). */
   GEMINI_FALLBACK_MODELS: z.string().default("gemini-3-flash-preview,gemini-2.5-flash"),
