@@ -4,8 +4,7 @@ import { Suspense } from "react";
 import { VideoStep } from "@/components/video/video-step";
 import { projectsRepo } from "@/lib/projects/repo";
 import { toProject } from "@/lib/projects/types";
-import { renderRepo } from "@/lib/render/repo";
-import { toRender } from "@/lib/render/types";
+import { renderSvc } from "@/lib/render";
 import { requirePageSession } from "@/lib/session";
 
 export const metadata: Metadata = { title: "Video" };
@@ -22,9 +21,11 @@ export default function VideoStepPage({ params }: { params: Promise<{ id: string
 async function Video({ params }: { params: Promise<{ id: string }> }) {
   const { user } = await requirePageSession();
   const { id } = await params;
+  if (!(await projectsRepo().get(user.id, id))) notFound();
+  // Through the service, so a stuck render shows as failed (with Try again) rather than spinning forever.
+  const render = await renderSvc().latest(user.id, id);
+  if (!render) redirect(`/videos/${id}/storyboard`);
   const project = await projectsRepo().get(user.id, id);
   if (!project) notFound();
-  const render = await renderRepo().latestForProject(user.id, id);
-  if (!render) redirect(`/videos/${id}/storyboard`);
-  return <VideoStep key={render.id} project={toProject(project)} initialRender={toRender(render)} />;
+  return <VideoStep key={render.id} project={toProject(project)} initialRender={render} />;
 }

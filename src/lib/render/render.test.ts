@@ -253,4 +253,68 @@ describe("render job", () => {
     expect(sleeps).toHaveBeenCalledTimes(2);
     expect(await repo.memoryRenders.byId(r.id)).toMatchObject({ status: "failed", error: { code: "RENDER_TIMEOUT" } });
   });
+
+  it("finishes a retried save step without uploading again", async () => {
+    const p = await projectWithStoryboard();
+    const r = await service().create(A, p.id);
+    let failOnce = true;
+    const flaky = {
+      ...projects.memoryProjects,
+      setRenderState: async (...args: Parameters<typeof projects.memoryProjects.setRenderState>) => {
+        if (failOnce && args[2].status === "ready") {
+          failOnce = false;
+          throw new Error("db blip");
+        }
+        return projects.memoryProjects.setRenderState(...args);
+      },
+    };
+    const fake = rendererMod.fakeRenderer(60);
+    const save = vi.fn(fake.save);
+    // Like Inngest: a step that throws is run again.
+    const retrying: import("./job").Steps = {
+      run: async (_n, fn) => fn().catch(() => fn()),
+      sleep: (_n, ms) => new Promise((res) => setTimeout(res, ms)),
+    };
+    await job.renderJob(retrying, r.id, deps({ projects: flaky, renderer: () => ({ ...fake, save }) }));
+    expect((await repo.memoryRenders.byId(r.id))?.status).toBe("ready");
+    expect((await projects.memoryProjects.get(A, p.id))?.status).toBe("ready");
+    expect(save).toHaveBeenCalledTimes(1);
+  }, 30_000);
 });
+
+describe("stuck renders", () => {
+  const later = (ms: number) => () => new Date(Date.now() + ms);
+  const svcAt = (now: () => Date) =>
+    svcMod.renderService({ renders: repo.memoryRenders, projects: projects.memoryProjects, storyboards: sbRepo.memoryStoryboards, dispatch: async () => {}, now });
+
+  it("fails a render whose job never started, so a new one can be made", async () => {
+    const p = await projectWithStoryboard();
+    const r = await service().create(A, p.id);
+    // Still queued 5 minutes on: left alone.
+    await expect(svcAt(later(5 * 60_000)).get(A, r.id)).resolves.toMatchObject({ status: "queued" });
+    await expect(svcAt(later(5 * 60_000)).create(A, p.id)).rejects.toMatchObject({ code: "RENDER_RUNNING" });
+    // 11 minutes on: failed with a clear message, the project needs attention, and it can be retried.
+    const shown = await svcAt(later(11 * 60_000)).get(A, r.id);
+    expect(shown).toMatchObject({ status: "failed", error: { code: "RENDER_TIMEOUT", stage: "voice" } });
+    expect((await projects.memoryProjects.get(A, p.id))?.status).toBe("attention");
+    await expect(svcAt(later(11 * 60_000)).retry(A, r.id)).resolves.toMatchObject({ status: "queued", attempts: 2 });
+  });
+
+  it("frees the running limit and the video when renders are stuck", async () => {
+    const ps = [await projectWithStoryboard(), await projectWithStoryboard(), await projectWithStoryboard(), await projectWithStoryboard()];
+    for (const p of ps.slice(0, 3)) {
+      const r = await service().create(A, p.id);
+      await repo.memoryRenders.update(r.id, { status: "running", stage: "setup" });
+    }
+    await expect(svcAt(later(20 * 60_000)).create(A, ps[3].id)).rejects.toMatchObject({ code: "LIMIT_REACHED" });
+    await expect(svcAt(later(26 * 60_000)).create(A, ps[3].id)).resolves.toMatchObject({ status: "queued" });
+    await expect(svcAt(later(26 * 60_000)).create(A, ps[0].id)).resolves.toMatchObject({ status: "queued" });
+  }, 30_000);
+
+  it("hides another person's project from the latest render", async () => {
+    const p = await projectWithStoryboard();
+    await expect(service().latest(B, p.id)).rejects.toMatchObject({ code: "NOT_FOUND" });
+    await expect(service().latest(A, p.id)).resolves.toBeNull();
+  });
+});
+

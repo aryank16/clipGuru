@@ -23,6 +23,7 @@ export interface RenderRepo {
   latestForProject(userId: string, projectId: string): Promise<RenderRecord | null>;
   activeForProject(userId: string, projectId: string): Promise<RenderRecord | null>;
   countActive(userId: string): Promise<number>;
+  listActive(userId: string): Promise<RenderRecord[]>;
   countSince(userId: string, since: Date): Promise<number>;
   deleteAllForUser(userId: string): Promise<number>;
 }
@@ -63,7 +64,11 @@ const mongoRepo: RenderRepo = {
 
   async insert({ id, ...rest }) {
     const c = collection();
-    await indexesReady; // the one-per-project rule must exist before the first insert
+    // The one-per-project rule must exist before any insert, or two renders could start at once.
+    if (!(await indexesReady)) {
+      indexesReady = null;
+      throw new Error("renders unique index is missing");
+    }
     try {
       await c.insertOne({ _id: new ObjectId(id), ...rest, active: isActive(rest.status) });
       return true;
@@ -110,6 +115,10 @@ const mongoRepo: RenderRepo = {
 
   async countActive(userId) {
     return collection().countDocuments({ userId, active: true });
+  },
+
+  async listActive(userId) {
+    return (await collection().find({ userId, active: true }).limit(50).toArray()).map(fromDoc);
   },
 
   async countSince(userId, since) {
@@ -168,6 +177,10 @@ export const memoryRenders: RenderRepo = {
 
   async countActive(userId) {
     return [...store.values()].filter((r) => r.userId === userId && isActive(r.status)).length;
+  },
+
+  async listActive(userId) {
+    return [...store.values()].filter((r) => r.userId === userId && isActive(r.status)).map(copy);
   },
 
   async countSince(userId, since) {

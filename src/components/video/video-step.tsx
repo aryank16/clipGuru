@@ -97,7 +97,7 @@ export function VideoStep({ project, initialRender }: { project: Project; initia
       <div className="grid gap-6 lg:grid-cols-[minmax(0,360px)_minmax(0,1fr)] lg:items-start lg:gap-10">
         <section
           aria-label="Video"
-          className="mx-auto flex w-full max-w-[min(22.5rem,calc((100dvh-14rem)*9/16))] flex-col gap-3 lg:mx-0 lg:max-w-none"
+          className="mx-auto flex w-full max-w-[min(22.5rem,calc((100dvh-26.5rem)*9/16))] flex-col gap-3 lg:mx-0 lg:max-w-none"
         >
           <div className="relative aspect-[9/16] w-full overflow-hidden rounded-xl border border-hairline bg-surface-warm/60">
             {render.status === "ready" && render.videoUrl ? (

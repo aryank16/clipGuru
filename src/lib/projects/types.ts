@@ -88,8 +88,11 @@ export function toProject(r: ProjectRecord): Project {
     brief: r.brief,
     voiceId: r.voiceId,
     currentVersion: r.currentVersion,
-    // Thumbnails and durations come from renders (F12).
-    thumbnailUrl: null,
+    // A made video shows its render's thumbnail (the route checks the owner and that it's ready).
+    thumbnailUrl:
+      r.latestRenderId && (r.status === "ready" || r.status === "scheduled" || r.status === "posted")
+        ? `/api/renders/${r.latestRenderId}/thumbnail`
+        : null,
     durationSec: null,
     rev: r.rev,
     createdAt: r.createdAt.toISOString(),

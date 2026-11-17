@@ -104,7 +104,12 @@ export async function renderJob(steps: Steps, renderId: string, deps: JobDeps): 
   const { sandboxId } = await steps.run("setup", async () => {
     await stage("setup");
     const out = await deps.renderer().setup();
-    await deps.renders.update(renderId, { sandboxId: out.sandboxId, updatedAt: now() }, ["running"]);
+    try {
+      await deps.renders.update(renderId, { sandboxId: out.sandboxId, updatedAt: now() }, ["running"]);
+    } catch (err) {
+      await deps.renderer().stop(out.sandboxId); // the retried step starts a fresh machine
+      throw err;
+    }
     return out;
   });
 
@@ -147,6 +152,14 @@ export async function renderJob(steps: Steps, renderId: string, deps: JobDeps): 
 
   // 5. Save the video and a thumbnail, then free the machine.
   await steps.run("save", async () => {
+    // A retried save (say the project update failed last time) finishes the job without uploading again.
+    const current = await deps.renders.byId(renderId);
+    if (current?.status === "ready") {
+      await deps.renderer().stop(sandboxId);
+      await deps.projects.setRenderState(userId, projectId, { status: "ready", step: "generate", latestRenderId: renderId }, current.finishedAt ?? now());
+      return;
+    }
+    if (current?.status !== "running") return; // failed or timed out meanwhile
     await stage("finish");
     const props = await propsFor(deps, userId, projectId, version, voice.voiceoverId);
     const prefix = renderPrefix(userId, projectId, renderId);

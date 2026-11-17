@@ -12,7 +12,8 @@ export const GET = route<Ctx>(async (req, { params }) => {
   const { user } = await requireApiSession(req);
   const { id } = await params;
   const r = await renderRepo().get(user.id, id);
-  if (!r || r.status !== "ready" || !r.thumbKey) throw new ApiError("RENDER_NOT_READY", "This video isn't ready yet.");
+  if (!r) throw new ApiError("NOT_FOUND");
+  if (r.status !== "ready" || !r.thumbKey) throw new ApiError("RENDER_NOT_READY", "This video isn't ready yet.");
   const files = storage();
   if (files.read) {
     const f = await files.read(r.thumbKey);
