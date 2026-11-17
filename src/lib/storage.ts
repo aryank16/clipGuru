@@ -34,10 +34,19 @@ function r2(): Storage {
 
   return {
     async put(key, body, contentType) {
-      const res = await client.fetch(url(key), {
+      // R2 refuses uploads without Content-Length. A signed Request object can reach fetch as a
+      // stream (no length) on Vercel, so sign first and send the plain bytes ourselves.
+      const bytes = body.buffer.slice(body.byteOffset, body.byteOffset + body.byteLength) as ArrayBuffer;
+      const signed = await client.sign(url(key), {
         method: "PUT",
-        body: body as BodyInit,
-        headers: { "content-type": contentType },
+        body: bytes,
+        headers: { "content-type": contentType, "content-length": String(bytes.byteLength) },
+      });
+      const res = await fetch(signed.url, {
+        method: "PUT",
+        headers: signed.headers,
+        body: bytes,
+        cache: "no-store",
       });
       await check(res, "upload");
     },
