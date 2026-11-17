@@ -158,6 +158,12 @@ describe("voiceover service", () => {
     await expect(svc({ tts: missing }).create(A, project.id)).rejects.toMatchObject({ code: "VOICE_UNAVAILABLE" });
     expect(await svc({ tts: missing }).find(A, project.id)).toBeNull();
     await expect(svc({ storage: missing }).create(A, project.id)).rejects.toMatchObject({ code: "VOICE_UNAVAILABLE" });
+    const broken2 = { ...storage.memoryStorage, put: () => Promise.reject(new Error("bad header")) };
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    await expect(svc({ storage: () => broken2 }).create(A, project.id)).rejects.toMatchObject({
+      code: "VOICE_UNAVAILABLE",
+      message: expect.stringContaining("couldn't be saved"),
+    });
     expect(await repo.memoryVoiceovers.countSince(A, new Date(0))).toBe(0);
   });
 

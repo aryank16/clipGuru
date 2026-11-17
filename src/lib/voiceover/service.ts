@@ -104,7 +104,12 @@ export function voiceoverService({ projects, storyboards, voiceovers, storage, t
 
       const ext = rec.contentType === "audio/mpeg" ? "mp3" : "wav";
       const audioKey = `users/${userId}/projects/${projectId}/voice/${hash}.${ext}`;
-      await files.put(audioKey, rec.audio, rec.contentType);
+      try {
+        await files.put(audioKey, rec.audio, rec.contentType);
+      } catch (err) {
+        console.error("[voiceover] saving the audio failed", err);
+        throw new ApiError("VOICE_UNAVAILABLE", "The voice was recorded but couldn't be saved. Try again in a minute.");
+      }
 
       const record: VoiceoverRecord = {
         id: voiceovers.newId(),
