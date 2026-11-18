@@ -1,20 +1,31 @@
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
+import { instagramSvc } from "@/lib/instagram";
+import { cn } from "@/lib/cn";
+import { requirePageSession } from "@/lib/session";
 
-/**
- * Sidebar card showing the Instagram link. Nobody can connect yet (that arrives with F12),
- * so it always shows the "not connected" state and points to Settings.
- */
-export function InstagramCard() {
+/** Sidebar card showing the linked Instagram account; opens Settings. */
+export async function InstagramCard() {
+  const { user } = await requirePageSession();
+  const s = await instagramSvc().status(user.id);
+  const ok = s.connected && s.status === "connected";
+  const line = !s.connected ? "Not connected" : ok ? `@${s.username}` : "Reconnect needed";
+  return <InstagramCardView tone={ok ? "ok" : s.connected ? "warn" : "off"} line={line} />;
+}
+
+export function InstagramCardView({ tone, line }: { tone: "ok" | "warn" | "off"; line: string }) {
   return (
     <Link
-      href="/settings"
+      href="/settings#instagram"
       className="flex items-center gap-3 rounded-xl border border-hairline bg-paper px-4 py-3.5 transition-colors hover:border-taupe/40"
     >
-      <span className="size-2 shrink-0 rounded-full bg-taupe/50" aria-hidden />
+      <span
+        className={cn("size-2 shrink-0 rounded-full", tone === "ok" ? "bg-success" : tone === "warn" ? "bg-render-orange" : "bg-taupe/50")}
+        aria-hidden
+      />
       <span className="flex min-w-0 flex-1 flex-col">
         <span className="text-sm font-medium text-espresso">Instagram</span>
-        <span className="text-xs text-taupe">Not connected</span>
+        <span className={cn("truncate text-xs", tone === "warn" ? "text-render-orange" : "text-taupe")}>{line}</span>
       </span>
       <ChevronRight className="size-4 text-taupe" aria-hidden />
     </Link>

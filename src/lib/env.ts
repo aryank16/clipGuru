@@ -65,6 +65,12 @@ const schema = z.object({
   // F10 Render pipeline. INNGEST_EVENT_KEY and INNGEST_SIGNING_KEY are read by the Inngest SDK itself.
   /** "sandbox" renders on Vercel Sandbox (the default on Vercel); "fake" pretends (local tests only). */
   RENDER_DRIVER: z.enum(["sandbox", "fake"]).optional(),
+
+  // F12 Instagram (Instagram API with Unified Login, a Meta app owned by a business portfolio)
+  META_APP_ID: oneToken.optional(),
+  META_APP_SECRET: oneToken.optional(),
+  /** The Facebook Login for Business configuration that asks for the Instagram account. */
+  META_CONFIG_ID: oneToken.optional(),
 });
 
 export type Env = z.infer<typeof schema>;
@@ -123,4 +129,11 @@ export function renderDriver(): "sandbox" | "fake" | null {
   }
   if (e.RENDER_DRIVER === "sandbox" || process.env.VERCEL === "1") return "sandbox";
   return null;
+}
+
+/** Who links Instagram accounts: Meta (all three keys set), a fake (local tests only), or nobody yet. */
+export function instagramDriver(): "meta" | "fake" | null {
+  const e = env();
+  if (e.META_APP_ID && e.META_APP_SECRET && e.META_CONFIG_ID) return "meta";
+  return aiDriver() === "fake" ? "fake" : null;
 }

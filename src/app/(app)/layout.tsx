@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { Logo } from "@/components/brand/logo";
 import { HeaderAccount, SidebarAccount } from "@/components/shell/account";
-import { InstagramCard } from "@/components/shell/instagram-card";
+import { InstagramCard, InstagramCardView } from "@/components/shell/instagram-card";
 import { MobileTabs, MobileTabsView } from "@/components/shell/mobile-tabs";
 import { SidebarNav, SidebarNavView } from "@/components/shell/sidebar-nav";
 
@@ -20,7 +20,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </Suspense>
         </div>
         <div className="flex flex-col gap-5">
-          <InstagramCard />
+          <Suspense fallback={<InstagramCardView tone="off" line="…" />}>
+            <InstagramCard />
+          </Suspense>
           <Suspense fallback={<div className="h-9" />}>
             <SidebarAccount />
           </Suspense>

@@ -1,7 +1,7 @@
-import type { HTMLAttributes, ReactNode } from "react";
+import type { ComponentProps, ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
-export function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
+export function Card({ className, ...props }: ComponentProps<"div">) {
   return (
     <div
       className={cn("rounded-xl border border-hairline bg-surface shadow-[0_1px_2px_rgba(32,30,28,0.04)]", className)}
