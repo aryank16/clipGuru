@@ -22,6 +22,11 @@ export const memoryProjects: ProjectsRepo = {
     if (r && r.userId === userId) r.hasChat = true;
   },
 
+  async setRenderState(userId, id, state, now) {
+    const r = store.get(id);
+    if (r && r.userId === userId && !r.deletedAt) Object.assign(r, state, { updatedAt: now });
+  },
+
   async deleteAllForUser(userId) {
     let n = 0;
     for (const [id, r] of store) if (r.userId === userId && store.delete(id)) n++;

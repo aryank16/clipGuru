@@ -61,6 +61,10 @@ const schema = z.object({
   R2_ACCESS_KEY_ID: oneToken.optional(),
   R2_SECRET_ACCESS_KEY: oneToken.optional(),
   R2_BUCKET: oneToken.default("clipguru-media"),
+
+  // F10 Render pipeline. INNGEST_EVENT_KEY and INNGEST_SIGNING_KEY are read by the Inngest SDK itself.
+  /** "sandbox" renders on Vercel Sandbox (the default on Vercel); "fake" pretends (local tests only). */
+  RENDER_DRIVER: z.enum(["sandbox", "fake"]).optional(),
 });
 
 export type Env = z.infer<typeof schema>;
@@ -109,4 +113,14 @@ export function storageDriver(): "r2" | "memory" | null {
   const e = env();
   if (e.R2_ACCOUNT_ID && e.R2_ACCESS_KEY_ID && e.R2_SECRET_ACCESS_KEY) return "r2";
   return dbDriver() === "memory" ? "memory" : null;
+}
+
+/** Who makes the MP4: Vercel Sandbox (on Vercel), the fake renderer (local tests only), or nobody here. */
+export function renderDriver(): "sandbox" | "fake" | null {
+  const e = env();
+  if (e.RENDER_DRIVER === "fake" || (!e.RENDER_DRIVER && aiDriver() === "fake")) {
+    return dbDriver() === "memory" ? "fake" : null;
+  }
+  if (e.RENDER_DRIVER === "sandbox" || process.env.VERCEL === "1") return "sandbox";
+  return null;
 }

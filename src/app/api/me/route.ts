@@ -1,3 +1,4 @@
+import { renderRepo } from "@/lib/render/repo";
 import { NextResponse } from "next/server";
 import { json, parseBody, route } from "@/lib/api/route";
 import { auth } from "@/lib/auth";
@@ -41,6 +42,7 @@ export const DELETE = route(async (req) => {
   await chatRepo().deleteAllForUser(user.id);
   await storyboardRepo().deleteAllForUser(user.id);
   await voiceoverRepo().deleteAllForUser(user.id);
+  await renderRepo().deleteAllForUser(user.id);
   await storageIfConfigured()
     ?.deletePrefix(userPrefix(user.id))
     .catch((err) => console.error("[me] file cleanup failed", err));

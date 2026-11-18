@@ -7,6 +7,7 @@ import { memoryProjects } from "./memory";
 import { countsFrom, cursorFor, escapeRegex, readCursor } from "./shared";
 import { FILTER_STATUSES, type FilterCounts, type ProjectFilter, type ProjectRecord } from "./types";
 
+export type RenderState = Partial<Pick<ProjectRecord, "status" | "step" | "latestRenderId">>;
 export type ListOptions = { filter: ProjectFilter; q?: string; limit: number; cursor?: string };
 export type Patch = Partial<
   Pick<ProjectRecord, "title" | "brief" | "voiceId" | "status" | "step" | "briefLockedAt" | "currentVersion">
@@ -26,6 +27,11 @@ export interface ProjectsRepo {
   setDeleted(userId: string, id: string, deletedAt: Date | null, now: Date): Promise<ProjectRecord | null>;
   /** Notes that the project has a chat. Not an edit, so the rev stays. */
   markHasChat(userId: string, id: string): Promise<void>;
+  /**
+   * Render bookkeeping from the background job (status, step, latest render). Not an edit by the
+   * person, so the rev stays and an open storyboard tab can keep saving.
+   */
+  setRenderState(userId: string, id: string, state: RenderState, now: Date): Promise<void>;
   /** Hard-deletes every project of a user (account deletion). Returns how many went. */
   deleteAllForUser(userId: string): Promise<number>;
   newId(): string;
@@ -72,6 +78,11 @@ const mongoRepo: ProjectsRepo = {
 
   async deleteAllForUser(userId) {
     return (await collection().deleteMany({ userId })).deletedCount;
+  },
+
+  async setRenderState(userId, id, state, now) {
+    const _id = oid(id);
+    if (_id) await collection().updateOne({ _id, userId, deletedAt: null }, { $set: { ...state, updatedAt: now } });
   },
 
   async list(userId, { filter, q, limit, cursor }) {

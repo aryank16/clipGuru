@@ -14,14 +14,21 @@ export function StepTabs({
   current,
   projectId,
   hasStoryboard = false,
+  hasVideo = false,
 }: {
   current: (typeof STEPS)[number]["key"];
   projectId: string;
   hasStoryboard?: boolean;
+  /** A render was started, so step 3 has something to show. */
+  hasVideo?: boolean;
 }) {
   const index = STEPS.findIndex((s) => s.key === current);
   const hrefs: Partial<Record<(typeof STEPS)[number]["key"], string>> = hasStoryboard
-    ? { idea: `/videos/${projectId}/idea`, storyboard: `/videos/${projectId}/storyboard` }
+    ? {
+        idea: `/videos/${projectId}/idea`,
+        storyboard: `/videos/${projectId}/storyboard`,
+        ...(hasVideo ? { video: `/videos/${projectId}/video` } : {}),
+      }
     : {};
   return (
     <nav aria-label="Video steps" className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

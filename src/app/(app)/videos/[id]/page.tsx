@@ -7,7 +7,7 @@ import { IdeaView } from "./idea-view";
 
 export const metadata: Metadata = { title: "Video" };
 
-/** One video: opens the step it's on. Step 1 is the idea chat, step 2 the storyboard. */
+/** One video: opens the step it's on. Step 1 is the idea chat, step 2 the storyboard, step 3 the video once one has been made. */
 export default function VideoPage({ params }: { params: Promise<{ id: string }> }) {
   return (
     <Suspense fallback={null}>
@@ -20,6 +20,7 @@ async function Video({ params }: { params: Promise<{ id: string }> }) {
   const { user } = await requirePageSession();
   const { id } = await params;
   const project = await projectsRepo().get(user.id, id);
+  if (project?.latestRenderId) redirect(`/videos/${id}/video`);
   if (project && project.currentVersion > 0) redirect(`/videos/${id}/storyboard`);
   return <IdeaView project={project} userId={user.id} />;
 }

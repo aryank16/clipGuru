@@ -19,6 +19,7 @@ import {
   X,
 } from "lucide-react";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { Status, useSaver } from "@/components/account/save";
 import { describeError } from "@/components/idea/idea-step";
@@ -122,6 +123,27 @@ export function StoryboardStep({
   }
   const saver = useSaver();
   const base = `/api/projects/${project.id}`;
+  const router = useRouter();
+  const [making, setMaking] = useState(false);
+  const [makeError, setMakeError] = useState<string | null>(null);
+  const generating = project.status === "generating";
+
+  /** Starts the render once pending edits are saved, then opens step 3, where its progress shows. */
+  function makeVideo() {
+    setMaking(true);
+    setMakeError(null);
+    void afterSaves(async () => {
+      const res = await fetch(`${base}/renders`, { method: "POST" });
+      const data = await res.json().catch(() => null);
+      // One is already running for this video: show that one.
+      if (!res.ok && data?.error?.code !== "RENDER_RUNNING") throw new Error(data?.error?.message ?? "Couldn't start the video. Try again.");
+    })
+      .then(() => router.push(`/videos/${project.id}/video`))
+      .catch((err: unknown) => {
+        setMaking(false);
+        setMakeError(err instanceof Error ? err.message : "Couldn't start the video. Try again.");
+      });
+  }
 
   // The recorded voice for one storyboard version in one voice; the preview uses it while both match.
   const [voiced, setVoiced] = useState<{ key: string; voiceover: Voiceover } | null>(null);
@@ -333,7 +355,7 @@ export function StoryboardStep({
 
   return (
     <div className="flex flex-col gap-6 lg:gap-10">
-      <StepTabs current="storyboard" projectId={project.id} hasStoryboard />
+      <StepTabs current="storyboard" projectId={project.id} hasStoryboard hasVideo={project.step === "generate" || project.step === "post"} />
 
       <header className="flex flex-col gap-3 border-b border-hairline pb-6">
         <span className="eyebrow">
@@ -460,10 +482,25 @@ export function StoryboardStep({
           </section>
           <VoicePicker value={voiceId} disabled={busy || recording} onPick={pickVoice} />
           <div className="flex flex-col gap-2">
-            <Button size="lg" disabled className="w-full uppercase tracking-wide">
-              Generate video <ArrowRight className="size-4" />
+            <Button
+              size="lg"
+              onClick={generating ? () => router.push(`/videos/${project.id}/video`) : makeVideo}
+              disabled={making || busy}
+              aria-busy={making}
+              className="w-full uppercase tracking-wide"
+            >
+              {making ? <Loader2 className="size-4 animate-spin" aria-hidden /> : null}
+              {generating ? "See video progress" : "Generate video"} {!making && <ArrowRight className="size-4" />}
             </Button>
-            <p className="text-center text-sm text-taupe">Making the video arrives in a later update.</p>
+            <p className="text-center text-sm text-taupe" role="status">
+              {makeError ? (
+                <span className="text-danger">{makeError}</span>
+              ) : generating ? (
+                "Your video is being made."
+              ) : (
+                `Makes the MP4 with ${voiceName}’s voice. Takes a few minutes.`
+              )}
+            </p>
           </div>
         </aside>
       </div>
