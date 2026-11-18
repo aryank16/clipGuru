@@ -313,7 +313,7 @@ function CoverPicker({ render, onChange }: { render: Render; onChange: (r: Rende
     } catch (e) {
       want.current = saved.current;
       setPicked(saved.current);
-      setError((e as Error).message);
+      setError(e instanceof TypeError ? "Couldn’t reach ClipGuru. Check your connection and try again." : (e as Error).message);
     } finally {
       busy.current = false;
       setSaving(false);
