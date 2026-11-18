@@ -3,7 +3,7 @@
 import { AlertTriangle, ArrowLeft, ArrowRight, Check, Clock, Download, Info, Loader2, RotateCcw } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { StepTabs } from "@/components/idea/step-tabs";
 import { Button, buttonClasses } from "@/components/ui/button";
 import { cn } from "@/lib/cn";
@@ -92,7 +92,8 @@ export function VideoStep({ project, initialRender }: { project: Project; initia
         <h1 className="break-words font-display text-3xl font-black uppercase leading-[0.95] tracking-tight sm:text-5xl">
           {render.status === "ready" ? "Your video is ready" : render.status === "failed" ? "The video didn’t finish" : "Making your video"}
         </h1>
-        <p className="max-w-2xl text-taupe">
+        {/* One line on a phone, so the player still fits above the tab bar. */}
+        <p className={cn("max-w-2xl text-taupe", render.status === "ready" && "truncate sm:whitespace-normal")}>
           {render.status === "ready"
             ? `“${project.title}” is made${render.durationSec ? `: ${formatDuration(Math.round(render.durationSec))} long` : ""}, ready to download.`
             : project.title}
@@ -278,27 +279,44 @@ function Ready({
 /** Three suggested frames; the chosen one is the thumbnail (and, once posting arrives, the Reel cover). */
 function CoverPicker({ render, onChange }: { render: Render; onChange: (r: Render) => void }) {
   const router = useRouter();
-  const [saving, setSaving] = useState<number | null>(null);
+  // The pick shows at once; saves run one at a time, always ending on the latest pick
+  // (two quick arrow presses move two steps).
+  const [picked, setPicked] = useState(render.coverIndex);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const want = useRef(render.coverIndex);
+  const saved = useRef(render.coverIndex);
+  const busy = useRef(false);
 
   async function choose(i: number) {
-    if (i === render.coverIndex || saving !== null) return;
-    setSaving(i);
+    if (i === want.current) return;
+    want.current = i;
+    setPicked(i);
     setError(null);
+    if (busy.current) return;
+    busy.current = true;
+    setSaving(true);
     try {
-      const res = await fetch(`/api/renders/${render.id}`, {
-        method: "PATCH",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ coverIndex: i }),
-      });
-      const data = await res.json().catch(() => null);
-      if (!res.ok) throw new Error(data?.error?.message ?? "Couldn't change the cover. Try again.");
-      onChange(data.render);
+      while (want.current !== saved.current) {
+        const next = want.current;
+        const res = await fetch(`/api/renders/${render.id}`, {
+          method: "PATCH",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ coverIndex: next }),
+        });
+        const data = await res.json().catch(() => null);
+        if (!res.ok) throw new Error(data?.error?.message ?? "Couldn't change the cover. Try again.");
+        saved.current = next;
+        onChange(data.render);
+      }
       router.refresh(); // My videos shows the new cover
     } catch (e) {
+      want.current = saved.current;
+      setPicked(saved.current);
       setError((e as Error).message);
     } finally {
-      setSaving(null);
+      busy.current = false;
+      setSaving(false);
     }
   }
 
@@ -319,13 +337,13 @@ function CoverPicker({ render, onChange }: { render: Render; onChange: (r: Rende
           if (!step) return;
           e.preventDefault();
           const n = render.covers.length;
-          const next = (render.coverIndex + step + n) % n;
+          const next = (picked + step + n) % n;
           (e.currentTarget.children[next] as HTMLElement | undefined)?.focus();
           void choose(next);
         }}
       >
         {render.covers.map((c, i) => {
-          const chosen = i === render.coverIndex;
+          const chosen = i === picked;
           return (
             <button
               key={c.url}
@@ -334,12 +352,11 @@ function CoverPicker({ render, onChange }: { render: Render; onChange: (r: Rende
               aria-checked={chosen}
               tabIndex={chosen ? 0 : -1}
               aria-label={`Cover ${i + 1}, at ${formatDuration(Math.round(c.offsetMs / 1000))}`}
-              aria-disabled={saving !== null}
               onClick={() => choose(i)}
               className={cn(
                 "group relative aspect-[9/16] overflow-hidden rounded-lg border-2 bg-surface-warm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-espresso focus-visible:ring-offset-2",
                 chosen ? "border-sand-gold shadow-sm" : "border-transparent hover:border-hairline",
-                saving !== null && saving !== i && "opacity-60",
+
               )}
             >
               {/* eslint-disable-next-line @next/next/no-img-element -- private, signed image */}
@@ -352,7 +369,7 @@ function CoverPicker({ render, onChange }: { render: Render; onChange: (r: Rende
                   <Check className="size-3.5" />
                 </span>
               )}
-              {saving === i && (
+              {saving && chosen && (
                 <span className="absolute inset-0 flex items-center justify-center bg-espresso/30" aria-hidden>
                   <Loader2 className="size-5 animate-spin text-surface" />
                 </span>
@@ -362,7 +379,7 @@ function CoverPicker({ render, onChange }: { render: Render; onChange: (r: Rende
         })}
       </div>
       <p className="sr-only" aria-live="polite">
-        {saving !== null ? "Saving the cover…" : ""}
+        {saving ? "Saving the cover…" : ""}
       </p>
       {error && (
         <p role="alert" className="text-sm text-danger">
