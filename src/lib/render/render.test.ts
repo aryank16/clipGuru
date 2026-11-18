@@ -349,7 +349,7 @@ describe("download names", () => {
     expect(fileNameFor("Café: 50% off / now", "mp4")).toBe("Cafe-50-off-now.mp4");
     expect(fileNameFor("   ", "mp4")).toBe("clipguru-video.mp4");
     expect(fileNameFor("x".repeat(200), "mp4")).toHaveLength(84);
-    expect(storage.attachment("Café.mp4")).toBe(`attachment; filename="Caf_.mp4"; filename*=UTF-8''Caf%C3%A9.mp4`);
+    expect(storage.attachment("Café.mp4")).toBe(`attachment;filename="Caf_.mp4";filename*=UTF-8''Caf%C3%A9.mp4`);
   });
 });
 

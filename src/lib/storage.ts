@@ -91,10 +91,14 @@ function r2(): Storage {
   };
 }
 
-/** A Content-Disposition value that saves the file as `name` (plain ASCII name, plus the UTF-8 one). */
+/**
+ * A Content-Disposition value that saves the file as `name` (plain ASCII name, plus the UTF-8 one).
+ * No spaces: in a signed R2 query a space is sent as "+", which R2 may not read as a space, and then
+ * the signature wouldn't match.
+ */
 export function attachment(name: string): string {
-  const ascii = name.replace(/[^\x20-\x7e]/g, "_").replace(/["\\]/g, "_");
-  return `attachment; filename="${ascii}"; filename*=UTF-8''${encodeURIComponent(name)}`;
+  const ascii = name.replace(/[^\x21-\x7e]/g, "_").replace(/["\\]/g, "_");
+  return `attachment;filename="${ascii}";filename*=UTF-8''${encodeURIComponent(name)}`;
 }
 
 const decodeXml = (s: string) =>
