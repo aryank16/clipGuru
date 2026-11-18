@@ -1,15 +1,16 @@
 "use client";
 
-import { AlertTriangle, ArrowLeft, Check, Clock, Loader2, RotateCcw } from "lucide-react";
+import { AlertTriangle, ArrowLeft, ArrowRight, Check, Clock, Download, Info, Loader2, RotateCcw } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { StepTabs } from "@/components/idea/step-tabs";
 import { Button, buttonClasses } from "@/components/ui/button";
 import { cn } from "@/lib/cn";
 import type { Project } from "@/lib/projects/types";
 import { RENDER_STAGES, STAGE_LABELS, type Render, type RenderStage } from "@/lib/render/types";
 import { formatDuration } from "@/lib/storyboard/types";
+import { VOICES } from "@/lib/voices";
 
 const POLL_MS = 2000;
 
@@ -91,7 +92,12 @@ export function VideoStep({ project, initialRender }: { project: Project; initia
         <h1 className="break-words font-display text-3xl font-black uppercase leading-[0.95] tracking-tight sm:text-5xl">
           {render.status === "ready" ? "Your video is ready" : render.status === "failed" ? "The video didn’t finish" : "Making your video"}
         </h1>
-        <p className="max-w-2xl text-taupe">{project.title}</p>
+        {/* One line on a phone, so the player still fits above the tab bar. */}
+        <p className={cn("max-w-2xl text-taupe", render.status === "ready" && "truncate sm:whitespace-normal")}>
+          {render.status === "ready"
+            ? `“${project.title}” is made${render.durationSec ? `: ${formatDuration(Math.round(render.durationSec))} long` : ""}, ready to download.`
+            : project.title}
+        </p>
       </header>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,360px)_minmax(0,1fr)] lg:items-start lg:gap-10">
@@ -128,9 +134,9 @@ export function VideoStep({ project, initialRender }: { project: Project; initia
             )}
           </div>
           {render.status === "ready" && (
-            <p className="flex items-center justify-center gap-1.5 font-mono text-xs uppercase tracking-wider text-taupe">
-              <Clock className="size-3.5" aria-hidden />
-              {render.durationSec ? formatDuration(Math.round(render.durationSec)) : "—"} · 9:16 vertical
+            <p className="flex items-center justify-center gap-1.5 font-mono text-xs uppercase tracking-wider text-taupe lg:justify-start">
+              <Info className="size-3.5" aria-hidden />
+              Made at full 1080 × 1920, the Instagram Reel size
             </p>
           )}
         </section>
@@ -184,28 +190,203 @@ export function VideoStep({ project, initialRender }: { project: Project; initia
           )}
 
           {render.status === "ready" ? (
-            <section className="flex flex-col gap-4 rounded-xl border border-hairline bg-surface p-5 sm:p-6">
-              <p className="flex items-center gap-2 font-medium">
-                <Check className="size-5 text-success" aria-hidden /> Made from storyboard version {render.version}.
-              </p>
-              {outdated ? (
-                <p className="text-sm text-taupe">
-                  You’ve changed the storyboard since. Open it and press Generate video to make the new version.
-                </p>
-              ) : (
-                <p className="text-sm text-taupe">Downloading and posting to Instagram come in the next updates.</p>
-              )}
-            </section>
+            <Ready render={render} projectId={project.id} outdated={outdated} onChange={setRender} />
           ) : (
-            <Stages render={render} />
+            <>
+              <Stages render={render} />
+              <Link href={`/videos/${project.id}/storyboard`} className={buttonClasses("secondary", "md", "w-fit")}>
+                <ArrowLeft className="size-4" /> Back to storyboard
+              </Link>
+            </>
           )}
-
-          <Link href={`/videos/${project.id}/storyboard`} className={buttonClasses("secondary", "md", "w-fit")}>
-            <ArrowLeft className="size-4" /> Back to storyboard
-          </Link>
         </div>
       </div>
     </div>
+  );
+}
+
+const formatBytes = (n: number) => (n >= 1e6 ? `${(n / 1e6).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1e3))} KB`);
+
+/** The finished video: its details, the cover choice, download (design: 09). */
+function Ready({
+  render,
+  projectId,
+  outdated,
+  onChange,
+}: {
+  render: Render;
+  projectId: string;
+  outdated: boolean;
+  onChange: (r: Render) => void;
+}) {
+  const voice = VOICES.find((v) => v.id === render.voiceId) ?? VOICES[0];
+  const rows: [string, string][] = [
+    ["Length", render.durationSec ? formatDuration(Math.round(render.durationSec)) : "—"],
+    ["Voice", `${voice.name} (${voice.accent} ${voice.gender})`],
+    ["Size", "1080 × 1920 px, 9:16"],
+    ["Format", "MP4 · H.264 · 30 fps"],
+  ];
+  if (render.bytes) rows.push(["File size", formatBytes(render.bytes)]);
+
+  return (
+    <>
+      {outdated && (
+        <p role="status" className="order-first rounded-xl border border-sand-gold bg-sand-gold/15 p-4 text-sm lg:order-none">
+          You’ve changed the storyboard since this video was made (it’s version {render.version}). Open the storyboard and
+          press Generate video to make the new version.
+        </p>
+      )}
+
+      <section aria-labelledby="details-h" className="flex flex-col rounded-xl border border-hairline bg-surface p-5 sm:p-6">
+        <div className="flex items-center justify-between gap-3 border-b border-hairline pb-3">
+          <h2 id="details-h" className="font-mono text-xs font-semibold uppercase tracking-wider">
+            Details
+          </h2>
+          <span className="rounded border border-hairline px-2 py-0.5 font-mono text-[11px] uppercase tracking-wider text-taupe">MP4</span>
+        </div>
+        <dl className="flex flex-col">
+          {rows.map(([k, v]) => (
+            <div key={k} className="flex items-baseline justify-between gap-4 border-b border-hairline py-3 last:border-b-0 last:pb-0">
+              <dt className="text-taupe">{k}</dt>
+              <dd className="text-right font-medium">{v}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+
+      {render.covers.length > 1 && <CoverPicker render={render} onChange={onChange} />}
+
+      {/* On a phone the button sits right under the player; on a wide screen after the details (design 09). */}
+      <div className="order-first flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center lg:order-none">
+        {render.downloadUrl && (
+          <a href={render.downloadUrl} download className={buttonClasses("primary", "lg", "w-full sm:w-auto")}>
+            <Download className="size-5" aria-hidden /> Download MP4
+          </a>
+        )}
+        <p className="text-sm text-taupe">Posting to Instagram comes in the next update.</p>
+      </div>
+
+      <Link
+        href={`/videos/${projectId}/storyboard`}
+        className="flex w-fit items-center gap-1.5 text-sm font-medium text-taupe underline-offset-4 hover:text-espresso hover:underline"
+      >
+        Edit storyboard and make it again <ArrowRight className="size-4" aria-hidden />
+      </Link>
+    </>
+  );
+}
+
+/** Three suggested frames; the chosen one is the thumbnail (and, once posting arrives, the Reel cover). */
+function CoverPicker({ render, onChange }: { render: Render; onChange: (r: Render) => void }) {
+  const router = useRouter();
+  // The pick shows at once; saves run one at a time, always ending on the latest pick
+  // (two quick arrow presses move two steps).
+  const [picked, setPicked] = useState(render.coverIndex);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const want = useRef(render.coverIndex);
+  const saved = useRef(render.coverIndex);
+  const busy = useRef(false);
+
+  async function choose(i: number) {
+    if (i === want.current) return;
+    want.current = i;
+    setPicked(i);
+    setError(null);
+    if (busy.current) return;
+    busy.current = true;
+    setSaving(true);
+    try {
+      while (want.current !== saved.current) {
+        const next = want.current;
+        const res = await fetch(`/api/renders/${render.id}`, {
+          method: "PATCH",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ coverIndex: next }),
+        });
+        const data = await res.json().catch(() => null);
+        if (!res.ok) throw new Error(data?.error?.message ?? "Couldn't change the cover. Try again.");
+        saved.current = next;
+        onChange(data.render);
+      }
+      router.refresh(); // My videos shows the new cover
+    } catch (e) {
+      want.current = saved.current;
+      setPicked(saved.current);
+      setError(e instanceof TypeError ? "Couldn’t reach ClipGuru. Check your connection and try again." : (e as Error).message);
+    } finally {
+      busy.current = false;
+      setSaving(false);
+    }
+  }
+
+  return (
+    <section aria-labelledby="cover-h" className="flex flex-col gap-4 rounded-xl border border-hairline bg-surface p-5 sm:p-6">
+      <div className="flex flex-col gap-1">
+        <h2 id="cover-h" className="font-mono text-xs font-semibold uppercase tracking-wider">
+          Cover
+        </h2>
+        <p className="text-sm text-taupe">The still people see before they press play. It’s also the thumbnail in My videos.</p>
+      </div>
+      <div
+        role="radiogroup"
+        aria-labelledby="cover-h"
+        className="grid grid-cols-3 gap-3 sm:max-w-sm"
+        onKeyDown={(e) => {
+          const step = e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : e.key === "ArrowLeft" || e.key === "ArrowUp" ? -1 : 0;
+          if (!step) return;
+          e.preventDefault();
+          const n = render.covers.length;
+          const next = (picked + step + n) % n;
+          (e.currentTarget.children[next] as HTMLElement | undefined)?.focus();
+          void choose(next);
+        }}
+      >
+        {render.covers.map((c, i) => {
+          const chosen = i === picked;
+          return (
+            <button
+              key={c.url}
+              type="button"
+              role="radio"
+              aria-checked={chosen}
+              tabIndex={chosen ? 0 : -1}
+              aria-label={`Cover ${i + 1}, at ${formatDuration(Math.round(c.offsetMs / 1000))}`}
+              onClick={() => choose(i)}
+              className={cn(
+                "group relative aspect-[9/16] overflow-hidden rounded-lg border-2 bg-surface-warm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-espresso focus-visible:ring-offset-2",
+                chosen ? "border-sand-gold shadow-sm" : "border-transparent hover:border-hairline",
+
+              )}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element -- private, signed image */}
+              <img src={c.url} alt="" loading="lazy" className="absolute inset-0 size-full object-cover" />
+              <span className="absolute inset-x-1 bottom-1 rounded bg-espresso/80 px-1 py-0.5 text-center font-mono text-[10px] text-surface">
+                {formatDuration(Math.round(c.offsetMs / 1000))}
+              </span>
+              {chosen && (
+                <span className="absolute right-1 top-1 flex size-5 items-center justify-center rounded-full bg-sand-gold text-espresso" aria-hidden>
+                  <Check className="size-3.5" />
+                </span>
+              )}
+              {saving && chosen && (
+                <span className="absolute inset-0 flex items-center justify-center bg-espresso/30" aria-hidden>
+                  <Loader2 className="size-5 animate-spin text-surface" />
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+      <p className="sr-only" aria-live="polite">
+        {saving ? "Saving the cover…" : ""}
+      </p>
+      {error && (
+        <p role="alert" className="text-sm text-danger">
+          {error}
+        </p>
+      )}
+    </section>
   );
 }
 

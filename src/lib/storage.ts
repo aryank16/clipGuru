@@ -9,8 +9,11 @@ import { env, storageDriver } from "./env";
  */
 export interface Storage {
   put(key: string, body: Uint8Array, contentType: string): Promise<void>;
-  /** A short-lived link the browser can fetch the file from. */
-  signedUrl(key: string, seconds?: number): Promise<string>;
+  /**
+   * A short-lived link the browser can fetch the file from. With `downloadAs`, the link makes the
+   * browser save the file under that name instead of showing it.
+   */
+  signedUrl(key: string, seconds?: number, downloadAs?: string): Promise<string>;
   /**
    * A link that lets someone else upload one file (the render sandbox sends the MP4 straight to R2).
    * Null for the memory store, which only takes bytes through put().
@@ -56,8 +59,9 @@ function r2(): Storage {
       await check(res, "upload");
     },
 
-    async signedUrl(key, seconds = 24 * 3600) {
-      const signed = await client.sign(new Request(`${url(key)}?X-Amz-Expires=${seconds}`), {
+    async signedUrl(key, seconds = 24 * 3600, downloadAs) {
+      const disposition = downloadAs ? `&response-content-disposition=${encodeURIComponent(attachment(downloadAs))}` : "";
+      const signed = await client.sign(new Request(`${url(key)}?X-Amz-Expires=${seconds}${disposition}`), {
         aws: { signQuery: true },
       });
       return signed.url;
@@ -85,6 +89,16 @@ function r2(): Storage {
       return n;
     },
   };
+}
+
+/**
+ * A Content-Disposition value that saves the file as `name` (plain ASCII name, plus the UTF-8 one).
+ * No spaces: in a signed R2 query a space is sent as "+", which R2 may not read as a space, and then
+ * the signature wouldn't match.
+ */
+export function attachment(name: string): string {
+  const ascii = name.replace(/[^\x21-\x7e]/g, "_").replace(/["\\]/g, "_");
+  return `attachment;filename="${ascii}";filename*=UTF-8''${encodeURIComponent(name)}`;
 }
 
 const decodeXml = (s: string) =>

@@ -20,10 +20,10 @@ export interface Renderer {
   /** Starts the render in the background on that machine. */
   start(sandboxId: string, props: VideoProps): Promise<{ cmdId: string }>;
   poll(sandboxId: string, cmdId: string): Promise<RenderPoll>;
-  /** Uploads the finished video and a thumbnail (one frame) to storage. Returns the video size in bytes. */
+  /** Uploads the finished video and a JPEG of each still (the cover choices) to storage. Returns the video size in bytes. */
   save(
     sandboxId: string,
-    out: { props: VideoProps; videoKey: string; thumbKey: string; thumbFrame: number; storage: Storage },
+    out: { props: VideoProps; videoKey: string; stills: { key: string; frame: number }[]; storage: Storage },
   ): Promise<{ bytes: number }>;
   /** Shuts the machine down. Never throws. */
   stop(sandboxId: string): Promise<void>;
@@ -37,7 +37,7 @@ export const COMPOSITION_ID = "Explainer";
 const BUNDLE_DIR = path.join(process.cwd(), ".remotion-bundle");
 const SERVE_URL = "/vercel/sandbox/remotion-bundle";
 const OUTPUT = "/tmp/video.mp4";
-const THUMB = "/tmp/thumb.jpg";
+const still = (i: number) => `/tmp/still-${i}.jpg`;
 
 /**
  * The settings @remotion/vercel's render script reads (same fields renderMediaOnVercel sends).
@@ -156,24 +156,27 @@ export function sandboxRenderer(): Renderer {
       return { state: "running", progress: "overallProgress" in progress ? progress.overallProgress : 0 };
     },
 
-    async save(sandboxId, { props, videoKey, thumbKey, thumbFrame, storage }) {
+    async save(sandboxId, { props, videoKey, stills, storage }) {
       const { Sandbox } = await import("@vercel/sandbox");
       const { renderStillOnVercel } = await import("@remotion/vercel");
       const sandbox = await Sandbox.get({ sandboxId });
       const videoUrl = await storage.signedPutUrl(videoKey);
-      const thumbUrl = await storage.signedPutUrl(thumbKey);
-      if (!videoUrl || !thumbUrl) throw new Error("The render sandbox needs R2 storage.");
+      if (!videoUrl) throw new Error("The render sandbox needs R2 storage.");
       const bytes = await upload(sandbox, OUTPUT, videoUrl, "video/mp4");
-      await renderStillOnVercel({
-        sandbox,
-        compositionId: COMPOSITION_ID,
-        inputProps: props,
-        frame: thumbFrame,
-        imageFormat: "jpeg",
-        jpegQuality: 85,
-        outputFile: THUMB,
-      });
-      await upload(sandbox, THUMB, thumbUrl, "image/jpeg");
+      for (const [i, s] of stills.entries()) {
+        const putUrl = await storage.signedPutUrl(s.key);
+        if (!putUrl) throw new Error("The render sandbox needs R2 storage.");
+        await renderStillOnVercel({
+          sandbox,
+          compositionId: COMPOSITION_ID,
+          inputProps: props,
+          frame: s.frame,
+          imageFormat: "jpeg",
+          jpegQuality: 85,
+          outputFile: still(i),
+        });
+        await upload(sandbox, still(i), putUrl, "image/jpeg");
+      }
       return { bytes };
     },
 
@@ -195,6 +198,12 @@ const FAKE_MS = 4000;
 const g = globalThis as unknown as { __fakeRenders?: Map<string, { started: number; fail: boolean }> };
 const fakes = (g.__fakeRenders ??= new Map());
 
+const STILL_COLORS = ["#393025", "#8A7E76", "#E9C79E"];
+function fakeStill(i: number, frame: number): Uint8Array {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="540" height="960" viewBox="0 0 540 960"><rect width="540" height="960" fill="${STILL_COLORS[i % 3]}"/><text x="270" y="470" font-family="sans-serif" font-size="56" font-weight="700" text-anchor="middle" fill="#FBF9F6">Cover ${i + 1}</text><text x="270" y="540" font-family="monospace" font-size="28" text-anchor="middle" fill="#FBF9F6">frame ${frame}</text></svg>`;
+  return new TextEncoder().encode(svg);
+}
+
 export function fakeRenderer(ms = FAKE_MS): Renderer {
   return {
     async setup() {
@@ -212,11 +221,12 @@ export function fakeRenderer(ms = FAKE_MS): Renderer {
       if (f.fail && p >= 0.5) return { state: "failed", message: "Frame 120 could not be drawn (test failure)." };
       return p >= 1 ? { state: "done" } : { state: "running", progress: p };
     },
-    async save(_sandboxId, { videoKey, thumbKey, storage }) {
+    async save(_sandboxId, { videoKey, stills, storage }) {
       const dir = path.join(process.cwd(), "src/lib/render");
       const video = await readFile(path.join(dir, "fake-video.mp4"));
       await storage.put(videoKey, video, "video/mp4");
-      await storage.put(thumbKey, await readFile(path.join(dir, "fake-thumb.jpg")), "image/jpeg");
+      // Each still differs, so choosing a cover visibly changes something in local tests.
+      for (const [i, s] of stills.entries()) await storage.put(s.key, fakeStill(i, s.frame), "image/svg+xml");
       return { bytes: video.byteLength };
     },
     async stop(sandboxId) {
