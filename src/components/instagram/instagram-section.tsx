@@ -23,6 +23,22 @@ export function InstagramSection({ status, result }: { status: InstagramStatus; 
   const [error, setError] = useState<string | null>(null);
 
   const card = useRef<HTMLDivElement>(null);
+  const cancelBtn = useRef<HTMLButtonElement>(null);
+  const disconnectBtn = useRef<HTMLButtonElement>(null);
+  const reopen = useRef(false);
+
+  // Keep keyboard focus with the choice: Cancel when the question opens, Disconnect after Cancel.
+  useEffect(() => {
+    if (confirming) cancelBtn.current?.focus();
+    else if (reopen.current) {
+      reopen.current = false;
+      disconnectBtn.current?.focus();
+    }
+  }, [confirming]);
+  const cancel = () => {
+    reopen.current = true;
+    setConfirming(false);
+  };
   // Coming back from Instagram: show this section (it's below the fold), then drop ?instagram=…
   // from the address so a reload doesn't repeat the message.
   useEffect(() => {
@@ -116,17 +132,27 @@ export function InstagramSection({ status, result }: { status: InstagramStatus; 
               </a>
             )}
             {confirming ? (
-              <div className="flex flex-wrap items-center gap-3" role="group" aria-label="Confirm disconnect">
-                <span className="text-sm">Disconnect @{status.username}?</span>
+              <div
+                className="flex flex-wrap items-center gap-3"
+                role="group"
+                aria-label="Confirm disconnect"
+                aria-describedby="ig-confirm"
+                onKeyDown={(e) => {
+                  if (e.key === "Escape" && !busy) cancel();
+                }}
+              >
+                <span className="text-sm" id="ig-confirm">
+                  Disconnect @{status.username}?
+                </span>
                 <Button variant="danger" onClick={disconnect} disabled={busy} aria-busy={busy}>
                   {busy && <Loader2 className="size-4 animate-spin" aria-hidden />} Disconnect
                 </Button>
-                <Button variant="secondary" onClick={() => setConfirming(false)} disabled={busy}>
+                <Button ref={cancelBtn} variant="secondary" onClick={cancel} disabled={busy}>
                   Cancel
                 </Button>
               </div>
             ) : (
-              <Button variant="secondary" onClick={() => setConfirming(true)}>
+              <Button ref={disconnectBtn} variant="secondary" onClick={() => setConfirming(true)}>
                 Disconnect
               </Button>
             )}
