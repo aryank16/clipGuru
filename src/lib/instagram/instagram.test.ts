@@ -103,9 +103,17 @@ describe("instagram connect", () => {
 
 describe("instagram helpers", () => {
   it("only returns to paths inside the app", () => {
-    for (const bad of [null, "", "https://evil.test", "//evil.test", "/\\evil.test", "/api/instagram/connect"]) {
-      expect(svcMod.safeReturnTo(bad)).toBe("/settings");
+    const bad = [
+      null, "", "https://evil.test", "//evil.test", "/\\evil.test", "/api/instagram/connect",
+      "/.//evil.test", "/x/..//evil.test", "/%2e//evil.test", "/%2E%2E//evil.test", "/x/%2e%2e//evil.test",
+      "/.\\/evil.test", "/%5c/evil.test", "/ /evil.test", "/x/../api/instagram", "/\t/evil.test",
+    ];
+    for (const v of bad) {
+      expect(svcMod.safeReturnTo(v), String(v)).toBe("/settings");
+      expect(svcMod.withResult(svcMod.safeReturnTo(v), { ok: true })).toMatch(/^\/(?!\/)/);
     }
+    expect(svcMod.withResult("//evil.test/x", { ok: true })).toBe("/settings");
+    expect(svcMod.safeReturnTo("/videos/./abc")).toBe("/videos/abc");
     expect(svcMod.safeReturnTo("/videos/abc/post?x=1")).toBe("/videos/abc/post?x=1");
     expect(svcMod.withResult("/videos/abc/post?x=1&instagram=error&reason=CANCELLED", { ok: true })).toBe("/videos/abc/post?x=1&instagram=connected");
   });

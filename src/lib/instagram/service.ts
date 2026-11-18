@@ -11,10 +11,21 @@ export const STATE_MAX_AGE_SEC = 15 * 60;
 
 type State = { n: string; u: string; r: string; t: number };
 
-/** Only paths inside the app: no other sites, no protocol-relative "//host" tricks. */
+/**
+ * Only paths inside the app. Parsed the way a browser would, so dot segments, encoded dots and
+ * backslashes can't turn "/x/..//evil.test" into "//evil.test". Anything odd falls back to Settings.
+ */
 export function safeReturnTo(v: string | null | undefined): string {
-  if (!v || !v.startsWith("/") || v.startsWith("//") || v.startsWith("/\\") || v.startsWith("/api/")) return "/settings";
-  return v.slice(0, 300);
+  const fallback = "/settings";
+  if (!v || v.length > 300 || !v.startsWith("/") || /[\\\s]/.test(v) || /%5c/i.test(v)) return fallback;
+  let u: URL;
+  try {
+    u = new URL(v, "http://x");
+  } catch {
+    return fallback;
+  }
+  if (u.origin !== "http://x" || u.pathname.startsWith("//") || u.pathname.startsWith("/api/")) return fallback;
+  return `${u.pathname}${u.search}${u.hash}`;
 }
 
 /** Adds ?instagram=… to an in-app path, keeping its other query values. */
@@ -24,7 +35,8 @@ export function withResult(returnTo: string, result: { ok: true } | { ok: false;
   u.searchParams.delete("reason");
   u.searchParams.set("instagram", result.ok ? "connected" : "error");
   if (!result.ok) u.searchParams.set("reason", result.reason);
-  return `${u.pathname}${u.search}${u.hash}`;
+  const out = `${u.pathname}${u.search}${u.hash}`;
+  return u.origin === "http://x" && out.startsWith("/") && !out.startsWith("//") ? out : "/settings";
 }
 
 type Deps = {

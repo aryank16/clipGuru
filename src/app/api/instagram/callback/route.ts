@@ -15,7 +15,13 @@ export const GET = route(async (req) => {
     .find((c) => c.startsWith(`${STATE_COOKIE}=`))
     ?.slice(STATE_COOKIE.length + 1);
   const q = url.searchParams;
-  const to = await instagramSvc().finish(session.user.id, cookie ? decodeURIComponent(cookie) : undefined, {
+  let state: string | undefined;
+  try {
+    state = cookie ? decodeURIComponent(cookie) : undefined;
+  } catch {
+    state = undefined; // a mangled cookie: treated like a missing one
+  }
+  const to = await instagramSvc().finish(session.user.id, state, {
     code: q.get("code"),
     state: q.get("state"),
     error: q.get("error"),

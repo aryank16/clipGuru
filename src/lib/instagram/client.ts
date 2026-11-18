@@ -57,12 +57,30 @@ export function metaClient(): InstagramClient {
     },
 
     async exchange(code, redirectUri) {
-      const t = await graph<{ access_token: string; expires_in?: number }>("/oauth/access_token", {
+      let t = await graph<{ access_token: string; expires_in?: number }>("/oauth/access_token", {
         client_id: e.META_APP_ID!,
         client_secret: e.META_APP_SECRET!,
         redirect_uri: redirectUri,
         code,
       });
+      console.info("[instagram] token from code, expires_in:", t.expires_in ?? "none");
+      // A configuration that hands out a short-lived user token (an hour or two): swap it for the
+      // long-lived one (about 60 days). System-user tokens come without expiry and are kept as they are.
+      if (t.expires_in && t.expires_in < 7 * 24 * 3600) {
+        const long = await graph<{ access_token: string; expires_in?: number }>("/oauth/access_token", {
+          grant_type: "fb_exchange_token",
+          client_id: e.META_APP_ID!,
+          client_secret: e.META_APP_SECRET!,
+          fb_exchange_token: t.access_token,
+        }).catch((err) => {
+          console.error("[instagram] long-lived token swap failed", err instanceof MetaError ? `${err.status} ${err.code} ${err.message}` : err);
+          return null;
+        });
+        if (long) {
+          console.info("[instagram] long-lived token, expires_in:", long.expires_in ?? "none");
+          t = long;
+        }
+      }
       return {
         accessToken: t.access_token,
         expiresAt: t.expires_in ? new Date(Date.now() + t.expires_in * 1000) : null,
