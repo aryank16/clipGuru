@@ -141,6 +141,20 @@ export function renderService({ renders, projects, storyboards, dispatch, now = 
       return r ? toRender(await expireIfStale(r)) : null;
     },
 
+    /** PATCH /api/renders/:id { coverIndex }: picks one of the suggested covers (the thumbnail, and later the Instagram cover). */
+    async setCover(userId: string, id: string, coverIndex: unknown): Promise<Render> {
+      const r = await renders.get(userId, id);
+      if (!r) throw new ApiError("NOT_FOUND");
+      if (r.status !== "ready") throw new ApiError("RENDER_NOT_READY", "This video isn't ready yet.");
+      const covers = r.covers ?? [];
+      if (typeof coverIndex !== "number" || !Number.isInteger(coverIndex) || coverIndex < 0 || coverIndex >= covers.length) {
+        throw new ApiError("VALIDATION_FAILED", "Pick one of the suggested covers.", { coverIndex: "not_a_cover" });
+      }
+      const updated = await renders.update(id, { coverIndex, thumbKey: covers[coverIndex].key, updatedAt: now() }, ["ready"]);
+      if (!updated) throw new ApiError("RENDER_NOT_READY", "This video isn't ready yet.");
+      return toRender(updated);
+    },
+
     /** POST /api/renders/:id/retry: only a failed render. Starts over; the voice is reused. */
     async retry(userId: string, id: string): Promise<Render> {
       const r = await renders.get(userId, id);

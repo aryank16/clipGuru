@@ -5,10 +5,11 @@ import type { Storage } from "../storage";
 import type { StoryboardRepo } from "../storyboard/repo";
 import type { Voiceover, VoiceoverRecord } from "../voiceover/types";
 import { FPS } from "@/video/format";
+import { computeSceneTimings } from "@/video/timing";
 import type { VideoProps } from "@/video/types";
 import type { RenderRepo } from "./repo";
 import type { Renderer } from "./renderer";
-import { renderPrefix, STAGE_START, type RenderRecord, type RenderStage } from "./types";
+import { COVER_COUNT, renderPrefix, STAGE_START, type Cover, type RenderRecord, type RenderStage } from "./types";
 
 /**
  * The step tools the job needs. Inngest provides them in production (each step is its own request,
@@ -118,7 +119,7 @@ export async function renderJob(steps: Steps, renderId: string, deps: JobDeps): 
     const props = await propsFor(deps, userId, projectId, version, voice.voiceoverId);
     const { cmdId } = await deps.renderer().start(sandboxId, props);
     await stage("render", { cmdId });
-    return { cmdId, thumbFrame: thumbFrameOf(props) };
+    return { cmdId, coverFrames: coverFramesOf(props) };
   });
 
   // 4. Wait for it, a few seconds at a time.
@@ -167,12 +168,20 @@ export async function renderJob(steps: Steps, renderId: string, deps: JobDeps): 
     const props = await propsFor(deps, userId, projectId, version, voice.voiceoverId);
     const prefix = renderPrefix(userId, projectId, renderId);
     const videoKey = `${prefix}video.mp4`;
-    const thumbKey = `${prefix}thumb.jpg`;
-    await deps.renderer().save(sandboxId, { props, videoKey, thumbKey, thumbFrame: started.thumbFrame, storage: deps.storage() });
+    // Older runs (started before covers existed) carry only one frame.
+    const old = started as unknown as { coverFrames?: number[]; thumbFrame?: number };
+    const frames = old.coverFrames ?? [old.thumbFrame ?? 0];
+    const covers: Cover[] = frames.map((frame, i) => ({ key: `${prefix}cover-${i}.jpg`, frame, offsetMs: Math.round((frame / FPS) * 1000) }));
+    const { bytes } = await deps.renderer().save(sandboxId, {
+      props,
+      videoKey,
+      stills: covers.map(({ key, frame }) => ({ key, frame })),
+      storage: deps.storage(),
+    });
     const t = now();
     const done = await deps.renders.update(
       renderId,
-      { status: "ready", progress: 1, videoKey, thumbKey, sandboxId: null, updatedAt: t, finishedAt: t },
+      { status: "ready", progress: 1, videoKey, thumbKey: covers[0].key, covers, coverIndex: 0, bytes, sandboxId: null, updatedAt: t, finishedAt: t },
       ["running"],
     );
     await deps.renderer().stop(sandboxId);
@@ -194,10 +203,25 @@ async function propsFor(deps: JobDeps, userId: string, projectId: string, versio
   };
 }
 
-/** A frame from the title scene, once its text has settled in. */
-function thumbFrameOf(props: VideoProps): number {
+/**
+ * The suggested covers: the title scene once its text has settled in, then a scene from the middle
+ * and one near the end, each late in the scene so its animation has played out. The first is the
+ * default (it names the topic). Distinct frames, in order.
+ */
+export function coverFramesOf(props: VideoProps): number[] {
   const total = Math.max(1, Math.ceil(props.durationSec * FPS));
-  return Math.min(Math.round(1.5 * FPS), total - 1);
+  const clamp = (f: number) => Math.max(0, Math.min(Math.round(f), total - 1));
+  const frames = [clamp(1.5 * FPS)];
+  const scenes = props.storyboard.scenes;
+  const timings = computeSceneTimings(scenes, props.words, props.durationSec);
+  const picks = [Math.floor(scenes.length / 2), scenes.length - 2].filter((i) => i > 0 && i < scenes.length);
+  for (const i of picks) {
+    const { startSec, endSec } = timings[i];
+    frames.push(clamp((startSec + (endSec - startSec) * 0.75) * FPS));
+  }
+  // Short or odd storyboards: fill with evenly spread frames.
+  for (let k = 1; frames.length < COVER_COUNT && k <= COVER_COUNT; k++) frames.push(clamp((total * k) / (COVER_COUNT + 1)));
+  return [...new Set(frames)].sort((a, b) => a - b).slice(0, COVER_COUNT);
 }
 
 /** Runs the job in this process (local tests): steps run once, sleeps really sleep. */

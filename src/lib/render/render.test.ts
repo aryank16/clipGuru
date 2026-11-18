@@ -179,14 +179,46 @@ describe("render job", () => {
     expect(done).toMatchObject({ status: "ready", progress: 1, stage: "finish", sandboxId: null, error: null });
     expect(done?.videoKey).toBe(`users/${A}/projects/${p.id}/renders/${r.id}/video.mp4`);
     expect((await storage.memoryStorage.read!(done!.videoKey!))?.contentType).toBe("video/mp4");
-    expect((await storage.memoryStorage.read!(done!.thumbKey!))?.contentType).toBe("image/jpeg");
+    expect(done?.covers).toHaveLength(3);
+    expect(done?.coverIndex).toBe(0);
+    expect(done?.thumbKey).toBe(done?.covers?.[0].key);
+    expect(done?.bytes).toBeGreaterThan(0);
+    for (const c of done!.covers!) expect(await storage.memoryStorage.read!(c.key)).toBeTruthy();
+    const frames = done!.covers!.map((c) => c.frame);
+    expect(new Set(frames).size).toBe(3);
+    expect([...frames].sort((a, b) => a - b)).toEqual(frames);
     expect(done?.voiceoverId).toBeTruthy();
     expect(done?.durationSec).toBeGreaterThan(10);
     expect(stop).toHaveBeenCalledTimes(1);
     expect(await projects.memoryProjects.get(A, p.id)).toMatchObject({ status: "ready", latestRenderId: r.id, rev: p.rev });
 
     const shown = await service().get(A, r.id);
-    expect(shown).toMatchObject({ videoUrl: `/api/renders/${r.id}/video`, thumbnailUrl: `/api/renders/${r.id}/thumbnail` });
+    expect(shown).toMatchObject({
+      videoUrl: `/api/renders/${r.id}/video`,
+      downloadUrl: `/api/renders/${r.id}/download`,
+      thumbnailUrl: `/api/renders/${r.id}/thumbnail?c=0`,
+      coverIndex: 0,
+    });
+    expect(shown.covers.map((c) => c.url)).toEqual([0, 1, 2].map((i) => `/api/renders/${r.id}/covers/${i}`));
+    expect(shown.covers[0].offsetMs).toBe(Math.round((done!.covers![0].frame / 30) * 1000));
+  });
+
+  it("lets the owner pick a ready video's cover, and nobody else", async () => {
+    const p = await projectWithStoryboard();
+    const r = await service().create(A, p.id);
+    await expect(service().setCover(A, r.id, 1)).rejects.toMatchObject({ code: "RENDER_NOT_READY" });
+    await job.renderJob(steps().s, r.id, deps());
+
+    const picked = await service().setCover(A, r.id, 2);
+    expect(picked).toMatchObject({ coverIndex: 2, thumbnailUrl: `/api/renders/${r.id}/thumbnail?c=2` });
+    const rec = await repo.memoryRenders.byId(r.id);
+    expect(rec?.thumbKey).toBe(rec?.covers?.[2].key);
+
+    for (const bad of [3, -1, 1.5, "1", null]) {
+      await expect(service().setCover(A, r.id, bad)).rejects.toMatchObject({ code: "VALIDATION_FAILED" });
+    }
+    await expect(service().setCover(B, r.id, 0)).rejects.toMatchObject({ code: "NOT_FOUND" });
+    expect((await repo.memoryRenders.byId(r.id))?.coverIndex).toBe(2);
   });
 
   it("does nothing for a render that isn't queued (a duplicate event)", async () => {
@@ -280,6 +312,45 @@ describe("render job", () => {
     expect((await projects.memoryProjects.get(A, p.id))?.status).toBe("ready");
     expect(save).toHaveBeenCalledTimes(1);
   }, 30_000);
+});
+
+describe("cover frames", () => {
+  const props = (n: number, durationSec: number) => {
+    const scenes = Array.from({ length: n }, (_, i) => ({ type: "title", heading: `S${i}`, narration: `scene ${i} words here` }));
+    const words = scenes.flatMap((sc, i) =>
+      sc.narration.split(" ").map((text, k) => ({ text, start: (i * durationSec) / n + k * 0.3, end: (i * durationSec) / n + k * 0.3 + 0.2 })),
+    );
+    return { storyboard: { scenes }, words, audioSrc: null, durationSec } as unknown as import("@/video/types").VideoProps;
+  };
+
+  it("suggests the title plus a middle and a late scene, each inside the video", () => {
+    const f = job.coverFramesOf(props(6, 60));
+    expect(f).toHaveLength(3);
+    expect(f[0]).toBe(45);
+    // Middle scene (3) runs ~29.75 to ~39.75 s; the second-to-last (4) ~39.75 to ~49.75 s.
+    expect(f[1]).toBeGreaterThan(30 * 30);
+    expect(f[1]).toBeLessThan(40 * 30);
+    expect(f[2]).toBeGreaterThan(40 * 30);
+    expect(f[2]).toBeLessThan(50 * 30);
+  });
+
+  it("still gives three distinct frames for a short storyboard", () => {
+    const f = job.coverFramesOf(props(2, 8));
+    expect(f).toHaveLength(3);
+    expect(new Set(f).size).toBe(3);
+    for (const x of f) expect(x).toBeLessThan(8 * 30);
+  });
+});
+
+describe("download names", () => {
+  it("names the file after the title, safely", async () => {
+    const { fileNameFor } = await import("../api/serve-file");
+    expect(fileNameFor("Where does rain come from?", "mp4")).toBe("Where-does-rain-come-from.mp4");
+    expect(fileNameFor("Café: 50% off / now", "mp4")).toBe("Cafe-50-off-now.mp4");
+    expect(fileNameFor("   ", "mp4")).toBe("clipguru-video.mp4");
+    expect(fileNameFor("x".repeat(200), "mp4")).toHaveLength(84);
+    expect(storage.attachment("Café.mp4")).toBe(`attachment; filename="Caf_.mp4"; filename*=UTF-8''Caf%C3%A9.mp4`);
+  });
 });
 
 describe("stuck renders", () => {
