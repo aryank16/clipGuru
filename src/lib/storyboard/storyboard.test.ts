@@ -85,6 +85,14 @@ describe("storyboard helpers", () => {
     expect(writer.toScene(writer.toRaw(s!))).toEqual(s);
   });
 
+  it("keeps at most two 3D scenes and turns the rest into summaries", () => {
+    const three = (h: string) => ({ type: "scene3d" as const, narration: `${h} moves fast.`, heading: h, preset: "stack" as const, items: [{ label: h, cue: "moves" }] });
+    const out = types.cap3d([three("A"), { type: "title", narration: "Hi there.", title: "T" }, three("B"), three("C")]);
+    expect(out.map((s) => s.type)).toEqual(["scene3d", "title", "scene3d", "summary"]);
+    expect(out[3]).toEqual({ type: "summary", narration: "C moves fast.", heading: "C", points: [{ text: "C", cue: "moves" }] });
+    expect(types.sceneSchema.safeParse(out[3]).success).toBe(true);
+  });
+
   it("rejects a 3D scene with an unknown preset or no items", () => {
     const base = { type: "scene3d", narration: "Planets circle the sun.", heading: "Orbits", preset: "orbit", items: [{ label: "Earth", cue: "Planets" }] };
     expect(types.sceneSchema.safeParse(base).success).toBe(true);

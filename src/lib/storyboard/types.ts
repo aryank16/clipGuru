@@ -216,6 +216,21 @@ export function repairCues(scene: Scene): Scene {
   }
 }
 
+/** 3D shots render about 5x slower than 2D, so a video keeps at most this many. */
+export const MAX_3D_SCENES = 2;
+
+/** A 3D scene as a plain summary scene (same heading, labels and cues), for when a video has too many. */
+export function flatten3d(scene: Scene): Scene {
+  if (scene.type !== "scene3d") return scene;
+  return { type: "summary", narration: scene.narration, heading: scene.heading, points: scene.items.map((i) => ({ text: i.label, cue: i.cue })) };
+}
+
+/** Keeps the first MAX_3D_SCENES 3D scenes and turns any later ones into summary scenes. */
+export function cap3d(scenes: Scene[]): Scene[] {
+  let seen = 0;
+  return scenes.map((s) => (s.type === "scene3d" && ++seen > MAX_3D_SCENES ? flatten3d(s) : s));
+}
+
 /** The scene's on-screen heading, whatever its type. */
 export function sceneHeading(scene: Scene): string {
   switch (scene.type) {

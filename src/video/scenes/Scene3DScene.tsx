@@ -4,6 +4,7 @@ import type { Scene3DScene as T } from "../types";
 import { theme } from "../theme";
 import { Heading } from "../components/Text";
 import { useEnter } from "../components/anim";
+import { spreadCues } from "../three/cues";
 import { useCueFrames, type SceneProps } from "./common";
 import { Impact } from "../three/Impact";
 import { Orbit } from "../three/Orbit";
@@ -37,7 +38,7 @@ const Chip: React.FC<{ text: string; at: number; current: boolean }> = ({ text, 
 /** A ready-made 3D shot, with the heading above and each item's chip below as it appears in 3D. */
 export const Scene3DScene: React.FC<SceneProps<T>> = ({ scene, timing }) => {
   const frame = useCurrentFrame();
-  const cues = useCueFrames(timing, scene.items.map((i) => i.cue), 0);
+  const cues = spreadCues(useCueFrames(timing, scene.items.map((i) => i.cue), 0));
   let current = -1;
   cues.forEach((c, i) => {
     if (frame >= c) current = i;

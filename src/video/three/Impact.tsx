@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
 import { Easing, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
+import { increasing } from "./cues";
 import { ACCENT, rng, SKY, Studio } from "./studio";
 
 const W = 2.2;
@@ -45,10 +46,10 @@ export const Impact: React.FC<{ cues: number[] }> = ({ cues }) => {
   const n = cues.length;
   const gap = 2;
   const xs = cues.map((_, i) => (i - (n - 1) / 2) * gap);
-  const pieces = useMemo(() => cues.map((_, i) => shards(31 + i * 977)), [cues]);
+  const pieces = useMemo(() => Array.from({ length: n }, (_, i) => shards(31 + i * 977)), [n]);
 
   // The projectile reaches panel i exactly on cue i, then flies on.
-  const keysF = [Math.max(0, cues[0] - 40), ...cues, cues[n - 1] + 40];
+  const keysF = increasing([Math.max(0, cues[0] - 40), ...cues, cues[n - 1] + 40]);
   const keysX = [xs[0] - 5, ...xs, xs[n - 1] + 6];
   const bx = interpolate(frame, keysF, keysX, { extrapolateLeft: "clamp", extrapolateRight: "extend" });
 
