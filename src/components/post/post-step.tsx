@@ -213,6 +213,8 @@ export function PostStep({
               now={now}
               onChange={(p) => {
                 setPost(p);
+                // A cancelled post goes straight back to the form, with its words.
+                if (p.status === "cancelled") setComposing(true);
                 setNow(Date.now());
                 router.refresh();
               }}
@@ -552,13 +554,25 @@ function Compose({
         <h2 id="when-h" className="font-mono text-xs font-semibold uppercase tracking-wider">
           When
         </h2>
-        <div role="radiogroup" aria-labelledby="when-h" className="grid grid-cols-2 gap-2 rounded-lg bg-surface-warm p-1 sm:max-w-sm">
+        <div
+          role="radiogroup"
+          aria-labelledby="when-h"
+          className="grid grid-cols-2 gap-2 rounded-lg bg-surface-warm p-1 sm:max-w-sm"
+          onKeyDown={(e) => {
+            if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key)) return;
+            e.preventDefault();
+            const next = mode === "now" ? "scheduled" : "now";
+            changeWhen({ mode: next });
+            (e.currentTarget.children[next === "now" ? 0 : 1] as HTMLElement | undefined)?.focus();
+          }}
+        >
           {(["now", "scheduled"] as const).map((m) => (
             <button
               key={m}
               type="button"
               role="radio"
               aria-checked={mode === m}
+              tabIndex={mode === m ? 0 : -1}
               onClick={() => changeWhen({ mode: m })}
               className={cn(
                 "h-10 rounded-md text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sand-gold",
