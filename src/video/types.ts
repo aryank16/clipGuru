@@ -14,6 +14,7 @@ export type FocusScene = Of<"focus">;
 export type StatScene = Of<"stat">;
 export type SummaryScene = Of<"summary">;
 export type ArraySearchScene = Of<"arraySearch">;
+export type Scene3DScene = Of<"scene3d">;
 
 /** One spoken word, in seconds from the start of the video. */
 export type Word = { text: string; start: number; end: number };

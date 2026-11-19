@@ -37,6 +37,8 @@ export const COMPOSITION_ID = "Explainer";
 const BUNDLE_DIR = path.join(process.cwd(), ".remotion-bundle");
 const SERVE_URL = "/vercel/sandbox/remotion-bundle";
 const OUTPUT = "/tmp/video.mp4";
+/** 3D scenes need WebGL; "swangle" is the software GL that works in headless Chromium without a GPU. */
+const CHROMIUM = { gl: "swangle" } as const;
 const still = (i: number) => `/tmp/still-${i}.jpg`;
 
 /**
@@ -58,7 +60,7 @@ function renderConfig(props: VideoProps) {
     frameRange: null,
     everyNthFrame: 1,
     proResProfile: null,
-    chromiumOptions: {},
+    chromiumOptions: CHROMIUM,
     scale: 1,
     preferLossless: false,
     enforceAudioTrack: false,
@@ -173,6 +175,7 @@ export function sandboxRenderer(): Renderer {
           frame: s.frame,
           imageFormat: "jpeg",
           jpegQuality: 85,
+          chromiumOptions: CHROMIUM,
           outputFile: still(i),
         });
         await upload(sandbox, still(i), putUrl, "image/jpeg");

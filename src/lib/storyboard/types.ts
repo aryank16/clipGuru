@@ -5,7 +5,7 @@ import { z } from "zod";
  * narration and the scenes together. Every visual item appears on a "cue" word of its scene's narration.
  * Shared by the server and the Storyboard step.
  */
-export const SCENE_TYPES = ["title", "stat", "focus", "iconList", "flow", "cycle", "summary", "arraySearch"] as const;
+export const SCENE_TYPES = ["title", "stat", "focus", "iconList", "flow", "cycle", "summary", "arraySearch", "scene3d"] as const;
 export type SceneType = (typeof SCENE_TYPES)[number];
 
 export const SCENE_LABELS: Record<SceneType, string> = {
@@ -17,6 +17,25 @@ export const SCENE_LABELS: Record<SceneType, string> = {
   cycle: "Cycle",
   summary: "Summary",
   arraySearch: "Search",
+  scene3d: "3D",
+};
+
+/**
+ * The 3D shots a scene can use. Each is a ready-made shot; its items appear in it on their cue words.
+ * impact: an object smashes through 1-4 panels (force, momentum, breaking barriers, layers).
+ * orbit: 1-4 bodies circle a centre (planets, electrons, satellites, things revolving round one idea).
+ * globe: a turning Earth with 1-4 places marked and linked (geography, spread, global trade or travel).
+ * molecule: 1-4 atoms bond to a central atom (chemistry, parts joining into a whole).
+ * stack: 1-4 blocks drop and stack into a tower (gravity, building up, layers of a system).
+ */
+export const PRESETS_3D = ["impact", "orbit", "globe", "molecule", "stack"] as const;
+export type Preset3D = (typeof PRESETS_3D)[number];
+export const PRESET_LABELS: Record<Preset3D, string> = {
+  impact: "Impact",
+  orbit: "Orbit",
+  globe: "Globe",
+  molecule: "Molecule",
+  stack: "Stack",
 };
 
 const text = (max: number) => z.string().trim().min(1).max(max);
@@ -56,6 +75,13 @@ export const sceneSchema = z.discriminatedUnion("type", [
     narration,
     heading: text(60),
     points: z.array(z.object({ text: text(60), cue })).min(1).max(4),
+  }),
+  z.object({
+    type: z.literal("scene3d"),
+    narration,
+    heading: text(60),
+    preset: z.enum(PRESETS_3D),
+    items: z.array(z.object({ label: text(40), cue })).min(1).max(4),
   }),
   z.object({
     type: z.literal("arraySearch"),
@@ -183,6 +209,8 @@ export function repairCues(scene: Scene): Scene {
       return { ...scene, points: scene.points.map((c, i, a) => ({ ...c, cue: fix(c.cue, i, a.length) })) };
     case "arraySearch":
       return { ...scene, steps: scene.steps.map((c, i, a) => ({ cue: fix(c.cue, i, a.length) })) };
+    case "scene3d":
+      return { ...scene, items: scene.items.map((c, i, a) => ({ ...c, cue: fix(c.cue, i, a.length) })) };
     default:
       return scene;
   }
@@ -219,6 +247,8 @@ export function sceneVisual(scene: Scene): string {
       return scene.points.map((p) => p.text).join(" · ");
     case "arraySearch":
       return `Search ${scene.values.join(", ")} for ${scene.target}`;
+    case "scene3d":
+      return `3D ${PRESET_LABELS[scene.preset].toLowerCase()}: ${scene.items.map((i) => i.label).join(" · ")}`;
   }
 }
 
@@ -264,6 +294,8 @@ export function sceneCues(scene: Scene): string[] {
       return scene.points.map((c) => c.cue);
     case "arraySearch":
       return scene.steps.map((c) => c.cue);
+    case "scene3d":
+      return scene.items.map((c) => c.cue);
   }
 }
 

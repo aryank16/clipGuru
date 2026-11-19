@@ -19,6 +19,7 @@ import { FocusScene } from "./scenes/FocusScene";
 import { StatScene } from "./scenes/StatScene";
 import { SummaryScene } from "./scenes/SummaryScene";
 import { ArraySearchScene } from "./scenes/ArraySearchScene";
+import { Scene3DScene } from "./scenes/Scene3DScene";
 import { Background } from "./components/Background";
 import { OVERLAP, SceneMotion, transitionAfter } from "./components/motion";
 
@@ -40,6 +41,8 @@ const SceneSwitch: React.FC<{ scene: Scene; timing: SceneTiming }> = ({ scene, t
       return <SummaryScene scene={scene} timing={timing} />;
     case "arraySearch":
       return <ArraySearchScene scene={scene} timing={timing} />;
+    case "scene3d":
+      return <Scene3DScene scene={scene} timing={timing} />;
   }
 };
 
