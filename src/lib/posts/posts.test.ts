@@ -160,6 +160,10 @@ describe("zoned time", () => {
   it("moves a time skipped by a clock change forward", () => {
     // 02:30 doesn't exist in Berlin on 29 March 2026; it becomes 03:30 CEST.
     expect(zoned.zonedToUtc("2026-03-29", "02:30", "Europe/Berlin").toISOString()).toBe("2026-03-29T01:30:00.000Z");
+    // 02:30 doesn't exist in New York on 8 March 2026; it becomes 03:30 EDT.
+    expect(zoned.zonedToUtc("2026-03-08", "02:30", "America/New_York").toISOString()).toBe("2026-03-08T07:30:00.000Z");
+    // 02:30 doesn't exist in Sydney on 4 October 2026; it becomes 03:30 AEDT.
+    expect(zoned.zonedToUtc("2026-10-04", "02:30", "Australia/Sydney").toISOString()).toBe("2026-10-03T16:30:00.000Z");
   });
   it("formats with the year only when it isn't this year", () => {
     const now = new Date("2026-11-19T12:00:00Z");
@@ -334,6 +338,39 @@ describe("publishing job", () => {
     await expect(job.publishJob(s, req, deps({ markReconnectNeeded: async (u) => void flagged.push(u) }))).resolves.toEqual({ status: "held" });
     expect(flagged).toEqual([A]);
     expect(await repo.memoryPosts.byId(req.postId)).toMatchObject({ status: "held", error: { code: "IG_RECONNECT" } });
+  });
+
+  it("doesn't publish twice when a try published but failed before saving", async () => {
+    const { req } = await started();
+    const real = ig.fakeClient();
+    let publishes = 0;
+    const flaky = {
+      ...real,
+      publish: async (...a: Parameters<typeof real.publish>) => {
+        publishes++;
+        const id = await real.publish(...a);
+        if (publishes === 1) throw new Error("timeout after Meta published");
+        return id;
+      },
+    };
+    let tries = 0;
+    const s: import("./job").PostSteps = {
+      // Like Inngest: a step that throws is run again.
+      run: async (_name, fn) => {
+        for (;;) {
+          try {
+            return await fn();
+          } catch (e) {
+            if (++tries > 3) throw e;
+          }
+        }
+      },
+      sleep: async () => {},
+      sleepUntil: async () => {},
+    };
+    await expect(job.publishJob(s, req, deps({ client: () => flaky }))).resolves.toEqual({ status: "posted" });
+    expect(publishes).toBe(1);
+    expect(await repo.memoryPosts.byId(req.postId)).toMatchObject({ status: "posted", error: null });
   });
 
   it("classifies Meta errors", () => {

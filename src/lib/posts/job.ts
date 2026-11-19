@@ -207,6 +207,9 @@ export async function publishJob(steps: PostSteps, req: PostRequested, deps: Pub
   const published = await meta("publish", async (c, pub, p) => {
     if (p.mediaId) return p.mediaId;
     if (processed === "PUBLISHED") return null;
+    // A try before this one may have published and then failed (timeout, 5xx, crash) before
+    // saving the media id. Publishing again would fail and mark a live Reel as failed.
+    if ((await c.containerStatus(pub.token, containerId)).status === "PUBLISHED") return null;
     const id = await c.publish(pub.token, pub.igUserId, containerId);
     await deps.posts.update(p.id, { mediaId: id, updatedAt: now() }, ["publishing"]);
     return id;

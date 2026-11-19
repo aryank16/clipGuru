@@ -168,7 +168,7 @@ export function metaClient(): InstagramClient {
   };
 }
 
-const g = globalThis as unknown as { __fakeContainers?: Map<string, { caption: string; polls: number }> };
+const g = globalThis as unknown as { __fakeContainers?: Map<string, { caption: string; polls: number; published?: boolean }> };
 const fakeContainers = (g.__fakeContainers ??= new Map());
 
 /**
@@ -214,12 +214,15 @@ export function fakeClient(): InstagramClient {
     async containerStatus(_token, id) {
       const c = fakeContainers.get(id);
       if (!c) return { status: "EXPIRED", message: null };
+      if (c.published) return { status: "PUBLISHED", message: null };
       c.polls++;
       if (c.caption.includes("FAKE_REJECT")) return { status: "ERROR", message: "Error: video format not supported" };
       return { status: c.polls > 1 ? "FINISHED" : "IN_PROGRESS", message: null };
     },
     async publish(_token, _ig, id) {
-      fakeContainers.delete(id);
+      const c = fakeContainers.get(id);
+      if (!c || c.published) throw new MetaError("The media has already been published.", 400, 9007, 2207008);
+      c.published = true;
       return `fake-media-${id.slice(-6)}`;
     },
     async permalink(_token, mediaId) {

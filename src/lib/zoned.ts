@@ -22,9 +22,17 @@ export function zonedToUtc(date: string, time: string, timeZone: string): Date {
   const [y, mo, d] = date.split("-").map(Number);
   const [h, mi] = time.split(":").map(Number);
   const wall = Date.UTC(y, mo - 1, d, h, mi);
-  let t = wall - offsetMin(wall, timeZone) * 60_000;
+  const a = offsetMin(wall, timeZone);
+  let t = wall - a * 60_000;
   // Second pass for instants near a clock change.
-  t = wall - offsetMin(t, timeZone) * 60_000;
+  const b = offsetMin(t, timeZone);
+  t = wall - b * 60_000;
+  const back = utcToZoned(new Date(t), timeZone);
+  if (back.date !== date || back.time !== time.slice(0, 5)) {
+    // The wall time doesn't exist (clocks went forward). Use the offset from before the change,
+    // the smaller one, so the time lands just after the gap in every zone, east or west.
+    t = wall - Math.min(a, b) * 60_000;
+  }
   return new Date(t);
 }
 
