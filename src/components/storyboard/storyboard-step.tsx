@@ -28,7 +28,7 @@ import { Button } from "@/components/ui/button";
 import { lengthRange, toBrief, VIDEO_LENGTHS } from "@/lib/brief";
 import { CHAT_TEXT_MAX, type ChatMessage } from "@/lib/chat/types";
 import { cn } from "@/lib/cn";
-import type { Project } from "@/lib/projects/types";
+import { canPost, type Project } from "@/lib/projects/types";
 import {
   cueMarks,
   editableHeading,
@@ -355,7 +355,7 @@ export function StoryboardStep({
 
   return (
     <div className="flex flex-col gap-6 lg:gap-10">
-      <StepTabs current="storyboard" projectId={project.id} hasStoryboard hasVideo={project.step === "generate" || project.step === "post"} />
+      <StepTabs current="storyboard" projectId={project.id} hasStoryboard hasVideo={project.step === "generate" || project.step === "post"} canPost={canPost(project)} />
 
       <header className="flex flex-col gap-3 border-b border-hairline pb-6">
         <span className="eyebrow">

@@ -15,12 +15,15 @@ export function StepTabs({
   projectId,
   hasStoryboard = false,
   hasVideo = false,
+  canPost = false,
 }: {
   current: (typeof STEPS)[number]["key"];
   projectId: string;
   hasStoryboard?: boolean;
   /** A render was started, so step 3 has something to show. */
   hasVideo?: boolean;
+  /** The video is made, so step 4 can be opened. */
+  canPost?: boolean;
 }) {
   const index = STEPS.findIndex((s) => s.key === current);
   const hrefs: Partial<Record<(typeof STEPS)[number]["key"], string>> = hasStoryboard
@@ -28,6 +31,7 @@ export function StepTabs({
         idea: `/videos/${projectId}/idea`,
         storyboard: `/videos/${projectId}/storyboard`,
         ...(hasVideo ? { video: `/videos/${projectId}/video` } : {}),
+        ...(hasVideo && canPost ? { post: `/videos/${projectId}/post` } : {}),
       }
     : {};
   return (

@@ -100,6 +100,11 @@ export function toProject(r: ProjectRecord): Project {
   };
 }
 
+/** Step 4 is open once a video is made (ready, scheduled or posted), or a post was started. */
+export function canPost(p: Pick<Project, "status" | "step">): boolean {
+  return p.status === "ready" || p.status === "scheduled" || p.status === "posted" || p.step === "post";
+}
+
 /** "Photosynthesis" → "Photosynthesis (copy)", kept within the title limit. */
 export function copyTitle(title: string): string {
   const suffix = " (copy)";

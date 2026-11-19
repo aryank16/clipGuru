@@ -44,10 +44,19 @@ export const fakeChatModel: LanguageModelV4 = {
   modelId: "fake-chat",
   supportedUrls: {},
   async doGenerate({ prompt }) {
-    // Only the storyboard writer calls generate; it always asks for JSON.
+    // The storyboard and caption writers call generate; both ask for JSON.
     const text = textOf(prompt[prompt.length - 1]);
+    const system = prompt[0]?.role === "system" ? prompt[0].content : "";
     await new Promise((r) => setTimeout(r, 1200));
     if (/\bfail\b/i.test(text)) throw new Error("fake outage");
+    if (system.includes("You write Instagram captions for ClipGuru")) {
+      const title = /Video title: (.*)/.exec(text)?.[1] ?? "this idea";
+      const json = JSON.stringify({
+        caption: `Ever wondered how ${title.toLowerCase()} really works?\nIn about a minute you'll see the idea step by step, with one clear picture to remember.\nFollow for more short explainers.`,
+        hashtags: ["explainer", "learnsomethingnew", "science", "#edu cation", "explainer"],
+      });
+      return { content: [{ type: "text", text: json }], finishReason: { unified: "stop", raw: "stop" }, usage, warnings: [] };
+    }
     const json = JSON.stringify(fakeStoryboard(text));
     return {
       content: [{ type: "text", text: json }],
