@@ -2,7 +2,7 @@ import React from "react";
 import { icons } from "lucide";
 import { theme } from "../theme";
 import { useEnter } from "./anim";
-import { useCurrentFrame } from "remotion";
+import { interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 
 type Node = [string, Record<string, string | number>];
 
@@ -53,7 +53,11 @@ export const IconBadge: React.FC<{
 }> = ({ name, size, at, active = false }) => {
   const p = useEnter(at, 14);
   const frame = useCurrentFrame();
-  const scale = 0.6 + 0.4 * p;
+  const { fps } = useVideoConfig();
+  // Pops in with a little overshoot, then a ring ripples out once.
+  const pop = spring({ frame: frame - at, fps, config: { damping: 9, mass: 0.6, stiffness: 160 } });
+  const scale = 0.5 + 0.5 * pop;
+  const ripple = interpolate(frame, [at + 4, at + 26], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
   // gentle float once settled, phase offset per badge so they don't move in lockstep
   const bob = frame > at + 14 ? Math.sin((frame - at) / 22 + at) * 5 : 0;
   return (
@@ -70,8 +74,21 @@ export const IconBadge: React.FC<{
         boxShadow: active ? "0 14px 30px rgba(47,125,225,0.28)" : "none",
         opacity: p,
         transition: "none",
+        position: "relative",
       }}
     >
+      {ripple > 0 && ripple < 1 && (
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            borderRadius: "50%",
+            border: `4px solid ${theme.accent}`,
+            transform: `scale(${1 + ripple * 0.6})`,
+            opacity: (1 - ripple) * 0.6,
+          }}
+        />
+      )}
       <DrawIcon
         name={name}
         size={size * 0.52}

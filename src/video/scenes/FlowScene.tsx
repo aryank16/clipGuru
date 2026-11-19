@@ -1,5 +1,6 @@
 import React from "react";
-import { AbsoluteFill } from "remotion";
+import { AbsoluteFill, useCurrentFrame } from "remotion";
+import { Traveller } from "../components/motion";
 import type { FlowScene as T } from "../types";
 import { theme, zones } from "../theme";
 import { IconBadge } from "../components/DrawIcon";
@@ -16,6 +17,11 @@ export const FlowScene: React.FC<SceneProps<T>> = ({ scene, timing }) => {
   const step = span / n;
   const disc = n >= 4 ? 130 : 150;
   const x = 250;
+  const frame = useCurrentFrame();
+  let current = -1;
+  at.forEach((f, i) => {
+    if (frame >= f) current = i;
+  });
   return (
     <AbsoluteFill>
       <Heading text={scene.heading} />
@@ -24,7 +30,10 @@ export const FlowScene: React.FC<SceneProps<T>> = ({ scene, timing }) => {
           const y1 = top + step * i + step / 2 + disc / 2 + 14;
           const y2 = top + step * (i + 1) + step / 2 - disc / 2 - 14;
           return (
-            <DrawPath key={i} d={`M ${x} ${y1} L ${x} ${y2}`} at={at[i + 1] - 10} frames={12} color={theme.accent} width={6} />
+            <g key={i}>
+              <DrawPath d={`M ${x} ${y1} L ${x} ${y2}`} at={at[i + 1] - 10} frames={12} color={theme.accent} width={6} />
+              <Traveller x1={x} y1={y1} x2={x} y2={y2 - 10} from={at[i + 1] + 4} offset={i * 11} />
+            </g>
           );
         })}
       </svg>
@@ -44,7 +53,7 @@ export const FlowScene: React.FC<SceneProps<T>> = ({ scene, timing }) => {
               gap: 44,
             }}
           >
-            <IconBadge name={s.icon} size={disc} at={at[i]} />
+            <IconBadge name={s.icon} size={disc} at={at[i]} active={i === current} />
             <Label text={s.label} at={at[i] + 5} size={46} />
           </div>
         );

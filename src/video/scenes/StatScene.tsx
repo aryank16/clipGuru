@@ -26,6 +26,10 @@ export const StatScene: React.FC<SceneProps<T>> = ({ scene, timing }) => {
     shown = `${m[1]}${num}${m[3]}`;
   }
   const p = useEnter(at, 14);
+  // A percentage also fills a bar, in step with the count.
+  const pctMatch = scene.value.trim().match(/^([0-9]+(?:\.[0-9]+)?)\s*%$/);
+  const pct = pctMatch ? Math.min(100, parseFloat(pctMatch[1])) : null;
+  const fill = interpolate(frame, [at, at + 30], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: Easing.out(Easing.cubic) });
   // Centre the block in the visual zone whether or not there is an icon.
   const dy = scene.icon ? 30 : -60;
   return (
@@ -50,7 +54,20 @@ export const StatScene: React.FC<SceneProps<T>> = ({ scene, timing }) => {
       >
         {shown}
       </div>
-      <div style={{ position: "absolute", top: 980 + dy, left: 110, right: 110, textAlign: "center" }}>
+      {pct !== null && (
+        <div style={{ position: "absolute", top: 955 + dy, left: 190, right: 190, height: 22, borderRadius: 11, background: theme.line, opacity: p }}>
+          <div
+            style={{
+              height: "100%",
+              width: `${pct * fill}%`,
+              borderRadius: 11,
+              background: theme.accent,
+              boxShadow: "0 0 18px rgba(47,125,225,0.5)",
+            }}
+          />
+        </div>
+      )}
+      <div style={{ position: "absolute", top: (pct !== null ? 1010 : 980) + dy, left: 110, right: 110, textAlign: "center" }}>
         <Label text={scene.label} at={at + 10} size={52} />
       </div>
     </AbsoluteFill>

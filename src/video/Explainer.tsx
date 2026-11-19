@@ -3,8 +3,6 @@ import {
   AbsoluteFill,
   Audio,
   Sequence,
-  interpolate,
-  Easing,
   staticFile,
   useCurrentFrame,
   useVideoConfig,
@@ -22,6 +20,7 @@ import { StatScene } from "./scenes/StatScene";
 import { SummaryScene } from "./scenes/SummaryScene";
 import { ArraySearchScene } from "./scenes/ArraySearchScene";
 import { Background } from "./components/Background";
+import { OVERLAP, SceneMotion, transitionAfter } from "./components/motion";
 
 const SceneSwitch: React.FC<{ scene: Scene; timing: SceneTiming }> = ({ scene, timing }) => {
   switch (scene.type) {
@@ -42,18 +41,6 @@ const SceneSwitch: React.FC<{ scene: Scene; timing: SceneTiming }> = ({ scene, t
     case "arraySearch":
       return <ArraySearchScene scene={scene} timing={timing} />;
   }
-};
-
-// Fades each scene in and out so cuts feel calm.
-const SceneShell: React.FC<{ frames: number; children: React.ReactNode }> = ({ frames, children }) => {
-  const f = useCurrentFrame();
-  const out = interpolate(f, [frames - 9, frames], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
-  const inn = interpolate(f, [0, 8], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
-  const rise = interpolate(f, [0, 14], [36, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: Easing.out(Easing.cubic) });
-  const sink = interpolate(f, [frames - 9, frames], [0, -24], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
-  return (
-    <AbsoluteFill style={{ opacity: Math.min(out, inn), transform: `translateY(${rise + sink}px)` }}>{children}</AbsoluteFill>
-  );
 };
 
 const ProgressBar: React.FC = () => {
@@ -80,11 +67,13 @@ export const Explainer: React.FC<VideoProps> = ({ storyboard, words, audioSrc, d
         const t = timings[i];
         const from = Math.round(t.startSec * fps);
         const frames = Math.max(1, Math.round(t.endSec * fps) - from);
+        const last = i === storyboard.scenes.length - 1;
+        // Each scene stays on a little into the next one, so the two can hand over together.
         return (
-          <Sequence key={i} from={from} durationInFrames={frames} name={`${i + 1}. ${scene.type}`}>
-            <SceneShell frames={frames}>
+          <Sequence key={i} from={from} durationInFrames={frames + (last ? 0 : OVERLAP)} name={`${i + 1}. ${scene.type}`}>
+            <SceneMotion frames={frames} enter={i === 0 ? "first" : transitionAfter(i - 1)} exit={last ? null : transitionAfter(i)}>
               <SceneSwitch scene={scene} timing={t} />
-            </SceneShell>
+            </SceneMotion>
           </Sequence>
         );
       })}

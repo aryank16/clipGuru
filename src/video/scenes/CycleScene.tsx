@@ -58,6 +58,25 @@ export const CycleScene: React.FC<SceneProps<T>> = ({ scene, timing }) => {
         {arcs.map((d, i) => (
           <DrawPath key={i} d={d} at={arrowAt(i)} frames={18} color={theme.accent} width={6} />
         ))}
+        {frame > arrowAt(0) + 10 &&
+          [0, 1, 2].map((k) => {
+            // Three dots ride the loop clockwise, faster once the whole cycle is drawn.
+            const speed = allLit ? 0.022 : 0.012;
+            const a = start + (frame - arrowAt(0)) * speed + (k * 2 * Math.PI) / 3;
+            const q = pt(a);
+            const fade = Math.min(1, (frame - arrowAt(0) - 10) / 12);
+            return (
+              <circle
+                key={k}
+                cx={q.x}
+                cy={q.y}
+                r={10}
+                fill={theme.accent}
+                opacity={fade * 0.9}
+                style={{ filter: "drop-shadow(0 0 10px rgba(47,125,225,0.7))" }}
+              />
+            );
+          })}
       </svg>
       {scene.centerLabel && (
         <div

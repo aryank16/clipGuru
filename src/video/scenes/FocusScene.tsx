@@ -1,5 +1,5 @@
 import React from "react";
-import { AbsoluteFill } from "remotion";
+import { AbsoluteFill, useCurrentFrame } from "remotion";
 import type { FocusScene as T } from "../types";
 import { theme } from "../theme";
 import { DrawIcon } from "../components/DrawIcon";
@@ -29,6 +29,34 @@ const Chip: React.FC<{ text: string; at: number }> = ({ text, at }) => {
   );
 };
 
+const Orbit: React.FC<{ at: number }> = ({ at }) => {
+  const frame = useCurrentFrame();
+  const p = useEnter(at, 24);
+  const R = 285;
+  const cx = 540;
+  const cy = 760;
+  const a = (frame - at) / 38;
+  return (
+    <svg width={1080} height={1920} style={{ position: "absolute", inset: 0 }}>
+      <circle
+        cx={cx}
+        cy={cy}
+        r={R}
+        fill="none"
+        stroke={theme.accent}
+        strokeWidth={3}
+        strokeDasharray="6 18"
+        strokeLinecap="round"
+        opacity={0.45 * p}
+        transform={`rotate(${frame * 0.4} ${cx} ${cy})`}
+      />
+      {[0, Math.PI].map((o, i) => (
+        <circle key={i} cx={cx + R * Math.cos(a + o)} cy={cy + R * Math.sin(a + o)} r={i ? 9 : 14} fill={theme.accent} opacity={p} />
+      ))}
+    </svg>
+  );
+};
+
 // One big icon as the hero, with short callouts that pop in on cue.
 export const FocusScene: React.FC<SceneProps<T>> = ({ scene, timing }) => {
   const at = useCueFrames(timing, scene.callouts.map((c) => c.cue));
@@ -54,6 +82,7 @@ export const FocusScene: React.FC<SceneProps<T>> = ({ scene, timing }) => {
       >
         <DrawIcon name={scene.icon} size={240} at={6} drawFrames={32} strokeWidth={1.4} />
       </div>
+      <Orbit at={14} />
       <div
         style={{
           position: "absolute",
