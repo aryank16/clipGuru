@@ -7,6 +7,8 @@ import { VoicePicker } from "@/components/account/voice-picker";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
+import { InstagramSection, type ConnectResult } from "@/components/instagram/instagram-section";
+import type { InstagramStatus } from "@/lib/instagram/types";
 import type { Me } from "@/lib/me";
 import { NAME_MAX } from "@/lib/me";
 import type { TimeZoneOption } from "@/lib/timezones";
@@ -19,21 +21,22 @@ export function SettingsForm({
   voices,
   timeZones,
   hasPassword,
+  instagram,
+  instagramResult,
 }: {
   me: Me;
   voices: Voice[];
   timeZones: TimeZoneOption[];
   hasPassword: boolean;
+  instagram: InstagramStatus;
+  instagramResult: ConnectResult;
 }) {
   return (
     <div className="flex max-w-3xl flex-col gap-6">
       <AccountSection me={me} hasPassword={hasPassword} />
       <VoiceSection current={me.defaultVoiceId ?? voices[0].id} voices={voices} />
       <TimeZoneSection current={me.timeZone} options={timeZones} />
-      <Card className="flex flex-col gap-5 p-6 sm:p-8">
-        <SectionHeader index="04" eyebrow="Instagram" title="Instagram account" />
-        <p className="text-taupe">Not connected. Connecting your Instagram account comes in a later update.</p>
-      </Card>
+      <InstagramSection status={instagram} result={instagramResult} />
       <DeleteSection email={me.email} />
     </div>
   );

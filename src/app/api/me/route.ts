@@ -7,15 +7,17 @@ import { storyboardRepo } from "@/lib/storyboard/repo";
 import { voiceoverRepo } from "@/lib/voiceover/repo";
 import { chatRepo } from "@/lib/chat/repo";
 import { deleteMeBody, patchMeBody, toMe } from "@/lib/me";
+import { instagramSvc } from "@/lib/instagram";
+import { instagramRepo } from "@/lib/instagram/repo";
 import { projectsRepo } from "@/lib/projects/repo";
 import { requireApiSession } from "@/lib/session";
 
-/** GET /api/me — the signed-in user. Instagram and limits fill in with F10 and F12. */
+/** GET /api/me — the signed-in user and their Instagram link. Limits fill in later. */
 export const GET = route(async (req) => {
   const { user } = await requireApiSession(req);
   return json({
     user: toMe(user),
-    instagram: { connected: false },
+    instagram: await instagramSvc().status(user.id),
     limits: { rendersRunning: 0, rendersToday: 0, maxRunning: 3, maxPerDay: 10 },
   });
 });
@@ -43,6 +45,7 @@ export const DELETE = route(async (req) => {
   await storyboardRepo().deleteAllForUser(user.id);
   await voiceoverRepo().deleteAllForUser(user.id);
   await renderRepo().deleteAllForUser(user.id);
+  await instagramRepo().delete(user.id);
   await storageIfConfigured()
     ?.deletePrefix(userPrefix(user.id))
     .catch((err) => console.error("[me] file cleanup failed", err));
