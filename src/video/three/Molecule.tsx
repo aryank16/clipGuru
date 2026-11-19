@@ -40,8 +40,8 @@ export const Molecule: React.FC<{ cues: number[] }> = ({ cues }) => {
           <meshStandardMaterial color={ACCENT} roughness={0.3} metalness={0.1} />
         </mesh>
         {dirs.map((d, i) => {
-          if (frame < cues[i] - 18) return null;
-          const p = spring({ frame: frame - cues[i] + 18, fps, config: { damping: 13, mass: 0.8 } });
+          if (frame < cues[i] - 10) return null;
+          const p = spring({ frame: frame - cues[i] + 10, fps, config: { damping: 13, mass: 0.6 } });
           const dist = BOND + (1 - p) * 5;
           const pos = new THREE.Vector3(...d).normalize().multiplyScalar(dist);
           const bond = interpolate(frame, [cues[i], cues[i] + 10], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });

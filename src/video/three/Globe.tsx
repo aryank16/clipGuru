@@ -5,11 +5,12 @@ import { ACCENT, Studio } from "./studio";
 
 const R = 2.1;
 // Spread across the side of the globe that faces the camera (lat, lon in degrees).
+// Kept in the upper front, since the camera looks down on the globe and the globe keeps turning.
 const SPOTS: [number, number][] = [
-  [42, -20],
-  [12, 28],
-  [-18, -8],
-  [30, 55],
+  [35, -32],
+  [44, 10],
+  [16, 30],
+  [8, -10],
 ];
 
 const toVec = (lat: number, lon: number, r = R) => {

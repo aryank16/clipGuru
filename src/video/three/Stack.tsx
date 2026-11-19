@@ -47,7 +47,8 @@ export const Stack: React.FC<{ cues: number[] }> = ({ cues }) => {
         const dust = since > 0 && since < 0.8 ? since / 0.8 : -1;
         return (
           <group key={i}>
-            <mesh position={[0, y, 0]} rotation={[0, i * 0.35, 0]} castShadow receiveShadow>
+            {/* No shadow while it is still above the frame, or the shadow shows up before the block. */}
+            <mesh position={[0, y, 0]} rotation={[0, i * 0.35, 0]} castShadow={y - tops[i] < 3.5} receiveShadow>
               <boxGeometry args={[SIZES[i], HEIGHTS[i], SIZES[i]]} />
               <meshStandardMaterial color={COLORS[i % COLORS.length]} roughness={0.35} metalness={0.05} />
             </mesh>

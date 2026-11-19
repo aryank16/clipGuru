@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { ApiError } from "../api/errors";
-import { storyboardSchema, type Storyboard } from "./types";
+import { cap3d, storyboardSchema, type Storyboard } from "./types";
 
 const rev = z.number().int().min(0);
 
@@ -13,10 +13,10 @@ export const saveBody = z.object({ rev, baseVersion: z.number().int().min(1), st
 export const versionQuery = z.object({ version: z.coerce.number().int().min(1).optional() });
 export const sceneIndex = z.coerce.number().int().min(0).max(99);
 
-/** The edited storyboard, or 400 STORYBOARD_INVALID naming what's wrong. */
+/** The edited storyboard (with at most two 3D scenes), or 400 STORYBOARD_INVALID naming what's wrong. */
 export function parseStoryboard(raw: unknown): Storyboard {
   const r = storyboardSchema.safeParse(raw);
-  if (r.success) return r.data;
+  if (r.success) return { ...r.data, scenes: cap3d(r.data.scenes) };
   const details: Record<string, string> = {};
   for (const i of r.error.issues) details[i.path.join(".") || "_"] = i.message;
   throw new ApiError("STORYBOARD_INVALID", Object.values(details)[0] ?? "The storyboard isn't valid.", details);

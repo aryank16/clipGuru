@@ -12,7 +12,7 @@ export const Orbit: React.FC<{ cues: number[] }> = ({ cues }) => {
   const radii = cues.map((_, i) => 1.7 + i * (n > 3 ? 0.85 : 1.05));
   const camera = (f: number) => {
     const a = f / 260;
-    const r = 5.8 + radii[n - 1] * 0.85;
+    const r = 6.4 + radii[n - 1] * 1.25;
     return { pos: [Math.sin(a) * r, r * 0.55, Math.cos(a) * r] as [number, number, number], look: [0, 0.2, 0] as [number, number, number] };
   };
   const core = spring({ frame, fps, config: { damping: 12 } });
