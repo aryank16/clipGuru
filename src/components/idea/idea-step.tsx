@@ -11,7 +11,7 @@ import { useSaver } from "@/components/account/save";
 import { toBrief, type Brief } from "@/lib/brief";
 import { CHAT_TEXT_MAX, type ChatMessage, type Idea } from "@/lib/chat/types";
 import { cn } from "@/lib/cn";
-import { DEFAULT_TITLE, type Project } from "@/lib/projects/types";
+import { canPost, DEFAULT_TITLE, type Project } from "@/lib/projects/types";
 import { BriefPanel } from "./brief-panel";
 import { StepTabs } from "./step-tabs";
 
@@ -220,6 +220,7 @@ export function IdeaStep({
         projectId={project.id}
         hasStoryboard={storyboardHref !== null}
         hasVideo={project.step === "generate" || project.step === "post"}
+        canPost={canPost(project)}
       />
 
       <header className="flex flex-col gap-3 border-b border-hairline pb-6">

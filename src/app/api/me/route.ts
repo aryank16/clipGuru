@@ -9,6 +9,7 @@ import { chatRepo } from "@/lib/chat/repo";
 import { deleteMeBody, patchMeBody, toMe } from "@/lib/me";
 import { instagramSvc } from "@/lib/instagram";
 import { instagramRepo } from "@/lib/instagram/repo";
+import { postsRepo } from "@/lib/posts/repo";
 import { projectsRepo } from "@/lib/projects/repo";
 import { requireApiSession } from "@/lib/session";
 
@@ -39,7 +40,8 @@ const SESSION_COOKIES = ["better-auth.session_token", "__Secure-better-auth.sess
 export const DELETE = route(async (req) => {
   const { user } = await requireApiSession(req);
   await parseBody(req, deleteMeBody);
-  // Scheduled posts (F13) get cancelled here once they exist.
+  // Posts go first: a scheduled post's sleeping run finds nothing when it wakes, so it never posts.
+  await postsRepo().deleteAllForUser(user.id);
   await projectsRepo().deleteAllForUser(user.id);
   await chatRepo().deleteAllForUser(user.id);
   await storyboardRepo().deleteAllForUser(user.id);

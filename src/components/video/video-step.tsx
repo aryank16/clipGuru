@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { StepTabs } from "@/components/idea/step-tabs";
 import { Button, buttonClasses } from "@/components/ui/button";
 import { cn } from "@/lib/cn";
-import type { Project } from "@/lib/projects/types";
+import { canPost, type Project } from "@/lib/projects/types";
 import { RENDER_STAGES, STAGE_LABELS, type Render, type RenderStage } from "@/lib/render/types";
 import { formatDuration } from "@/lib/storyboard/types";
 import { VOICES } from "@/lib/voices";
@@ -82,7 +82,7 @@ export function VideoStep({ project, initialRender }: { project: Project; initia
 
   return (
     <div className="flex flex-col gap-6 lg:gap-10">
-      <StepTabs current="video" projectId={project.id} hasStoryboard hasVideo />
+      <StepTabs current="video" projectId={project.id} hasStoryboard hasVideo canPost={render.status === "ready" || canPost(project)} />
 
       <header className="flex flex-col gap-3 border-b border-hairline pb-6">
         <span className="eyebrow flex items-center gap-2">
@@ -263,7 +263,9 @@ function Ready({
             <Download className="size-5" aria-hidden /> Download MP4
           </a>
         )}
-        <p className="text-sm text-taupe">Posting to Instagram comes in the next update.</p>
+        <Link href={`/videos/${projectId}/post`} className={buttonClasses("secondary", "lg", "w-full sm:w-auto")}>
+          Continue to post <ArrowRight className="size-5" aria-hidden />
+        </Link>
       </div>
 
       <Link
@@ -276,7 +278,7 @@ function Ready({
   );
 }
 
-/** Three suggested frames; the chosen one is the thumbnail (and, once posting arrives, the Reel cover). */
+/** Three suggested frames; the chosen one is the thumbnail (and the Reel cover). */
 function CoverPicker({ render, onChange }: { render: Render; onChange: (r: Render) => void }) {
   const router = useRouter();
   // The pick shows at once; saves run one at a time, always ending on the latest pick

@@ -142,7 +142,7 @@ export function InstagramSection({ status, result }: { status: InstagramStatus; 
                 }}
               >
                 <span className="text-sm" id="ig-confirm">
-                  Disconnect @{status.username}?
+                  Disconnect @{status.username}? Scheduled posts are put on hold until you connect again.
                 </span>
                 <Button variant="danger" onClick={disconnect} disabled={busy} aria-busy={busy}>
                   {busy && <Loader2 className="size-4 animate-spin" aria-hidden />} Disconnect
