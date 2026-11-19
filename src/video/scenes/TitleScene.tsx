@@ -4,11 +4,11 @@ import type { TitleScene as T } from "../types";
 import { theme } from "../theme";
 import { DrawIcon } from "../components/DrawIcon";
 import { useEnter } from "../components/anim";
+import { KineticText } from "../components/Text";
 import type { SceneProps } from "./common";
 
 export const TitleScene: React.FC<SceneProps<T>> = ({ scene }) => {
   const disc = useEnter(0, 18);
-  const title = useEnter(10, 22);
   const sub = useEnter(22, 20);
   const rule = useEnter(18, 22);
   return (
@@ -37,17 +37,10 @@ export const TitleScene: React.FC<SceneProps<T>> = ({ scene }) => {
           left: 80,
           right: 80,
           textAlign: "center",
-          fontFamily: theme.font,
-          fontWeight: 700,
-          fontSize: 96,
-          lineHeight: 1.08,
-          letterSpacing: -2,
-          color: theme.ink,
-          opacity: title,
-          transform: `translateY(${(1 - title) * 30}px)`,
+          isolation: "isolate",
         }}
       >
-        {scene.title}
+        <KineticText text={scene.title} at={10} size={96} letterSpacing={-2} lineHeight={1.08} stagger={4} />
       </div>
       <div
         style={{
