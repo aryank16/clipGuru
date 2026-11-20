@@ -68,8 +68,10 @@ describe("instagram connect", () => {
     await expect(s.finish(A, undefined, { code, state })).resolves.toBe(bad);
     await expect(s.finish(A, started.cookie, { code, state: "other" })).resolves.toBe(bad);
     await expect(s.finish(B, started.cookie, { code, state })).resolves.toBe(bad);
-    // Change the last character to a different one (replacing it with a fixed "x" was a no-op 1 time in 64).
-    const tampered = started.cookie.slice(0, -1) + (started.cookie.endsWith("x") ? "y" : "x");
+    // Change one character in the middle. (The last base64url character of the MAC holds only 4 real bits,
+    // so changing it can decode to the same bytes and the test would flake.)
+    const mid = Math.floor(started.cookie.length / 2);
+    const tampered = started.cookie.slice(0, mid) + (started.cookie[mid] === "A" ? "B" : "A") + started.cookie.slice(mid + 1);
     await expect(s.finish(A, tampered, { code, state })).resolves.toBe(bad);
     const later = service({ now: () => new Date(Date.now() + 16 * 60_000) });
     await expect(later.finish(A, started.cookie, { code, state })).resolves.toBe(bad);
