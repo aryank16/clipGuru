@@ -4,8 +4,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 // signs into an existing password account with the same email, and what happens to that password.
 const APP = "http://localhost:3000";
 const b64 = (o: object) => Buffer.from(JSON.stringify(o)).toString("base64url");
-const idToken = (email: string) =>
-  `${b64({ alg: "RS256", kid: "k" })}.${b64({ sub: `g-${email}`, email, email_verified: true, name: "Pat", iss: "https://accounts.google.com", aud: "test-client" })}.sig`;
+const idToken = (email: string, verified = true) =>
+  `${b64({ alg: "RS256", kid: "k" })}.${b64({ sub: `g-${email}`, email, email_verified: verified, name: "Pat", iss: "https://accounts.google.com", aud: "test-client" })}.sig`;
 
 async function setup() {
   vi.resetModules();
@@ -24,7 +24,7 @@ function cookiesFrom(res: Response): string {
   return res.headers.getSetCookie().map((c) => c.split(";")[0]).join("; ");
 }
 
-async function googleSignIn(a: Awaited<ReturnType<typeof setup>>, email: string) {
+async function googleSignIn(a: Awaited<ReturnType<typeof setup>>, email: string, verified = true) {
   const start = await a.handler(
     new Request(`${APP}/api/auth/sign-in/social`, {
       method: "POST",
@@ -38,14 +38,15 @@ async function googleSignIn(a: Awaited<ReturnType<typeof setup>>, email: string)
   vi.stubGlobal("fetch", async (input: RequestInfo | URL, init?: RequestInit) => {
     const u = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
     if (u.includes("oauth2.googleapis.com/token")) {
-      return Response.json({ access_token: "at", id_token: idToken(email), expires_in: 3600, token_type: "Bearer", scope: "openid email profile" });
+      return Response.json({ access_token: "at", id_token: idToken(email, verified), expires_in: 3600, token_type: "Bearer", scope: "openid email profile" });
     }
     return realFetch(input, init);
   });
   return a.handler(new Request(`${APP}/api/auth/callback/google?code=c&state=${state}`, { headers: { cookie: cookiesFrom(start) } }));
 }
 
-describe("Continue with Google on an existing password account", () => {
+// The first test loads Better Auth cold, which can pass the default 5 s on a busy machine.
+describe("Continue with Google on an existing password account", { timeout: 30_000 }, () => {
   beforeEach(() => vi.unstubAllGlobals());
   afterEach(() => {
     vi.unstubAllEnvs();
@@ -65,6 +66,17 @@ describe("Continue with Google on an existing password account", () => {
     expect(found?.user.emailVerified).toBe(true);
     expect(found?.accounts.map((x) => x.providerId)).toEqual(["google"]);
     await expect(a.api.signInEmail({ body: { email: "pat@example.com", password: "Str0ng!passw0rd" } })).rejects.toThrow();
+  });
+
+  it("refuses a Google account whose email Google hasn't confirmed, and keeps the password", async () => {
+    const a = await setup();
+    await a.api.signUpEmail({ body: { name: "Vic", email: "vic@example.com", password: "Str0ng!passw0rd" } });
+    const res = await googleSignIn(a, "vic@example.com", false);
+    expect(res.headers.get("location")).toBe("/sign-in?error=account_not_linked");
+    const ctx = await a.$context;
+    const found = await ctx.internalAdapter.findUserByEmail("vic@example.com", { includeAccounts: true });
+    expect(found?.accounts.map((x) => x.providerId)).toEqual(["credential"]);
+    expect(await a.api.signInEmail({ body: { email: "vic@example.com", password: "Str0ng!passw0rd" } })).toBeTruthy();
   });
 
   it("keeps the password when the email was already confirmed", async () => {

@@ -68,7 +68,9 @@ describe("instagram connect", () => {
     await expect(s.finish(A, undefined, { code, state })).resolves.toBe(bad);
     await expect(s.finish(A, started.cookie, { code, state: "other" })).resolves.toBe(bad);
     await expect(s.finish(B, started.cookie, { code, state })).resolves.toBe(bad);
-    await expect(s.finish(A, started.cookie.replace(/.$/, "x"), { code, state })).resolves.toBe(bad);
+    // Change the last character to a different one (replacing it with a fixed "x" was a no-op 1 time in 64).
+    const tampered = started.cookie.slice(0, -1) + (started.cookie.endsWith("x") ? "y" : "x");
+    await expect(s.finish(A, tampered, { code, state })).resolves.toBe(bad);
     const later = service({ now: () => new Date(Date.now() + 16 * 60_000) });
     await expect(later.finish(A, started.cookie, { code, state })).resolves.toBe(bad);
     expect(await repo.memoryInstagram.get(A)).toBeNull();

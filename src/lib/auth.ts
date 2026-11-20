@@ -65,9 +65,10 @@ function createAuth() {
       : {},
     account: {
       // "Continue with Google" signs straight into an existing account with the same email, even when that
-      // account's email was never confirmed. Google has confirmed the email, so that person owns it; see
-      // the account hook below for how an unconfirmed password is handled.
-      accountLinking: { enabled: true, trustedProviders: ["google"], requireLocalEmailVerified: false },
+      // account's email was never confirmed, but only when Google says it has confirmed the email itself
+      // (Google is deliberately not a "trusted provider", which would skip that check). See the account
+      // hook below for how an unconfirmed password is handled.
+      accountLinking: { enabled: true, requireLocalEmailVerified: false },
     },
     session: {
       expiresIn: 7 * DAY,
