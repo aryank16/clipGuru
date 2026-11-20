@@ -120,7 +120,7 @@ function CardMenu({
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
         className={cn(
-          "flex size-8 items-center justify-center rounded-md sm:size-9 text-taupe hover:bg-surface-warm/70 hover:text-espresso",
+          "flex size-11 items-center justify-center rounded-md sm:size-9 text-taupe hover:bg-surface-warm/70 hover:text-espresso",
           open && "bg-surface-warm/70 text-espresso",
         )}
       >

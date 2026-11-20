@@ -55,7 +55,7 @@ export function SignUpForm({ googleEnabled }: { googleEnabled: boolean }) {
           We sent a confirmation link to <span className="font-medium text-espresso">{sentTo}</span>. It expires in 1
           hour. Open it on this device to finish creating your account.
         </p>
-        <Link href="/sign-in" className="text-sm font-medium text-espresso hover:underline">
+        <Link href="/sign-in" className="tap text-sm font-medium text-espresso hover:underline">
           Back to sign in
         </Link>
       </div>
@@ -99,7 +99,7 @@ export function SignUpForm({ googleEnabled }: { googleEnabled: boolean }) {
       </form>
       <p className="text-center text-sm text-taupe">
         Already have an account?{" "}
-        <Link href="/sign-in" className="font-medium text-espresso hover:underline">
+        <Link href="/sign-in" className="tap font-medium text-espresso hover:underline">
           Sign in
         </Link>
       </p>

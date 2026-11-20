@@ -47,3 +47,20 @@
   text-transform: uppercase;
   color: var(--color-taupe);
 }
+
+/* A bigger hit area on phones without moving anything: padding grows the target, the negative margin gives the space back. */
+@utility tap {
+  @media (max-width: 639px) {
+    padding-block: 12px;
+    margin-block: -12px;
+  }
+}
+
+/* iOS Safari zooms the page into any field with text under 16px; keep phones at 16px. Unlayered so it beats utilities. */
+@media (max-width: 639px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  textarea,
+  select {
+    font-size: 16px;
+  }
+}

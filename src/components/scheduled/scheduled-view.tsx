@@ -262,7 +262,7 @@ function PostRow({ item, timeZone, now, onChange }: { item: ScheduledItem; timeZ
           </p>
           <h3 className="text-[15px] leading-snug font-semibold break-words text-espresso sm:text-base">
             {videoHref ? (
-              <Link href={videoHref} className="hover:underline">
+              <Link href={videoHref} className="tap hover:underline">
                 {item.title}
               </Link>
             ) : (

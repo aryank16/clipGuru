@@ -157,7 +157,7 @@ export function InstagramSection({ status, result }: { status: InstagramStatus; 
               </Button>
             )}
             {status.status === "connected" && (
-              <a href={connectHref(pathname)} className="text-sm text-taupe underline-offset-4 hover:text-espresso hover:underline">
+              <a href={connectHref(pathname)} className="tap text-sm text-taupe underline-offset-4 hover:text-espresso hover:underline">
                 Use a different account
               </a>
             )}

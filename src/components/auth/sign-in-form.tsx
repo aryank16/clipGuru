@@ -63,7 +63,7 @@ export function SignInForm({ googleEnabled }: { googleEnabled: boolean }) {
           label="Password"
           htmlFor="password"
           aside={
-            <Link href="/forgot-password" className="text-sm text-taupe hover:text-espresso">
+            <Link href="/forgot-password" className="tap text-sm text-taupe hover:text-espresso">
               Forgot password?
             </Link>
           }
@@ -81,7 +81,7 @@ export function SignInForm({ googleEnabled }: { googleEnabled: boolean }) {
       </form>
       <p className="text-center text-sm text-taupe">
         New here?{" "}
-        <Link href="/sign-up" className="font-medium text-espresso hover:underline">
+        <Link href="/sign-up" className="tap font-medium text-espresso hover:underline">
           Create an account
         </Link>
       </p>

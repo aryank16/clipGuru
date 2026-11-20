@@ -270,7 +270,7 @@ function Ready({
 
       <Link
         href={`/videos/${projectId}/storyboard`}
-        className="flex w-fit items-center gap-1.5 text-sm font-medium text-taupe underline-offset-4 hover:text-espresso hover:underline"
+        className="tap flex w-fit items-center gap-1.5 text-sm font-medium text-taupe underline-offset-4 hover:text-espresso hover:underline"
       >
         Edit storyboard and make it again <ArrowRight className="size-4" aria-hidden />
       </Link>

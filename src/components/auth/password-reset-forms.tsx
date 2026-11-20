@@ -41,7 +41,7 @@ export function ForgotPasswordForm() {
         <p className="text-taupe">
           If an account exists for that email, a reset link is on its way. It works once and expires in 1 hour.
         </p>
-        <Link href="/sign-in" className="text-sm font-medium hover:underline">
+        <Link href="/sign-in" className="tap text-sm font-medium hover:underline">
           Back to sign in
         </Link>
       </div>
@@ -63,7 +63,7 @@ export function ForgotPasswordForm() {
           {busy ? "Sending…" : "Send reset link"} <ArrowRight className="size-4" />
         </Button>
       </form>
-      <Link href="/sign-in" className="text-center text-sm text-taupe hover:text-espresso">
+      <Link href="/sign-in" className="tap self-center text-center text-sm text-taupe hover:text-espresso">
         Back to sign in
       </Link>
     </div>

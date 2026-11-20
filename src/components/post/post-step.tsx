@@ -544,7 +544,7 @@ function Compose({
             Cover
           </h2>
           <p className="text-sm text-taupe">The Reel uses the cover you chose in step 3.</p>
-          <Link href={`/videos/${pid}/video`} className="w-fit text-sm font-medium underline-offset-4 hover:underline">
+          <Link href={`/videos/${pid}/video`} className="tap w-fit text-sm font-medium underline-offset-4 hover:underline">
             Change cover
           </Link>
         </div>
@@ -608,7 +608,7 @@ function Compose({
             </div>
             <p className="text-sm text-taupe">
               Your time zone: {timeZone.replace(/_/g, " ")} ({zone}).{" "}
-              <Link href="/settings" className="underline-offset-4 hover:underline">
+              <Link href="/settings" className="tap underline-offset-4 hover:underline">
                 Change
               </Link>
             </p>

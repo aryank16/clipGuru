@@ -107,6 +107,16 @@ export function StoryboardStep({
   const saved = useRef(initialVersion);
   const preview = useRef<PreviewHandle | null>(null);
   const previewBox = useRef<HTMLElement>(null);
+  // Phones: the Generate button sits below every scene, so a slim copy floats above the tab bar until the real one is on screen.
+  const generateBox = useRef<HTMLDivElement>(null);
+  const [generateInView, setGenerateInView] = useState(true);
+  useEffect(() => {
+    const el = generateBox.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(([e]) => setGenerateInView(e.isIntersecting || e.boundingClientRect.top < 0));
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
   const [playing, setPlaying] = useState(0);
   const onScene = useCallback((i: number) => setPlaying(i), []);
   const pendingScene = useRef<number | null>(null);
@@ -481,7 +491,7 @@ export function StoryboardStep({
             )}
           </section>
           <VoicePicker value={voiceId} disabled={busy || recording} onPick={pickVoice} />
-          <div className="flex flex-col gap-2">
+          <div ref={generateBox} className="flex flex-col gap-2">
             <Button
               size="lg"
               onClick={generating ? () => router.push(`/videos/${project.id}/video`) : makeVideo}
@@ -504,6 +514,26 @@ export function StoryboardStep({
           </div>
         </aside>
       </div>
+
+      {!generateInView ? (
+        <div className="fixed inset-x-0 bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-20 px-4 lg:hidden">
+          <div className="mx-auto flex max-w-md items-center gap-3 rounded-xl border border-hairline bg-surface/95 p-2 pl-4 shadow-[0_8px_24px_-12px_rgba(32,30,28,0.35)] backdrop-blur">
+            <p className="min-w-0 flex-1 truncate text-sm text-taupe">
+              {generating ? "Your video is being made." : `${scenes.length} scenes · ${voiceName}’s voice`}
+            </p>
+            <Button
+              size="sm"
+              onClick={generating ? () => router.push(`/videos/${project.id}/video`) : makeVideo}
+              disabled={making || busy}
+              aria-busy={making}
+              className="shrink-0"
+            >
+              {making ? <Loader2 className="size-3.5 animate-spin" aria-hidden /> : null}
+              {generating ? "See progress" : "Generate video"} {!making && <ArrowRight className="size-3.5" aria-hidden />}
+            </Button>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

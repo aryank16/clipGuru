@@ -121,7 +121,7 @@ function AccountSection({ me, hasPassword, google }: { me: Me; hasPassword: bool
           </p>
         </div>
         {hasPassword ? (
-          <a href="/forgot-password" className="text-sm font-medium underline underline-offset-4">
+          <a href="/forgot-password" className="tap text-sm font-medium underline underline-offset-4">
             Change password
           </a>
         ) : null}
