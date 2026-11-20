@@ -3,7 +3,7 @@
 import { AlertTriangle, CalendarClock, ChevronLeft, ChevronRight, ExternalLink, Loader2, Pencil } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Badge, type Tone } from "@/components/ui/badge";
 import { Button, buttonClasses } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -25,7 +25,8 @@ const STATUS: Record<PostStatus, { label: string; tone: Tone }> = {
 };
 
 /** Why a post needs attention, in plain words. */
-function attentionText(p: Post): string {
+function attentionText(p: ScheduledItem): string {
+  if (p.status === "held" && !p.title) return "This video was deleted, so it can't be posted. Remove it from this list.";
   if (p.status === "held" || p.error?.code === "IG_RECONNECT") return "Instagram is disconnected. Reconnect it, then post again.";
   if (p.error?.code === "IG_DAILY_LIMIT") return "Instagram's daily posting limit was reached. Try again later.";
   if (p.error?.code === "IG_UNAVAILABLE") return "Instagram was unavailable. Try again.";
@@ -115,10 +116,14 @@ export function ScheduledView({ items, timeZone }: { items: ScheduledItem[]; tim
                   "flex flex-col items-center gap-1 rounded-lg py-2.5 sm:py-3",
                   d.isToday ? "bg-surface-warm ring-1 ring-sand-gold/50" : "",
                 )}
-                aria-label={`${d.weekday} ${d.day}: ${total ? `${d.scheduled} scheduled, ${d.posted} posted` : "nothing"}`}
               >
-                <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-taupe sm:text-[11px]">{d.weekday}</span>
-                <span className="font-mono text-base text-espresso sm:text-lg">{String(d.day).padStart(2, "0")}</span>
+                <span className="sr-only">
+                  {d.weekday} {d.day}: {total ? `${d.scheduled} scheduled, ${d.posted} posted` : "nothing"}
+                </span>
+                <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-taupe sm:text-[11px]" aria-hidden>
+                  {d.weekday}
+                </span>
+                <span className="font-mono text-base text-espresso sm:text-lg" aria-hidden>{String(d.day).padStart(2, "0")}</span>
                 <span className="flex h-2 items-center gap-1" aria-hidden>
                   {d.scheduled ? <span className="size-1.5 rounded-full bg-render-orange" /> : null}
                   {d.posted ? <span className="size-1.5 rounded-full bg-espresso" /> : null}
@@ -191,9 +196,32 @@ function PostRow({ item, timeZone, now, onChange }: { item: ScheduledItem; timeZ
   const status = STATUS[item.status];
   const at = new Date(item.postedAt ?? item.scheduledAt);
   const needsAttention = item.status === "failed" || item.status === "held";
-  const canCancel = item.status === "scheduled" && new Date(item.scheduledAt).getTime() - now.getTime() >= LOCK_BEFORE_MS;
+  const held = item.status === "held";
+  const locked = item.status === "scheduled" && new Date(item.scheduledAt).getTime() - now.getTime() < LOCK_BEFORE_MS;
+  // A held post can always be dropped (the service allows held -> cancelled); a scheduled one until its lock.
+  const canCancel = held || (item.status === "scheduled" && !locked);
   const videoHref = item.title ? `/videos/${item.projectId}/post` : null;
-  const when = item.status === "posted" ? "Posted" : item.status === "failed" ? "Failed" : item.status === "held" ? "Was due" : "Goes out";
+  // The badge already says Posted or Failed, so only the waiting states get a word before the time.
+  const when =
+    item.status === "scheduled" ? "Goes out " : held ? (new Date(item.scheduledAt) <= now ? "Was due " : "Set for ") : "";
+  const verb = held ? "Remove" : "Cancel";
+  // Keyboard users keep their place: focus moves into the confirm when it opens, and back to the trigger after "Keep it".
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const keepRef = useRef<HTMLButtonElement>(null);
+  const moveFocus = useRef(false);
+  useEffect(() => {
+    if (!moveFocus.current) return;
+    moveFocus.current = false;
+    (confirming ? keepRef : triggerRef).current?.focus();
+  }, [confirming]);
+  const openConfirm = () => {
+    moveFocus.current = true;
+    setConfirming(true);
+  };
+  const closeConfirm = () => {
+    moveFocus.current = true;
+    setConfirming(false);
+  };
 
   async function cancel() {
     setBusy(true);
@@ -202,13 +230,13 @@ function PostRow({ item, timeZone, now, onChange }: { item: ScheduledItem; timeZ
       const res = await fetch(`/api/posts/${item.id}/cancel`, { method: "POST", headers: { "content-type": "application/json" }, body: "{}" });
       if (!res.ok) {
         const data = await res.json().catch(() => null);
-        throw new Error(data?.error?.message ?? "Couldn't cancel. Try again.");
+        throw new Error(data?.error?.message ?? `Couldn't ${verb.toLowerCase()}. Try again.`);
       }
       onChange();
     } catch (e) {
       setError(e instanceof TypeError ? "Couldn't reach ClipGuru. Check your connection and try again." : (e as Error).message);
       setBusy(false);
-      setConfirming(false);
+      closeConfirm();
     }
   }
 
@@ -228,7 +256,8 @@ function PostRow({ item, timeZone, now, onChange }: { item: ScheduledItem; timeZ
           <p className="flex flex-wrap items-center gap-x-2 gap-y-1">
             <Badge tone={status.tone}>{status.label}</Badge>
             <span className="font-mono text-xs text-taupe" suppressHydrationWarning>
-              {when} {formatInZone(at, timeZone, now)}
+              {when}
+              {formatInZone(at, timeZone, now)}
             </span>
           </p>
           <h3 className="text-[15px] leading-snug font-semibold break-words text-espresso sm:text-base">
@@ -265,28 +294,28 @@ function PostRow({ item, timeZone, now, onChange }: { item: ScheduledItem; timeZ
             Fix and post
           </Link>
         ) : null}
-        {item.status === "scheduled" && videoHref && !confirming ? (
+        {item.status === "scheduled" && videoHref && !locked && !confirming ? (
           <Link href={videoHref} className={buttonClasses("secondary", "sm", "min-h-11 sm:min-h-0")}>
             <Pencil className="size-3.5" aria-hidden /> Edit
           </Link>
         ) : null}
         {canCancel && !confirming ? (
-          <Button type="button" variant="ghost" size="sm" className="min-h-11 sm:min-h-0" onClick={() => setConfirming(true)}>
-            Cancel
+          <Button ref={triggerRef} type="button" variant="ghost" size="sm" className="min-h-11 sm:min-h-0" onClick={openConfirm}>
+            {verb}
           </Button>
         ) : null}
         {confirming ? (
           <>
-            <span className="text-sm text-espresso">Cancel this post?</span>
+            <span className="text-sm text-espresso">{verb} this post?</span>
             <Button type="button" variant="danger" size="sm" className="min-h-11 sm:min-h-0" onClick={cancel} disabled={busy} aria-busy={busy}>
-              {busy ? <Loader2 className="size-3.5 animate-spin" aria-hidden /> : null} Yes, cancel
+              {busy ? <Loader2 className="size-3.5 animate-spin" aria-hidden /> : null} Yes, {verb.toLowerCase()}
             </Button>
-            <Button type="button" variant="ghost" size="sm" className="min-h-11 sm:min-h-0" onClick={() => setConfirming(false)} disabled={busy}>
+            <Button type="button" variant="ghost" size="sm" className="min-h-11 sm:min-h-0" onClick={closeConfirm} disabled={busy} ref={keepRef}>
               Keep it
             </Button>
           </>
         ) : null}
-        {item.status === "scheduled" && !canCancel ? (
+        {locked ? (
           <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-taupe">Locked: going out soon</span>
         ) : null}
         {item.status === "publishing" ? (
