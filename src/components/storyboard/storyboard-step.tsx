@@ -113,7 +113,10 @@ export function StoryboardStep({
   useEffect(() => {
     const el = generateBox.current;
     if (!el || typeof IntersectionObserver === "undefined") return;
-    const io = new IntersectionObserver(([e]) => setGenerateInView(e.isIntersecting || e.boundingClientRect.top < 0));
+    // The bottom margin leaves out the strip behind the tab bar, so the floating bar stays until the real button is tappable.
+    const io = new IntersectionObserver(([e]) => setGenerateInView(e.isIntersecting || e.boundingClientRect.top < 0), {
+      rootMargin: "0px 0px -96px 0px",
+    });
     io.observe(el);
     return () => io.disconnect();
   }, []);

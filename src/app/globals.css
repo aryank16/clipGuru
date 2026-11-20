@@ -51,8 +51,8 @@
 /* A bigger hit area on phones without moving anything: padding grows the target, the negative margin gives the space back. */
 @utility tap {
   @media (max-width: 639px) {
-    padding-block: 12px;
-    margin-block: -12px;
+    padding-block: 14px;
+    margin-block: -14px;
   }
 }
 

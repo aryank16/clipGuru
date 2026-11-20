@@ -148,7 +148,7 @@ export function VideoLibrary({ initial, initialCounts }: { initial: ListPage; in
                 aria-selected={filter === f}
                 onClick={() => setFilter(f)}
                 className={cn(
-                  "flex h-10 shrink-0 items-center gap-2 rounded-lg border px-4 text-[15px] transition-colors",
+                  "flex h-11 shrink-0 items-center sm:h-10 gap-2 rounded-lg border px-4 text-[15px] transition-colors",
                   filter === f
                     ? "border-espresso-deep bg-espresso-deep text-surface"
                     : "border-hairline bg-surface text-espresso hover:border-taupe/40",
