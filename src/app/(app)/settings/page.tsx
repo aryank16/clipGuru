@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { auth } from "@/lib/auth";
 import { instagramSvc } from "@/lib/instagram";
 import { isConnectError } from "@/lib/instagram/types";
+import { googleEnabled } from "@/lib/env";
 import { toMe } from "@/lib/me";
 import { requirePageSession } from "@/lib/session";
 import { timeZoneOptions } from "@/lib/timezones";
@@ -44,6 +45,7 @@ async function Settings({ searchParams }: { searchParams: Search }) {
       voices={VOICES}
       timeZones={timeZoneOptions(me.timeZone)}
       hasPassword={accounts.some((a) => a.providerId === "credential")}
+      google={{ enabled: googleEnabled(), linked: accounts.some((a) => a.providerId === "google") }}
       instagram={await instagramSvc().status(user.id)}
       instagramResult={instagramResult}
     />

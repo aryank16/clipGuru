@@ -21,6 +21,7 @@ export function SettingsForm({
   voices,
   timeZones,
   hasPassword,
+  google,
   instagram,
   instagramResult,
 }: {
@@ -28,12 +29,13 @@ export function SettingsForm({
   voices: Voice[];
   timeZones: TimeZoneOption[];
   hasPassword: boolean;
+  google: GoogleState;
   instagram: InstagramStatus;
   instagramResult: ConnectResult;
 }) {
   return (
     <div className="flex max-w-3xl flex-col gap-6">
-      <AccountSection me={me} hasPassword={hasPassword} />
+      <AccountSection me={me} hasPassword={hasPassword} google={google} />
       <VoiceSection current={me.defaultVoiceId ?? voices[0].id} voices={voices} />
       <TimeZoneSection current={me.timeZone} options={timeZones} />
       <InstagramSection status={instagram} result={instagramResult} />
@@ -42,7 +44,24 @@ export function SettingsForm({
   );
 }
 
-function AccountSection({ me, hasPassword }: { me: Me; hasPassword: boolean }) {
+type GoogleState = { enabled: boolean; linked: boolean };
+
+/** Whether this account can sign in with Google. Google turns itself on the first time someone uses it. */
+function GoogleRow({ google }: { google: GoogleState }) {
+  if (!google.enabled) return null;
+  return (
+    <div className="rounded-lg border border-hairline px-4 py-3.5">
+      <p className="text-sm font-medium">Google</p>
+      <p className="text-sm text-taupe">
+        {google.linked
+          ? "On. You can sign in with Google."
+          : "Off. Use “Continue with Google” on the sign-in page with this email, and it turns on."}
+      </p>
+    </div>
+  );
+}
+
+function AccountSection({ me, hasPassword, google }: { me: Me; hasPassword: boolean; google: GoogleState }) {
   const router = useRouter();
   const [name, setName] = useState(me.name);
   const [saved, setSaved] = useState(me.name);
@@ -107,6 +126,7 @@ function AccountSection({ me, hasPassword }: { me: Me; hasPassword: boolean }) {
           </a>
         ) : null}
       </div>
+      <GoogleRow google={google} />
     </Card>
   );
 }

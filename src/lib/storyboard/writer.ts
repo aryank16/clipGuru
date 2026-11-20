@@ -7,11 +7,16 @@ import { lengthRange, lengthText, targetSecondsFor, type Brief } from "../brief"
 import type { StoryboardWriter } from "./service";
 import { resolveIcon, SUGGESTED_ICONS } from "./icons";
 import {
+  cap3d,
+  flatten3d,
+  MAX_3D_SCENES,
+  PRESETS_3D,
   repairCues,
   SCENE_TYPES,
   storyboardSchema,
   WORDS_PER_SECOND,
   wordCount,
+  type Preset3D,
   type Scene,
   type Storyboard,
 } from "./types";
@@ -32,6 +37,7 @@ const rawScene = z.object({
   value: z.string().optional(),
   values: z.array(z.number().int()).optional(),
   target: z.number().int().optional(),
+  preset: z.string().optional(),
   items: z.array(rawItem).optional(),
 });
 const rawStoryboard = z.object({ title: z.string(), scenes: z.array(rawScene) });
@@ -62,6 +68,12 @@ Rules for the storyboard (5 to 9 scenes, fewer for short videos):
     a sorted list. values = 7 to 11 sorted distinct integers under 100, target = one of the values (pick one that takes
     3 checks). heading. items = one item per comparison, in order (label = e.g. "Check 23"), each cue = the word in the
     narration where that comparison is said.
+  - "scene3d": a short 3D shot, the most striking scene type. Use it at most twice per video (never more), only where one of these
+    presets truly shows the idea: preset = "impact" (an object smashes through panels: force, momentum, breaking barriers,
+    layers of defence), "orbit" (bodies circling a centre: planets, electrons, satellites), "globe" (a turning Earth with
+    places marked and linked: geography, spread, trade, travel), "molecule" (atoms bonding to a centre atom: chemistry,
+    parts joining into a whole), "stack" (blocks dropping into a tower: gravity, building up, layers). heading (max 5 words),
+    items = 1-4 (label max 3 words, no icon): the panels, bodies, places, atoms or blocks, in the order they appear.
 - Each scene's narration is 1-3 sentences (12-40 words) and must talk about exactly what that scene shows.
   Never move on to the next idea inside the same scene: if the narration changes subject, start a new scene.
 - Every item has a "cue": ONE word copied exactly from that scene's narration (it MUST appear in that narration), spoken at
@@ -71,6 +83,12 @@ Rules for the storyboard (5 to 9 scenes, fewer for short videos):
 - Never write anything hateful, sexual or dangerous, or personal medical, legal or financial advice.`;
 
 const clip = (s: string | undefined, max: number) => (s ?? "").trim().slice(0, max);
+
+/** The model's preset name, or "orbit" (the safest all-rounder) when it wrote something unknown. */
+function preset3d(name: string | undefined): Preset3D {
+  const p = (name ?? "").trim().toLowerCase();
+  return (PRESETS_3D as readonly string[]).includes(p) ? (p as Preset3D) : "orbit";
+}
 
 /** One flat scene from Gemini → a typed scene. Returns null when it can't be made valid. */
 export function toScene(r: RawScene): Scene | null {
@@ -112,6 +130,16 @@ export function toScene(r: RawScene): Scene | null {
     default:
       if (!items.length) return null;
       scene = { type: "summary", narration, heading, points: items.slice(0, 4).map((i) => ({ text: clip(i.label, 60), cue: clip(i.cue, 40) || "x" })) };
+      break;
+    case "scene3d":
+      if (!items.length) return null;
+      scene = {
+        type: "scene3d",
+        narration,
+        heading,
+        preset: preset3d(r.preset),
+        items: items.slice(0, 4).map((i) => ({ label: clip(i.label, 40), cue: clip(i.cue, 40) || "x" })),
+      };
   }
   if (!narration) return null;
   const fixed = repairCues(scene);
@@ -137,6 +165,8 @@ export function toRaw(s: Scene): RawScene {
       return { type: s.type, narration: s.narration, heading: s.heading, items: s.points.map((p) => ({ label: p.text, cue: p.cue })) };
     case "arraySearch":
       return { type: s.type, narration: s.narration, heading: s.heading, values: s.values, target: s.target, items: s.steps.map((p) => ({ label: "Check", cue: p.cue })) };
+    case "scene3d":
+      return { type: s.type, narration: s.narration, heading: s.heading, preset: s.preset, items: s.items };
   }
 }
 
@@ -179,7 +209,7 @@ async function ask(prompt: string): Promise<z.infer<typeof rawStoryboard>> {
 }
 
 function build(topic: string, raw: z.infer<typeof rawStoryboard>): Storyboard {
-  const scenes = raw.scenes.map(toScene).filter((s): s is Scene => s !== null);
+  const scenes = cap3d(raw.scenes.map(toScene).filter((s): s is Scene => s !== null));
   return { topic: topic.slice(0, 200), title: clip(raw.title, 120) || topic.slice(0, 120) || "Untitled", scenes };
 }
 
@@ -249,7 +279,9 @@ export async function rewriteScene(current: Storyboard, index: number, instructi
   const sb = build(current.topic, await ask(prompt));
   const scene = sb.scenes[index] ?? sb.scenes.find((s, i) => JSON.stringify(s) !== JSON.stringify(current.scenes[i]));
   if (!scene) throw new ApiError("AI_UNAVAILABLE", "That scene didn't come out right. Try again.");
-  return scene;
+  // The rest of the video may already use up the 3D scenes.
+  const others = current.scenes.filter((s, i) => i !== index && s.type === "scene3d").length;
+  return others >= MAX_3D_SCENES ? flatten3d(scene) : scene;
 }
 
 export const geminiWriter: StoryboardWriter = {

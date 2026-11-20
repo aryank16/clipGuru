@@ -147,7 +147,7 @@ function storyboardChat(last: Message) {
 type RawScene = { type: string; narration: string; heading: string; [k: string]: unknown };
 
 /**
- * The writer's three prompts: a fixed six-scene storyboard for a brief, a whole storyboard with
+ * The writer's three prompts: a fixed seven-scene storyboard for a brief, a whole storyboard with
  * scene 2's heading changed for a revision, or one scene reworded for "Rewrite scene N".
  */
 function fakeStoryboard(prompt: string): { title: string; scenes: RawScene[] } {
@@ -200,6 +200,17 @@ function fakeStoryboard(prompt: string): { title: string; scenes: RawScene[] } {
         ],
         narration:
           "Here is how it works. Everything starts with a single input. That input changes as it moves through the system, step by step. The result is something new, built from those small steps.",
+      },
+      {
+        type: "scene3d",
+        heading: "Built step by step",
+        preset: "stack",
+        items: [
+          { label: "Start", cue: "start" },
+          { label: "Change", cue: "change" },
+          { label: "Result", cue: "result" },
+        ],
+        narration: "Picture it as blocks. First the start, then the change on top, and finally the result that crowns the tower.",
       },
       {
         type: "stat",

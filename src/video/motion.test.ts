@@ -1,6 +1,22 @@
 import { describe, expect, it } from "vitest";
 import { keyWordIndex } from "./components/Text";
 import { transitionAfter } from "./components/motion";
+import { increasing, MIN_BEAT, spreadCues } from "./three/cues";
+
+describe("3D cue timing", () => {
+  it("spreads cues that land on the same frame, keeping their order", () => {
+    expect(spreadCues([6, 6, 6])).toEqual([6, 6 + MIN_BEAT, 6 + 2 * MIN_BEAT]);
+    expect(spreadCues([10, 40, 42, 100])).toEqual([10, 40, 40 + MIN_BEAT, 100]);
+    expect(spreadCues([])).toEqual([]);
+  });
+
+  it("makes keyframes strictly increasing for interpolate", () => {
+    // The short-impact case: max(0, 6 - 40), three cues on frame 6, then 46.
+    const keys = increasing([0, 6, 6, 6, 46]);
+    expect(keys).toEqual([0, 6, 7, 8, 46]);
+    expect(keys.every((k, i) => i === 0 || k > keys[i - 1])).toBe(true);
+  });
+});
 
 describe("kinetic headings", () => {
   it("marks the longest word of four letters or more, the later one on a tie", () => {

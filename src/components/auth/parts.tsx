@@ -28,7 +28,8 @@ export function GoogleButton({ enabled, callbackURL }: { enabled: boolean; callb
         disabled={!enabled || busy}
         onClick={async () => {
           setBusy(true);
-          const { error } = await signIn.social({ provider: "google", callbackURL });
+          // On failure Better Auth sends people back to sign-in with ?error=<code>, which the form explains.
+          const { error } = await signIn.social({ provider: "google", callbackURL, errorCallbackURL: "/sign-in" });
           if (error) setBusy(false);
         }}
         className={cn(
@@ -95,6 +96,15 @@ export function authErrorMessage(code: string | undefined, fallback?: string): s
       return "Use 128 characters or fewer.";
     case "INVALID_TOKEN":
       return "This link has expired or was already used. Ask for a new one.";
+    case "account_not_linked":
+    case "ACCOUNT_NOT_LINKED":
+      return "Google sign-in couldn't open this account. Sign in with your email and password instead.";
+    case "access_denied":
+      return "Google sign-in was cancelled.";
+    case "email_does_not_match":
+      return "That Google account uses a different email from your ClipGuru account.";
+    case "account_already_linked_to_different_user":
+      return "That Google account is already used by another ClipGuru account.";
     case "TOO_MANY_REQUESTS":
       return "Too many attempts. Wait a minute and try again.";
     default:

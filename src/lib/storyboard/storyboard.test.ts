@@ -59,6 +59,51 @@ describe("storyboard helpers", () => {
     expect(scene.type === "flow" && scene.steps.map((s) => s.cue)).toEqual(["warms", expect.any(String), "falls"]);
   });
 
+  it("reads a 3D scene from the model, fixing its preset and cues", () => {
+    const raw = (preset: string | undefined, items: { label: string; cue: string }[]) => ({
+      type: "scene3d" as const,
+      narration: "Glass shatters first, then wood splits, and steel finally stops it.",
+      heading: "Breaking barriers",
+      preset,
+      items,
+    });
+    const three = [
+      { label: "Glass", cue: "Glass" },
+      { label: "Wood", cue: "nowhere" },
+      { label: "Steel", cue: "steel" },
+    ];
+    const s = writer.toScene(raw(" Impact ", three));
+    expect(s?.type === "scene3d" && s.preset).toBe("impact");
+    expect(s?.type === "scene3d" && s.items.map((i) => i.cue)).toEqual(["Glass", expect.any(String), "steel"]);
+    expect(types.sceneSchema.safeParse(s).success).toBe(true);
+    // Unknown preset: falls back to orbit. Too many items: capped at 4. No items: dropped.
+    expect(writer.toScene(raw("tornado", three))).toMatchObject({ preset: "orbit" });
+    const many = writer.toScene(raw(undefined, [...three, ...three]));
+    expect(many?.type === "scene3d" && many.items).toHaveLength(4);
+    expect(writer.toScene(raw("orbit", []))).toBeNull();
+    // Round trip through the flat shape keeps everything.
+    expect(writer.toScene(writer.toRaw(s!))).toEqual(s);
+  });
+
+  it("keeps at most two 3D scenes and turns the rest into summaries", async () => {
+    const three = (h: string) => ({ type: "scene3d" as const, narration: `${h} moves fast.`, heading: h, preset: "stack" as const, items: [{ label: h, cue: "moves" }] });
+    const out = types.cap3d([three("A"), { type: "title", narration: "Hi there.", title: "T" }, three("B"), three("C")]);
+    expect(out.map((s) => s.type)).toEqual(["scene3d", "title", "scene3d", "summary"]);
+    expect(out[3]).toEqual({ type: "summary", narration: "C moves fast.", heading: "C", points: [{ text: "C", cue: "moves" }] });
+    expect(types.sceneSchema.safeParse(out[3]).success).toBe(true);
+    // An edited storyboard saved through the API is capped the same way.
+    const { parseStoryboard } = await import("./schemas");
+    const saved = parseStoryboard({ topic: "t", title: "T", scenes: [three("A"), three("B"), three("C"), three("D")] });
+    expect(saved.scenes.map((s) => s.type)).toEqual(["scene3d", "scene3d", "summary", "summary"]);
+  });
+
+  it("rejects a 3D scene with an unknown preset or no items", () => {
+    const base = { type: "scene3d", narration: "Planets circle the sun.", heading: "Orbits", preset: "orbit", items: [{ label: "Earth", cue: "Planets" }] };
+    expect(types.sceneSchema.safeParse(base).success).toBe(true);
+    expect(types.sceneSchema.safeParse({ ...base, preset: "tornado" }).success).toBe(false);
+    expect(types.sceneSchema.safeParse({ ...base, items: [] }).success).toBe(false);
+  });
+
   it("lists the scenes that changed", () => {
     const a = { topic: "t", title: "t", scenes: [{ type: "title" as const, narration: "a b", title: "A" }] };
     const b = { ...a, scenes: [...a.scenes, { type: "title" as const, narration: "c d", title: "B" }] };

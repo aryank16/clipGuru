@@ -30,8 +30,8 @@ const serveUrl = await bundle({
   webpackOverride: (c) => ({ ...c, resolve: { ...c.resolve, alias: { ...(c.resolve?.alias ?? {}), "@": path.join(root, "src") } } }),
 });
 const browserExecutable = process.env.BROWSER || null;
-const composition = await selectComposition({ serveUrl, id: "Explainer", inputProps, browserExecutable });
+const composition = await selectComposition({ serveUrl, id: "Explainer", inputProps, browserExecutable, chromiumOptions: { gl: "swangle" } });
 const frameRange = opt.frames ? opt.frames.split("-").map(Number) : undefined;
 const started = Date.now();
-await renderMedia({ composition, serveUrl, codec: "h264", outputLocation: out, inputProps, frameRange, crf: 20, browserExecutable, licenseKey: null });
+await renderMedia({ composition, serveUrl, codec: "h264", outputLocation: out, inputProps, frameRange, crf: 20, browserExecutable, chromiumOptions: { gl: "swangle" }, licenseKey: null });
 console.log(`rendered ${out} (${durationSec}s) in ${((Date.now() - started) / 1000).toFixed(0)}s`);
