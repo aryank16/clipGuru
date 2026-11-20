@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { patchMe, Status, useSaver } from "@/components/account/save";
 import { VoicePicker } from "@/components/account/voice-picker";
 import { authErrorMessage } from "@/components/auth/parts";
@@ -54,9 +54,14 @@ function GoogleRow({ google }: { google: GoogleState }) {
   const [error, setError] = useState<string | null>(
     google.result && google.result !== "connected" ? authErrorMessage(google.result, "Google couldn't be connected. Try again.") : null,
   );
-  // Drop ?google=… from the address, so a reload doesn't show the message again.
+  const row = useRef<HTMLDivElement>(null);
+  const alert = useRef<HTMLParagraphElement>(null);
+  // Back from Google: drop ?google=… (so a reload is clean) and bring the row and its message into view.
   useEffect(() => {
-    if (google.result) window.history.replaceState(null, "", "/settings");
+    if (!google.result) return;
+    window.history.replaceState(null, "", "/settings");
+    row.current?.scrollIntoView({ block: "center" });
+    alert.current?.focus({ preventScroll: true });
   }, [google.result]);
   if (!google.enabled) return null;
   async function connect() {
@@ -73,7 +78,7 @@ function GoogleRow({ google }: { google: GoogleState }) {
     }
   }
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-hairline px-4 py-3.5">
+    <div ref={row} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-hairline px-4 py-3.5">
       <div>
         <p className="text-sm font-medium">Google</p>
         <p className="text-sm text-taupe">
@@ -84,13 +89,13 @@ function GoogleRow({ google }: { google: GoogleState }) {
             : "Turn this on to sign in with your Google account too."}
         </p>
         {error ? (
-          <p role="alert" className="mt-1 text-sm text-danger">
+          <p ref={alert} tabIndex={-1} role="alert" className="mt-1 text-sm text-danger focus:outline-none">
             {error}
           </p>
         ) : null}
       </div>
       {google.linked ? null : (
-        <Button type="button" size="sm" variant="secondary" onClick={connect} disabled={busy}>
+        <Button type="button" size="sm" variant="secondary" className="min-h-11 sm:min-h-0" onClick={connect} disabled={busy}>
           {busy ? "Opening Google…" : "Connect Google"}
         </Button>
       )}

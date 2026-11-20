@@ -3,7 +3,7 @@
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/input";
 import { signIn } from "@/lib/auth-client";
@@ -22,6 +22,13 @@ export function SignInForm({ googleEnabled }: { googleEnabled: boolean }) {
   const googleError = params.get("error");
   const [error, setError] = useState<string | null>(googleError ? authErrorMessage(googleError, "Google sign-in didn't work. Try again, or use your password.") : null);
   const [busy, setBusy] = useState(false);
+  // Show the Google message once: a reload shouldn't bring it back.
+  useEffect(() => {
+    if (!googleError) return;
+    const url = new URL(window.location.href);
+    url.searchParams.delete("error");
+    window.history.replaceState(null, "", url.pathname + url.search);
+  }, [googleError]);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
