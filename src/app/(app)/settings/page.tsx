@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { auth } from "@/lib/auth";
 import { instagramSvc } from "@/lib/instagram";
 import { isConnectError } from "@/lib/instagram/types";
+import { googleEnabled } from "@/lib/env";
 import { toMe } from "@/lib/me";
 import { requirePageSession } from "@/lib/session";
 import { timeZoneOptions } from "@/lib/timezones";
@@ -13,7 +14,7 @@ import { VOICES } from "@/lib/voices";
 
 export const metadata: Metadata = { title: "Settings" };
 
-type Search = Promise<{ instagram?: string; reason?: string }>;
+type Search = Promise<{ instagram?: string; reason?: string; google?: string; error?: string }>;
 
 export default function SettingsPage({ searchParams }: { searchParams: Search }) {
   return (
@@ -44,6 +45,12 @@ async function Settings({ searchParams }: { searchParams: Search }) {
       voices={VOICES}
       timeZones={timeZoneOptions(me.timeZone)}
       hasPassword={accounts.some((a) => a.providerId === "credential")}
+      google={{
+        enabled: googleEnabled(),
+        linked: accounts.some((a) => a.providerId === "google"),
+        // Back from Google: "connected", or Better Auth's error code.
+        result: q.google === "connected" ? "connected" : q.google === "error" ? (q.error ?? "unknown") : null,
+      }}
       instagram={await instagramSvc().status(user.id)}
       instagramResult={instagramResult}
     />

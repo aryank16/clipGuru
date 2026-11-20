@@ -18,7 +18,9 @@ export function SignInForm({ googleEnabled }: { googleEnabled: boolean }) {
   const router = useRouter();
   const params = useSearchParams();
   const next = safeNext(params.get("next"));
-  const [error, setError] = useState<string | null>(null);
+  // A failed Google sign-in comes back here as ?error=<code>.
+  const googleError = params.get("error");
+  const [error, setError] = useState<string | null>(googleError ? authErrorMessage(googleError, "Google sign-in didn't work. Try again, or use your password.") : null);
   const [busy, setBusy] = useState(false);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {

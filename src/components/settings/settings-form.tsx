@@ -4,10 +4,12 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { patchMe, Status, useSaver } from "@/components/account/save";
 import { VoicePicker } from "@/components/account/voice-picker";
+import { authErrorMessage } from "@/components/auth/parts";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
 import { InstagramSection, type ConnectResult } from "@/components/instagram/instagram-section";
+import { authClient } from "@/lib/auth-client";
 import type { InstagramStatus } from "@/lib/instagram/types";
 import type { Me } from "@/lib/me";
 import { NAME_MAX } from "@/lib/me";
@@ -21,6 +23,7 @@ export function SettingsForm({
   voices,
   timeZones,
   hasPassword,
+  google,
   instagram,
   instagramResult,
 }: {
@@ -28,12 +31,13 @@ export function SettingsForm({
   voices: Voice[];
   timeZones: TimeZoneOption[];
   hasPassword: boolean;
+  google: GoogleState;
   instagram: InstagramStatus;
   instagramResult: ConnectResult;
 }) {
   return (
     <div className="flex max-w-3xl flex-col gap-6">
-      <AccountSection me={me} hasPassword={hasPassword} />
+      <AccountSection me={me} hasPassword={hasPassword} google={google} />
       <VoiceSection current={me.defaultVoiceId ?? voices[0].id} voices={voices} />
       <TimeZoneSection current={me.timeZone} options={timeZones} />
       <InstagramSection status={instagram} result={instagramResult} />
@@ -42,7 +46,59 @@ export function SettingsForm({
   );
 }
 
-function AccountSection({ me, hasPassword }: { me: Me; hasPassword: boolean }) {
+type GoogleState = { enabled: boolean; linked: boolean; result: string | null };
+
+/** Sign in with Google: shows whether it's on, or a button to add it to a password account. */
+function GoogleRow({ google }: { google: GoogleState }) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(
+    google.result && google.result !== "connected" ? authErrorMessage(google.result, "Google couldn't be connected. Try again.") : null,
+  );
+  // Drop ?google=… from the address, so a reload doesn't show the message again.
+  useEffect(() => {
+    if (google.result) window.history.replaceState(null, "", "/settings");
+  }, [google.result]);
+  if (!google.enabled) return null;
+  async function connect() {
+    setBusy(true);
+    setError(null);
+    const { error } = await authClient.linkSocial({
+      provider: "google",
+      callbackURL: "/settings?google=connected",
+      errorCallbackURL: "/settings?google=error",
+    });
+    if (error) {
+      setError(authErrorMessage(error.code, "Google couldn't be connected. Try again."));
+      setBusy(false);
+    }
+  }
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-hairline px-4 py-3.5">
+      <div>
+        <p className="text-sm font-medium">Google</p>
+        <p className="text-sm text-taupe">
+          {google.linked
+            ? google.result === "connected"
+              ? "Connected. You can now sign in with Google."
+              : "On. You can sign in with Google."
+            : "Turn this on to sign in with your Google account too."}
+        </p>
+        {error ? (
+          <p role="alert" className="mt-1 text-sm text-danger">
+            {error}
+          </p>
+        ) : null}
+      </div>
+      {google.linked ? null : (
+        <Button type="button" size="sm" variant="secondary" onClick={connect} disabled={busy}>
+          {busy ? "Opening Google…" : "Connect Google"}
+        </Button>
+      )}
+    </div>
+  );
+}
+
+function AccountSection({ me, hasPassword, google }: { me: Me; hasPassword: boolean; google: GoogleState }) {
   const router = useRouter();
   const [name, setName] = useState(me.name);
   const [saved, setSaved] = useState(me.name);
@@ -107,6 +163,7 @@ function AccountSection({ me, hasPassword }: { me: Me; hasPassword: boolean }) {
           </a>
         ) : null}
       </div>
+      <GoogleRow google={google} />
     </Card>
   );
 }
