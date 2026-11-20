@@ -2,6 +2,7 @@ import { betterAuth, type BetterAuthOptions } from "better-auth";
 import { memoryAdapter } from "better-auth/adapters/memory";
 import { mongodbAdapter } from "better-auth/adapters/mongodb";
 import { nextCookies } from "better-auth/next-js";
+import { dropUnconfirmedPassword } from "./auth-link";
 import { db, mongoClient } from "./db";
 import { emailVerificationRequired, sendEmail } from "./email";
 import { dbDriver, env, googleEnabled } from "./env";
@@ -63,7 +64,10 @@ function createAuth() {
       ? { google: { clientId: e.GOOGLE_CLIENT_ID!, clientSecret: e.GOOGLE_CLIENT_SECRET!, prompt: "select_account" } }
       : {},
     account: {
-      accountLinking: { enabled: true, trustedProviders: ["google"] },
+      // "Continue with Google" signs straight into an existing account with the same email, even when that
+      // account's email was never confirmed. Google has confirmed the email, so that person owns it; see
+      // the account hook below for how an unconfirmed password is handled.
+      accountLinking: { enabled: true, trustedProviders: ["google"], requireLocalEmailVerified: false },
     },
     session: {
       expiresIn: 7 * DAY,
@@ -88,6 +92,15 @@ function createAuth() {
               defaultVoiceId: DEFAULT_VOICE_ID,
             },
           }),
+        },
+      },
+      account: {
+        create: {
+          // "before", not "after": after-hooks wait for the whole sign-in to finish, by which time the email is
+          // marked confirmed and the new Google session exists.
+          before: async (account, ctx) => {
+            if (account.providerId === "google" && account.userId && ctx) await dropUnconfirmedPassword(account.userId, ctx.context.internalAdapter);
+          },
         },
       },
     },

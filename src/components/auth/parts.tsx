@@ -98,7 +98,7 @@ export function authErrorMessage(code: string | undefined, fallback?: string): s
       return "This link has expired or was already used. Ask for a new one.";
     case "account_not_linked":
     case "ACCOUNT_NOT_LINKED":
-      return "This email already has a ClipGuru password. Sign in with your password once, then turn on Google in Settings.";
+      return "Google sign-in couldn't open this account. Sign in with your email and password instead.";
     case "access_denied":
       return "Google sign-in was cancelled.";
     case "email_does_not_match":

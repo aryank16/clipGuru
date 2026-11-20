@@ -14,7 +14,7 @@ import { VOICES } from "@/lib/voices";
 
 export const metadata: Metadata = { title: "Settings" };
 
-type Search = Promise<{ instagram?: string; reason?: string; google?: string; error?: string }>;
+type Search = Promise<{ instagram?: string; reason?: string }>;
 
 export default function SettingsPage({ searchParams }: { searchParams: Search }) {
   return (
@@ -45,12 +45,7 @@ async function Settings({ searchParams }: { searchParams: Search }) {
       voices={VOICES}
       timeZones={timeZoneOptions(me.timeZone)}
       hasPassword={accounts.some((a) => a.providerId === "credential")}
-      google={{
-        enabled: googleEnabled(),
-        linked: accounts.some((a) => a.providerId === "google"),
-        // Back from Google: "connected", or Better Auth's error code.
-        result: q.google === "connected" ? "connected" : q.google === "error" ? (q.error ?? "unknown") : null,
-      }}
+      google={{ enabled: googleEnabled(), linked: accounts.some((a) => a.providerId === "google") }}
       instagram={await instagramSvc().status(user.id)}
       instagramResult={instagramResult}
     />
