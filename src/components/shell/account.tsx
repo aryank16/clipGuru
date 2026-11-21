@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { initials } from "@/lib/initials";
 import { requirePageSession } from "@/lib/session";
@@ -28,13 +29,19 @@ export async function SidebarAccount() {
   );
 }
 
-/** Phone header: avatar with a sign-out icon button. */
+/** Phone header: sign-out icon, and the avatar opens Settings (the bottom bar keeps only the two main sections around New). */
 export async function HeaderAccount() {
   const { user } = await requirePageSession();
   return (
     <div className="flex items-center gap-2">
       <SignOutButton compact />
-      <Avatar name={user.name} />
+      <Link
+        href="/settings"
+        aria-label="Settings"
+        className="flex size-11 items-center justify-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sand-gold"
+      >
+        <Avatar name={user.name} />
+      </Link>
     </div>
   );
 }

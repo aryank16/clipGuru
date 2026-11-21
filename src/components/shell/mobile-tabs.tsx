@@ -6,14 +6,14 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/cn";
 import { NAV, isActive } from "./nav";
 
-/** Phone bottom tab bar: the three sections with a raised "new video" button in the middle. */
+/** Phone bottom tab bar: My videos and Scheduled either side of a raised "new video" button, so it sits dead centre. Settings is the avatar in the header. */
 export function MobileTabs() {
   return <MobileTabsView pathname={usePathname()} />;
 }
 
 /** Pure view; the layout also renders it with an empty path while a dynamic route streams in. */
 export function MobileTabsView({ pathname }: { pathname: string }) {
-  const [videos, scheduled, settings] = NAV;
+  const [videos, scheduled] = NAV;
   const tab = ({ href, label, icon: Icon }: (typeof NAV)[number]) => {
     const active = isActive(pathname, href);
     return (
@@ -22,7 +22,7 @@ export function MobileTabsView({ pathname }: { pathname: string }) {
         href={href}
         aria-current={active ? "page" : undefined}
         className={cn(
-          "flex flex-1 flex-col items-center gap-1 py-2 text-[11px]",
+          "flex flex-col items-center gap-1 py-2 text-[11px]",
           active ? "font-semibold text-espresso" : "text-taupe",
         )}
       >
@@ -36,10 +36,9 @@ export function MobileTabsView({ pathname }: { pathname: string }) {
       aria-label="Main"
       className="fixed inset-x-0 bottom-0 z-30 border-t border-hairline bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
     >
-      <div className="mx-auto flex max-w-md items-end px-2">
+      <div className="mx-auto grid max-w-md grid-cols-3 items-end px-2">
         {tab(videos)}
-        {tab(scheduled)}
-        <div className="flex flex-1 justify-center">
+        <div className="flex justify-center">
           <Link
             href="/new"
             aria-label="New video"
@@ -48,7 +47,7 @@ export function MobileTabsView({ pathname }: { pathname: string }) {
             <Plus className="size-6" aria-hidden />
           </Link>
         </div>
-        {tab(settings)}
+        {tab(scheduled)}
       </div>
     </nav>
   );
