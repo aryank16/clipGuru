@@ -42,7 +42,7 @@ export function StepTabs({
       >
         <ArrowLeft className="size-4" /> My videos
       </Link>
-      <ol className="grid grid-cols-4 gap-2 sm:flex sm:gap-6">
+      <ol className="flex gap-2 sm:gap-6">
         {STEPS.map((s, i) => {
           const active = i === index;
           const href = active ? undefined : hrefs[s.key];
@@ -58,9 +58,13 @@ export function StepTabs({
             active ? "font-semibold text-espresso" : href ? "text-taupe hover:text-espresso" : "text-taupe/70",
           );
           return (
-            <li key={s.key} className="flex flex-col gap-2">
+            <li
+              key={s.key}
+              // Phones: the current step shows its name, so it gets twice the room and never runs into the next tab.
+              className={cn("flex min-w-0 flex-col gap-2 sm:flex-none", active ? "flex-[2]" : "flex-1")}
+            >
               {href ? (
-                <Link href={href} className={cn(cls, "-my-3 py-3")} aria-label={`Step ${i + 1}: ${s.label}`}>
+                <Link href={href} className={cn(cls, "-my-3.5 py-3.5")} aria-label={`Step ${i + 1}: ${s.label}`}>
                   {label}
                 </Link>
               ) : (

@@ -30,7 +30,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </aside>
 
       <header className="sticky top-0 z-20 flex items-center justify-between border-b border-hairline bg-paper/95 px-4 py-3 backdrop-blur sm:px-6 lg:hidden">
-        <Link href="/videos">
+        <Link href="/videos" className="py-1">
           <Logo />
         </Link>
         <Suspense fallback={<div className="size-9" />}>
