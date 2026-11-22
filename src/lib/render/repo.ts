@@ -26,6 +26,10 @@ export interface RenderRepo {
   listActive(userId: string): Promise<RenderRecord[]>;
   countSince(userId: string, since: Date): Promise<number>;
   deleteAllForUser(userId: string): Promise<number>;
+  /** Hard-deletes every render of one project (the daily purge). */
+  deleteForProject(userId: string, projectId: string): Promise<number>;
+  /** Across all people: queued or running renders not updated since `before` (the watchdog). */
+  listStuck(before: Date, limit: number): Promise<RenderRecord[]>;
 }
 
 const isActive = (s: RenderStatus) => ACTIVE_STATUSES.includes(s);
@@ -128,6 +132,14 @@ const mongoRepo: RenderRepo = {
   async deleteAllForUser(userId) {
     return (await collection().deleteMany({ userId })).deletedCount;
   },
+
+  async deleteForProject(userId, projectId) {
+    return (await collection().deleteMany({ userId, projectId })).deletedCount;
+  },
+
+  async listStuck(before, limit) {
+    return (await collection().find({ active: true, updatedAt: { $lt: before } }).limit(limit).toArray()).map(fromDoc);
+  },
 };
 
 // ── Memory (DB_DRIVER=memory) ────────────────────────────────────────────────
@@ -191,6 +203,16 @@ export const memoryRenders: RenderRepo = {
     let n = 0;
     for (const [id, r] of store) if (r.userId === userId && store.delete(id)) n++;
     return n;
+  },
+
+  async deleteForProject(userId, projectId) {
+    let n = 0;
+    for (const [id, r] of store) if (r.userId === userId && r.projectId === projectId && store.delete(id)) n++;
+    return n;
+  },
+
+  async listStuck(before, limit) {
+    return [...store.values()].filter((r) => isActive(r.status) && r.updatedAt < before).slice(0, limit).map(copy);
   },
 };
 

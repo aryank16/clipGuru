@@ -33,6 +33,15 @@ export const memoryProjects: ProjectsRepo = {
     return n;
   },
 
+  async listDeletedBefore(before, limit) {
+    return [...store.values()].filter((r) => r.deletedAt && r.deletedAt < before).slice(0, limit).map(clone);
+  },
+
+  async purge(userId, id) {
+    const r = store.get(id);
+    return Boolean(r && r.userId === userId && r.deletedAt && store.delete(id));
+  },
+
   async list(userId, { filter, q, limit, cursor }) {
     const statuses = FILTER_STATUSES[filter];
     const needle = q?.toLowerCase();

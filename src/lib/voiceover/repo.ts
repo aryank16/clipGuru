@@ -14,6 +14,8 @@ export interface VoiceoverRepo {
   get(userId: string, id: string): Promise<VoiceoverRecord | null>;
   countSince(userId: string, since: Date): Promise<number>;
   deleteAllForUser(userId: string): Promise<number>;
+  /** Hard-deletes everything of one project (the daily purge of videos deleted over 30 days ago). */
+  deleteForProject(userId: string, projectId: string): Promise<number>;
 }
 
 // ── MongoDB ──────────────────────────────────────────────────────────────────
@@ -69,6 +71,10 @@ const mongoRepo: VoiceoverRepo = {
   async deleteAllForUser(userId) {
     return (await collection().deleteMany({ userId })).deletedCount;
   },
+
+  async deleteForProject(userId, projectId) {
+    return (await collection().deleteMany({ userId, projectId })).deletedCount;
+  },
 };
 
 // ── Memory (DB_DRIVER=memory) ────────────────────────────────────────────────
@@ -104,6 +110,12 @@ export const memoryVoiceovers: VoiceoverRepo = {
   async deleteAllForUser(userId) {
     let n = 0;
     for (const [k, r] of store) if (r.userId === userId && store.delete(k)) n++;
+    return n;
+  },
+
+  async deleteForProject(userId, projectId) {
+    let n = 0;
+    for (const [k, r] of store) if (r.userId === userId && r.projectId === projectId && store.delete(k)) n++;
     return n;
   },
 };

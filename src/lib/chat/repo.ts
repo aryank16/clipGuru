@@ -14,6 +14,8 @@ export interface ChatRepo {
   /** User messages sent since `since`, across all projects (rate limit). */
   countUserMessagesSince(userId: string, since: Date): Promise<number>;
   deleteAllForUser(userId: string): Promise<number>;
+  /** Hard-deletes everything of one project (the daily purge of videos deleted over 30 days ago). */
+  deleteForProject(userId: string, projectId: string): Promise<number>;
   newId(): string;
 }
 
@@ -67,6 +69,10 @@ const mongoRepo: ChatRepo = {
   async deleteAllForUser(userId) {
     return (await collection().deleteMany({ userId })).deletedCount;
   },
+
+  async deleteForProject(userId, projectId) {
+    return (await collection().deleteMany({ userId, projectId })).deletedCount;
+  },
 };
 
 // ── Memory (DB_DRIVER=memory) ────────────────────────────────────────────────
@@ -103,6 +109,12 @@ export const memoryChat: ChatRepo = {
   async deleteAllForUser(userId) {
     let n = 0;
     for (const [id, r] of store) if (r.userId === userId && store.delete(id)) n++;
+    return n;
+  },
+
+  async deleteForProject(userId, projectId) {
+    let n = 0;
+    for (const [id, r] of store) if (r.userId === userId && r.projectId === projectId && store.delete(id)) n++;
     return n;
   },
 };

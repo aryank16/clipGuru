@@ -71,6 +71,10 @@ const schema = z.object({
   META_APP_SECRET: oneToken.optional(),
   /** The Facebook Login for Business configuration that asks for the Instagram account. */
   META_CONFIG_ID: oneToken.optional(),
+
+  // F16 Launch
+  /** Shown on the Privacy Policy, Terms and data deletion pages as the address to write to. */
+  CONTACT_EMAIL: z.string().email().optional(),
 });
 
 export type Env = z.infer<typeof schema>;
