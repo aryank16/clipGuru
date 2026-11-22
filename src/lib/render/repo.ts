@@ -48,6 +48,8 @@ function collection(): Collection<Doc> {
       { key: { projectId: 1 }, unique: true, partialFilterExpression: { active: true }, name: "one_active_per_project" },
       { key: { userId: 1, projectId: 1, createdAt: -1 } },
       { key: { userId: 1, createdAt: -1 } },
+      // The watchdog's cross-user scan.
+      { key: { active: 1, updatedAt: 1 } },
     ])
     .catch((err) => {
       indexesReady = null;

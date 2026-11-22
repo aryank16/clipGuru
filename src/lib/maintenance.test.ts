@@ -17,6 +17,7 @@ let vo: typeof import("./voiceover/repo");
 let storage: typeof import("./storage");
 let ig: typeof import("./instagram/repo");
 let igClient: typeof import("./instagram/client");
+let pending: typeof import("./pending-deletions");
 
 beforeAll(async () => {
   m = await import("./maintenance");
@@ -32,6 +33,7 @@ beforeAll(async () => {
   storage = await import("./storage");
   ig = await import("./instagram/repo");
   igClient = await import("./instagram/client");
+  pending = await import("./pending-deletions");
 });
 
 beforeEach(() => {
@@ -43,6 +45,7 @@ beforeEach(() => {
   vo.resetMemoryVoiceovers();
   storage.resetMemoryStorage();
   ig.resetMemoryInstagram();
+  pending.resetMemoryPendingDeletions();
 });
 
 const DAY = 24 * 3600_000;
@@ -98,6 +101,7 @@ function purgeDeps() {
     voiceovers: vo.memoryVoiceovers,
     renders: renders.memoryRenders,
     storage: storage.memoryStorage,
+    pending: pending.memoryPendingDeletions,
   };
 }
 
@@ -131,6 +135,26 @@ describe("purgeDeletedProjects", () => {
     spy.mockRestore();
     expect(await projects.memoryProjects.getDeleted(A, old)).not.toBeNull();
     expect(await renders.memoryRenders.latestForProject(A, old)).not.toBeNull();
+    // Remembered, and the next run (storage back) finishes the job.
+    expect(await pending.memoryPendingDeletions.list(10)).toEqual([m.projectPrefix(A, old)]);
+    expect(await m.purgeDeletedProjects(purgeDeps())).toBe(1);
+    expect(await pending.memoryPendingDeletions.list(10)).toEqual([]);
+  });
+
+  it("retries an account's files whose removal failed at account deletion", async () => {
+    await storage.memoryStorage.put("users/gone/projects/p/voice/a.mp3", new Uint8Array([1]), "audio/mpeg");
+    await pending.memoryPendingDeletions.add("users/gone/", new Date());
+    expect(await m.purgeDeletedProjects(purgeDeps())).toBe(0);
+    expect(await storage.memoryStorage.read!("users/gone/projects/p/voice/a.mp3")).toBeNull();
+    expect(await pending.memoryPendingDeletions.list(10)).toEqual([]);
+  });
+
+  it("does nothing when real storage isn't set up, so no files are orphaned", async () => {
+    const old = await video(40);
+    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+    expect(await m.purgeDeletedProjects({ ...purgeDeps(), storage: null, storageRequired: true })).toBe(0);
+    spy.mockRestore();
+    expect(await projects.memoryProjects.getDeleted(A, old)).not.toBeNull();
   });
 });
 
@@ -234,7 +258,7 @@ describe("checkInstagramConnections", () => {
     } as unknown as import("./instagram/client").InstagramClient;
     const err = vi.spyOn(console, "error").mockImplementation(() => {});
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-    expect(await m.checkInstagramConnections({ instagram: ig.memoryInstagram, client, open: (s) => s })).toBe(3);
+    expect(await m.checkInstagramConnections({ instagram: ig.memoryInstagram, client, open: (s) => s, seal: (s) => s })).toBe(3);
     err.mockRestore();
     warn.mockRestore();
     const flagged = async (u: string) => (await ig.memoryInstagram.get(u))?.reconnectNeeded;
@@ -245,8 +269,32 @@ describe("checkInstagramConnections", () => {
     expect(await flagged("removed")).toBe(true);
   });
 
+  it("renews a token in its last 10 days, and not one with plenty left", async () => {
+    await link("soon", { tokenExpiresAt: new Date(Date.now() + 3 * DAY) });
+    await link("later", { tokenExpiresAt: new Date(Date.now() + 40 * DAY) });
+    const renewed: string[] = [];
+    const client = {
+      async refresh(token: string) {
+        renewed.push(token);
+        return { accessToken: `${token}-new`, expiresAt: new Date(Date.now() + 60 * DAY) };
+      },
+      async accounts(token: string) {
+        const u = token.replace(/^tok-/, "").replace(/-new$/, "");
+        return { clientBusinessId: null, accounts: [{ id: `ig-${u}`, username: u, avatarUrl: null }] };
+      },
+    } as unknown as import("./instagram/client").InstagramClient;
+    const info = vi.spyOn(console, "info").mockImplementation(() => {});
+    expect(await m.checkInstagramConnections({ instagram: ig.memoryInstagram, client, open: (s) => s, seal: (s) => s })).toBe(0);
+    info.mockRestore();
+    expect(renewed).toEqual(["tok-soon"]);
+    const soon = await ig.memoryInstagram.get("soon");
+    expect(soon?.tokenEnc).toBe("tok-soon-new");
+    expect(soon!.tokenExpiresAt!.getTime()).toBeGreaterThan(Date.now() + 50 * DAY);
+    expect((await ig.memoryInstagram.get("later"))?.tokenEnc).toBe("tok-later");
+  });
+
   it("does nothing when Instagram isn't set up", async () => {
     await link("a");
-    expect(await m.checkInstagramConnections({ instagram: ig.memoryInstagram, client: null, open: (s) => s })).toBe(0);
+    expect(await m.checkInstagramConnections({ instagram: ig.memoryInstagram, client: null, open: (s) => s, seal: (s) => s })).toBe(0);
   });
 });

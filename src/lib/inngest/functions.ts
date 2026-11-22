@@ -5,9 +5,11 @@ import { publishDeps } from "../posts";
 import { markPostFailed, publishJob, type PostRequested } from "../posts/job";
 import { chatRepo } from "../chat/repo";
 import { instagramClient } from "../instagram";
-import { open } from "../instagram/crypto";
+import { open, seal } from "../instagram/crypto";
 import { instagramRepo } from "../instagram/repo";
 import { checkInstagramConnections, purgeDeletedProjects } from "../maintenance";
+import { dbDriver } from "../env";
+import { pendingDeletions } from "../pending-deletions";
 import { postSvc } from "../posts";
 import { postsRepo } from "../posts/repo";
 import { projectsRepo } from "../projects/repo";
@@ -106,6 +108,8 @@ export const purgeTrash = inngest.createFunction(
         voiceovers: voiceoverRepo(),
         renders: renderRepo(),
         storage: storageIfConfigured(),
+        storageRequired: dbDriver() !== "memory",
+        pending: pendingDeletions(),
       }),
     );
     return { purged };
@@ -117,7 +121,7 @@ export const instagramHealth = inngest.createFunction(
   { id: "instagram-health", triggers: [{ cron: "0 4 * * *" }], retries: 1, concurrency: [{ limit: 1 }] },
   async ({ step }) => {
     const flagged = await step.run("check", () =>
-      checkInstagramConnections({ instagram: instagramRepo(), client: instagramClient(), open }),
+      checkInstagramConnections({ instagram: instagramRepo(), client: instagramClient(), open, seal }),
     );
     return { flagged };
   },

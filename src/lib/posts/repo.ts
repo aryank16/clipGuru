@@ -55,6 +55,9 @@ function collection(): Collection<Doc> {
         name: "idempotency",
       },
       { key: { userId: 1, projectId: 1, createdAt: -1 } },
+      // The watchdog's cross-user scans.
+      { key: { status: 1, updatedAt: 1 } },
+      { key: { status: 1, scheduledAt: 1 } },
       { key: { userId: 1, scheduledAt: 1 } },
       { key: { userId: 1, renderId: 1, status: 1 } },
     ])

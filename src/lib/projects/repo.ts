@@ -85,7 +85,7 @@ const mongoRepo: ProjectsRepo = {
   },
 
   async listDeletedBefore(before, limit) {
-    return (await collection().find({ deletedAt: { $type: "date", $lt: before } }).limit(limit).toArray()).map(fromDoc);
+    return (await collection().find({ deletedAt: { $type: "date", $lt: before } }).sort({ deletedAt: 1 }).limit(limit).toArray()).map(fromDoc);
   },
 
   async purge(userId, id) {
