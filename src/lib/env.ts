@@ -21,6 +21,12 @@ function defaultAppUrl(): string {
  */
 const oneToken = z.string().transform((v) => v.trim().split(/\s+/)[0] ?? "");
 
+/** Optional free text: trimmed, and blank counts as not set. */
+const optionalText = z
+  .string()
+  .optional()
+  .transform((v) => v?.trim() || undefined);
+
 const schema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   APP_URL: z.string().url().default(defaultAppUrl),
@@ -74,9 +80,10 @@ const schema = z.object({
 
   // F16 Launch
   /** Shown on the Privacy Policy, Terms and data deletion pages as the address to write to. */
-  CONTACT_EMAIL: z.string().email().optional(),
+  // Display text only: lenient on purpose, so a blank or mistyped value never breaks the whole app.
+  CONTACT_EMAIL: optionalText,
   /** Who runs ClipGuru, as shown on the legal pages, e.g. "Jane Doe, Berlin, Germany". */
-  OPERATOR_NAME: z.string().min(2).optional(),
+  OPERATOR_NAME: optionalText,
 });
 
 export type Env = z.infer<typeof schema>;
