@@ -1,15 +1,18 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Contact, LegalHeader, Prose } from "@/components/legal/prose";
+import { Contact, LegalHeader, Operator, Prose } from "@/components/legal/prose";
 
-export const metadata: Metadata = { title: "Terms of Service · ClipGuru" };
+export const metadata: Metadata = { title: "Terms of Service" };
 
 export default function TermsPage() {
   return (
     <article>
       <LegalHeader title="Terms of Service" updated="22 November 2026" />
       <Prose>
-        <p>By using ClipGuru you agree to these terms. If you don&apos;t agree, please don&apos;t use the service.</p>
+        <p>
+          ClipGuru is run by <Operator />. By using ClipGuru you agree to these terms. If you don&apos;t agree, please
+          don&apos;t use the service.
+        </p>
 
         <h2>The service</h2>
         <p>
@@ -19,6 +22,7 @@ export default function TermsPage() {
 
         <h2>Your account</h2>
         <ul>
+          <li>You must be at least 13 years old (Instagram&apos;s minimum age) to use ClipGuru.</li>
           <li>Keep your sign-in details safe. You are responsible for what happens in your account.</li>
           <li>Give accurate details, and use only Instagram accounts you are allowed to manage.</li>
         </ul>

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Contact, LegalHeader, Prose } from "@/components/legal/prose";
 
-export const metadata: Metadata = { title: "Delete your data · ClipGuru" };
+export const metadata: Metadata = { title: "Delete your data" };
 
 export default function DataDeletionPage() {
   return (
@@ -29,9 +29,9 @@ export default function DataDeletionPage() {
             stored access token, and any scheduled posts are put on hold.
           </li>
           <li>
-            You can also remove ClipGuru from Meta&apos;s side: in Facebook, go to Settings and privacy → Settings →
-            Business integrations, or in Instagram go to Settings → Website permissions → Apps and websites, and remove
-            ClipGuru.
+            You can also remove ClipGuru from Meta&apos;s side: in your Facebook settings, open Business integrations; in
+            your Instagram settings, open Apps and websites. Find ClipGuru and remove it. Meta moves these menus from
+            time to time; searching the settings for &ldquo;integrations&rdquo; or &ldquo;apps and websites&rdquo; finds them.
           </li>
         </ul>
 

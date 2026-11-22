@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Contact, LegalHeader, Prose } from "@/components/legal/prose";
+import { Contact, LegalHeader, Operator, Prose } from "@/components/legal/prose";
 
-export const metadata: Metadata = { title: "Privacy Policy · ClipGuru" };
+export const metadata: Metadata = { title: "Privacy Policy" };
 
 export default function PrivacyPage() {
   return (
@@ -12,6 +12,9 @@ export default function PrivacyPage() {
         <p>
           ClipGuru turns an idea into a short explainer video and, if you ask it to, posts that video to your Instagram
           account. This page explains what we collect, why, who helps us run the service, and how to delete your data.
+        </p>
+        <p>
+          ClipGuru is run by <Operator />. In this policy, &ldquo;we&rdquo; and &ldquo;us&rdquo; mean ClipGuru and its operator.
         </p>
 
         <h2>What we collect</h2>

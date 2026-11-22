@@ -1,4 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+// The video theme loads Poppins from /fonts when imported; there is no server in unit tests.
+vi.mock("@remotion/fonts", () => ({ loadFont: () => Promise.resolve() }));
 import { keyWordIndex } from "./components/Text";
 import { transitionAfter } from "./components/motion";
 import { increasing, MIN_BEAT, spreadCues } from "./three/cues";

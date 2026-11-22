@@ -20,6 +20,11 @@ export function Prose({ children }: { children: React.ReactNode }) {
   );
 }
 
+/** Who runs ClipGuru: the OPERATOR_NAME env var (a person or business, with country). */
+export function Operator() {
+  return <span>{env().OPERATOR_NAME ?? "the ClipGuru team"}</span>;
+}
+
 /** How to reach us: the CONTACT_EMAIL address when set. */
 export function Contact() {
   const email = env().CONTACT_EMAIL;

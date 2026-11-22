@@ -75,6 +75,8 @@ const schema = z.object({
   // F16 Launch
   /** Shown on the Privacy Policy, Terms and data deletion pages as the address to write to. */
   CONTACT_EMAIL: z.string().email().optional(),
+  /** Who runs ClipGuru, as shown on the legal pages, e.g. "Jane Doe, Berlin, Germany". */
+  OPERATOR_NAME: z.string().min(2).optional(),
 });
 
 export type Env = z.infer<typeof schema>;
