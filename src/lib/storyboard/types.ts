@@ -244,10 +244,23 @@ export function flatten3d(scene: Scene): Scene {
   return { type: "summary", narration: scene.narration, heading: scene.heading, points: scene.items.map((i) => ({ text: i.label, cue: i.cue })) };
 }
 
-/** Keeps the first MAX_3D_SCENES 3D scenes and turns any later ones into summary scenes. */
+/**
+ * Longest narration a 3D scene may have (about 16 seconds spoken). A second of 3D takes 12 to 16
+ * seconds to render on the render machine, so two long 3D scenes would run past its time limit.
+ */
+export const MAX_3D_NARRATION = 240;
+
+/**
+ * Keeps the first MAX_3D_SCENES 3D scenes and turns any later ones, and any 3D scene with a
+ * narration longer than MAX_3D_NARRATION, into summary scenes.
+ */
 export function cap3d(scenes: Scene[]): Scene[] {
   let seen = 0;
-  return scenes.map((s) => (s.type === "scene3d" && ++seen > MAX_3D_SCENES ? flatten3d(s) : s));
+  return scenes.map((s) => {
+    if (s.type !== "scene3d") return s;
+    if (s.narration.length > MAX_3D_NARRATION) return flatten3d(s);
+    return ++seen > MAX_3D_SCENES ? flatten3d(s) : s;
+  });
 }
 
 /** The scene's on-screen heading, whatever its type. */

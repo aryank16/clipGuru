@@ -69,7 +69,7 @@ Rules for the storyboard (5 to 9 scenes, fewer for short videos):
     3 checks). heading. items = one item per comparison, in order (label = e.g. "Check 23"), each cue = the word in the
     narration where that comparison is said.
   - "scene3d": a short cinematic 3D shot, the most striking scene type. Use it at most twice per video (never more), only where
-    one of these presets truly shows the idea. heading (max 5 words), items = 1-4 (label max 3 words, no icon), in the order
+    one of these presets truly shows the idea. Its narration must be short: 1-2 sentences, at most 35 words. heading (max 5 words), items = 1-4 (label max 3 words, no icon), in the order
     they happen; each item's cue is the word where that beat happens. Presets:
     Ready-made shots (items appear in the shot):
     "impact" (an object smashes through 1-4 panels: force, momentum, breaking barriers, layers of defence),

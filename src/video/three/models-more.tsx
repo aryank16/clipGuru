@@ -495,7 +495,8 @@ const bulbGlass = (() => {
 export const Hourglass: React.FC<ModelProps> = ({ cues, frames }) => {
   const f = useCurrentFrame();
   const flipAt = cues.length > 2 ? cues[1] : Infinity;
-  const flip = interpolate(f, [flipAt, flipAt + 24], [0, 1], { ...clamp, easing: (t) => t * t * (3 - 2 * t) });
+  // With fewer than 3 items it never flips (and interpolate needs finite keyframes).
+  const flip = Number.isFinite(flipAt) ? interpolate(f, [flipAt, flipAt + 24], [0, 1], { ...clamp, easing: (t) => t * t * (3 - 2 * t) }) : 0;
   const runStart = f < flipAt + 24 ? 0 : flipAt + 24;
   const runEnd = f < flipAt + 24 ? Math.min(flipAt, frames) : frames;
   const k = interpolate(f, [runStart, Math.max(runStart + 30, runEnd)], [0.05, 0.92], clamp);

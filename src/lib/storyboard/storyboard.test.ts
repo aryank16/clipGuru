@@ -91,6 +91,9 @@ describe("storyboard helpers", () => {
     expect(out.map((s) => s.type)).toEqual(["scene3d", "title", "scene3d", "summary"]);
     expect(out[3]).toEqual({ type: "summary", narration: "C moves fast.", heading: "C", points: [{ text: "C", cue: "moves" }] });
     expect(types.sceneSchema.safeParse(out[3]).success).toBe(true);
+    // A 3D scene with a long narration (too slow to render) becomes a summary and doesn't use up a 3D slot.
+    const long = { ...three("L"), narration: "L moves fast. ".repeat(20).trim() };
+    expect(types.cap3d([long, three("A"), three("B")]).map((s) => s.type)).toEqual(["summary", "scene3d", "scene3d"]);
     // An edited storyboard saved through the API is capped the same way.
     const { parseStoryboard } = await import("./schemas");
     const saved = parseStoryboard({ topic: "t", title: "T", scenes: [three("A"), three("B"), three("C"), three("D")] });
@@ -98,6 +101,7 @@ describe("storyboard helpers", () => {
   });
 
   it("accepts the 3D model library presets", () => {
+    expect(types.MAX_3D_NARRATION).toBeGreaterThanOrEqual(200);
     for (const preset of ["dna", "cell", "heart", "brain", "rocket", "highway", "hourglass"]) {
       const s = writer.toScene({ type: "scene3d", narration: "It moves fast.", heading: "H", preset: preset.toUpperCase(), items: [{ label: "A", cue: "moves" }] });
       expect(s).toMatchObject({ type: "scene3d", preset });
