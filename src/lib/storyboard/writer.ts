@@ -68,12 +68,28 @@ Rules for the storyboard (5 to 9 scenes, fewer for short videos):
     a sorted list. values = 7 to 11 sorted distinct integers under 100, target = one of the values (pick one that takes
     3 checks). heading. items = one item per comparison, in order (label = e.g. "Check 23"), each cue = the word in the
     narration where that comparison is said.
-  - "scene3d": a short 3D shot, the most striking scene type. Use it at most twice per video (never more), only where one of these
-    presets truly shows the idea: preset = "impact" (an object smashes through panels: force, momentum, breaking barriers,
-    layers of defence), "orbit" (bodies circling a centre: planets, electrons, satellites), "globe" (a turning Earth with
-    places marked and linked: geography, spread, trade, travel), "molecule" (atoms bonding to a centre atom: chemistry,
-    parts joining into a whole), "stack" (blocks dropping into a tower: gravity, building up, layers). heading (max 5 words),
-    items = 1-4 (label max 3 words, no icon): the panels, bodies, places, atoms or blocks, in the order they appear.
+  - "scene3d": a short cinematic 3D shot, the most striking scene type. Use it at most twice per video (never more), only where
+    one of these presets truly shows the idea. heading (max 5 words), items = 1-4 (label max 3 words, no icon), in the order
+    they happen; each item's cue is the word where that beat happens. Presets:
+    Ready-made shots (items appear in the shot):
+    "impact" (an object smashes through 1-4 panels: force, momentum, breaking barriers, layers of defence),
+    "orbit" (1-4 bodies circling a centre: planets, electrons, satellites), "globe" (a turning Earth with 1-4 places marked
+    and linked: geography, spread, trade, travel), "molecule" (1-4 atoms bonding to a centre atom: chemistry, parts joining),
+    "stack" (1-4 blocks dropping into a tower: gravity, building up, layers),
+    "highway" (a car speeding down a highway; time slows on item 1 as a bullet flies in, it passes through the car on item 2,
+    then an X-ray view shows its slanted path and time speeds up on item 3: relative motion, speed, frames of reference.
+    Exactly 3 items).
+    Objects from the 3D model library (the object reacts on each item):
+    "dna" (genes, heredity; the helix lights up), "cell" (biology; nucleus, mitochondria, ribosomes arrive in that order),
+    "heart" (heart, blood, health, love; it beats harder), "brain" (mind, learning, memory, AI; regions light up),
+    "rocket" (space, launches, startups taking off; engines ignite on item 1, lift-off on the last item), "planet" (space,
+    Saturn, astronomy; rings open, then a moon), "bulb" (ideas, electricity, invention; it switches on and brightens),
+    "battery" (energy, charging, stamina; it fills in steps), "gears" (machines, systems, teamwork; one gear per item),
+    "coins" (money, saving, investing, growth; one taller stack per item), "phone" (apps, social media, notifications,
+    screen time; a card pops out per item), "magnet" (magnetism, attraction; the field appears, iron balls fly in),
+    "volcano" (geology, eruptions, pressure building; it erupts on item 2, or item 1 if only one), "tree" (growth, nature,
+    plants; it grows, leaves fill out, fruit on the last item), "lock" (security, privacy, passwords, encryption; a shield
+    forms, it opens on the last item), "hourglass" (time, deadlines, patience; with 3+ items it flips on item 2).
 - Each scene's narration is 1-3 sentences (12-40 words) and must talk about exactly what that scene shows.
   Never move on to the next idea inside the same scene: if the narration changes subject, start a new scene.
 - Every item has a "cue": ONE word copied exactly from that scene's narration (it MUST appear in that narration), spoken at

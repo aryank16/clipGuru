@@ -5,7 +5,8 @@ import { theme } from "../theme";
 import { Heading } from "../components/Text";
 import { useEnter } from "../components/anim";
 import { spreadCues } from "../three/cues";
-import { useCueFrames, type SceneProps } from "./common";
+import { useCueFrames, useSceneFrames, type SceneProps } from "./common";
+import { MODELS, ModelShot, type ModelId } from "../three/models";
 import { Impact } from "../three/Impact";
 import { Orbit } from "../three/Orbit";
 import { Globe } from "../three/Globe";
@@ -52,10 +53,12 @@ export const Scene3DScene: React.FC<SceneProps<T>> = ({ scene, timing }) => {
   const chars = scene.items.reduce((a, i) => a + i.label.length, 0);
   const small = chars > 30 || n > 3;
   const twoRows = n > 2 && chars > 36;
-  const Shot = { impact: Impact, orbit: Orbit, globe: Globe, molecule: Molecule, stack: Stack }[scene.preset];
+  const frames = useSceneFrames(timing);
+  const preset = scene.preset;
+  const Shot = preset in MODELS ? null : { impact: Impact, orbit: Orbit, globe: Globe, molecule: Molecule, stack: Stack }[preset as "orbit"];
   return (
     <AbsoluteFill>
-      <Shot cues={cues} />
+      {Shot ? <Shot cues={cues} /> : <ModelShot model={preset as ModelId} cues={cues} frames={frames} />}
       <Heading text={scene.heading} />
       <div
         style={{

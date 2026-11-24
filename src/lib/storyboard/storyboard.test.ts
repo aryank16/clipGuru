@@ -97,6 +97,15 @@ describe("storyboard helpers", () => {
     expect(saved.scenes.map((s) => s.type)).toEqual(["scene3d", "scene3d", "summary", "summary"]);
   });
 
+  it("accepts the 3D model library presets", () => {
+    for (const preset of ["dna", "cell", "heart", "brain", "rocket", "highway", "hourglass"]) {
+      const s = writer.toScene({ type: "scene3d", narration: "It moves fast.", heading: "H", preset: preset.toUpperCase(), items: [{ label: "A", cue: "moves" }] });
+      expect(s).toMatchObject({ type: "scene3d", preset });
+      expect(types.sceneSchema.safeParse(s).success).toBe(true);
+      expect(s && types.sceneVisual(s)).toMatch(/^3D /);
+    }
+  });
+
   it("rejects a 3D scene with an unknown preset or no items", () => {
     const base = { type: "scene3d", narration: "Planets circle the sun.", heading: "Orbits", preset: "orbit", items: [{ label: "Earth", cue: "Planets" }] };
     expect(types.sceneSchema.safeParse(base).success).toBe(true);

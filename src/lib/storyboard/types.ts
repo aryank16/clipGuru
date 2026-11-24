@@ -27,8 +27,10 @@ export const SCENE_LABELS: Record<SceneType, string> = {
  * globe: a turning Earth with 1-4 places marked and linked (geography, spread, global trade or travel).
  * molecule: 1-4 atoms bond to a central atom (chemistry, parts joining into a whole).
  * stack: 1-4 blocks drop and stack into a tower (gravity, building up, layers of a system).
+ * The rest are objects from the 3D model library, filmed on a cinematic stage; their items appear
+ * as the object reacts (a helix lights up, organelles arrive, a rocket ignites then lifts off...).
  */
-export const PRESETS_3D = ["impact", "orbit", "globe", "molecule", "stack"] as const;
+export const PRESETS_3D = ["impact", "orbit", "globe", "molecule", "stack", "dna", "cell", "rocket", "bulb", "gears", "coins", "planet", "heart", "highway", "brain", "battery", "phone", "magnet", "volcano", "tree", "lock", "hourglass"] as const;
 export type Preset3D = (typeof PRESETS_3D)[number];
 export const PRESET_LABELS: Record<Preset3D, string> = {
   impact: "Impact",
@@ -36,6 +38,23 @@ export const PRESET_LABELS: Record<Preset3D, string> = {
   globe: "Globe",
   molecule: "Molecule",
   stack: "Stack",
+  dna: "DNA",
+  cell: "Cell",
+  rocket: "Rocket",
+  bulb: "Light bulb",
+  gears: "Gears",
+  coins: "Coins",
+  planet: "Planet",
+  heart: "Heart",
+  highway: "Bullet vs car",
+  brain: "Brain",
+  battery: "Battery",
+  phone: "Phone",
+  magnet: "Magnet",
+  volcano: "Volcano",
+  tree: "Tree",
+  lock: "Lock",
+  hourglass: "Hourglass",
 };
 
 const text = (max: number) => z.string().trim().min(1).max(max);

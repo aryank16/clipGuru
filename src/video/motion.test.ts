@@ -5,6 +5,31 @@ vi.mock("@remotion/fonts", () => ({ loadFont: () => Promise.resolve() }));
 import { keyWordIndex } from "./components/Text";
 import { transitionAfter } from "./components/motion";
 import { increasing, MIN_BEAT, spreadCues } from "./three/cues";
+import { MODELS } from "./three/models";
+import { timeline } from "./three/Highway";
+import { PRESETS_3D } from "@/lib/storyboard/types";
+
+describe("3D model library", () => {
+  it("has a shot for every preset the writer can pick", () => {
+    const readyMade = ["impact", "orbit", "globe", "molecule", "stack"];
+    for (const p of PRESETS_3D) expect(readyMade.includes(p) || p in MODELS).toBe(true);
+  });
+
+  it("times bullet time so the bullet hits on the second cue and holds until the third", () => {
+    const tl = timeline(420, [60, 150, 300]);
+    const hit = tl.sim.findIndex((t) => t - tl.fireSim >= tl.toHit);
+    expect(Math.abs(hit - 150)).toBeLessThanOrEqual(3);
+    expect(tl.backAt).toBeGreaterThanOrEqual(300);
+    // Simulated time never runs backwards.
+    expect(tl.sim.every((t, i) => i === 0 || t > tl.sim[i - 1])).toBe(true);
+  });
+
+  it("still works with a single cue", () => {
+    const tl = timeline(200, [40]);
+    expect(Number.isFinite(tl.backAt)).toBe(true);
+    expect(tl.sim.findIndex((t) => t - tl.fireSim >= tl.toHit)).toBeGreaterThan(40);
+  });
+});
 
 describe("3D cue timing", () => {
   it("spreads cues that land on the same frame, keeping their order", () => {

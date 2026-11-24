@@ -14,8 +14,9 @@ const ease = Easing.bezier(0.65, 0, 0.35, 1);
 const clamp = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
 
 /**
- * One scene's frame: it enters with the transition from the scene before, moves under a slow
- * camera, and leaves with the transition to the next one (while that one is already entering).
+ * One scene's frame, filmed on a 3D stage: it enters with the transition from the scene before
+ * (swinging in like a card, dollying in from depth, or tilting up), drifts under a slow camera
+ * that dollies in and turns a few degrees, and leaves while the next one is already entering.
  */
 export const SceneMotion: React.FC<{
   frames: number;
@@ -25,37 +26,47 @@ export const SceneMotion: React.FC<{
 }> = ({ frames, enter, exit, children }) => {
   const f = useCurrentFrame();
   const pin = interpolate(f, [0, OVERLAP], [0, 1], { ...clamp, easing: ease });
-  const pout = exit ? interpolate(f, [frames, frames + OVERLAP], [0, 1], { ...clamp, easing: ease }) : 0;
+  const pout = exit
+    ? interpolate(f, [frames, frames + OVERLAP], [0, 1], {
+        ...clamp,
+        easing: ease,
+      })
+    : 0;
 
-  // Camera: a slow push-in and a gentle sway for the whole scene.
+  // Camera: a slow dolly-in with a gentle turn, as if a camera on a slider films the scene.
   const life = interpolate(f, [0, frames + OVERLAP], [0, 1], clamp);
-  const cam = `translate(${Math.sin(f / 75) * 7}px, ${-life * 14}px) scale(${1 + 0.035 * life})`;
+  const cam = `translateZ(${life * 70}px) rotateY(${Math.sin(f / 95) * 2.6}deg) rotateX(${Math.cos(f / 120) * 1.6}deg) translateY(${-life * 10}px)`;
 
   let tIn = "";
   let oIn = 1;
   let blurIn = 0;
   let clip: string | undefined;
+  const qi = 1 - pin;
   switch (enter) {
     case "first":
-      tIn = `scale(${0.9 + 0.1 * pin})`;
+      tIn = `translateZ(${-qi * 420}px) rotateX(${qi * 14}deg)`;
       oIn = pin;
-      blurIn = (1 - pin) * 10;
+      blurIn = qi * 10;
       break;
     case "push":
-      tIn = `translateX(${(1 - pin) * 320}px)`;
-      oIn = pin;
+      // Swings in from the right like a card on a hinge.
+      tIn = `translateX(${qi * 520}px) translateZ(${-qi * 380}px) rotateY(${-qi * 58}deg)`;
+      oIn = Math.min(1, pin * 1.6);
       break;
     case "zoom":
-      tIn = `scale(${0.86 + 0.14 * pin})`;
+      // Comes forward out of the depth.
+      tIn = `translateZ(${-qi * 900}px)`;
       oIn = pin;
-      blurIn = (1 - pin) * 12;
+      blurIn = qi * 12;
       break;
     case "wipe":
       clip = pin < 1 ? `circle(${pin * 120}% at 50% 46%)` : undefined;
+      tIn = `translateZ(${-qi * 120}px)`;
       break;
     case "rise":
-      tIn = `translateY(${(1 - pin) * 260}px)`;
-      oIn = pin;
+      // Tilts up off the floor.
+      tIn = `translateY(${qi * 420}px) translateZ(${-qi * 200}px) rotateX(${qi * 62}deg)`;
+      oIn = Math.min(1, pin * 1.6);
       break;
   }
 
@@ -64,38 +75,42 @@ export const SceneMotion: React.FC<{
   let blurOut = 0;
   switch (exit) {
     case "push":
-      tOut = `translateX(${-pout * 320}px)`;
+      tOut = `translateX(${-pout * 520}px) translateZ(${-pout * 380}px) rotateY(${pout * 58}deg)`;
       oOut = 1 - pout;
       break;
     case "zoom":
-      tOut = `scale(${1 + 0.3 * pout})`;
+      // The camera flies through it.
+      tOut = `translateZ(${pout * 650}px)`;
       oOut = 1 - pout;
       blurOut = pout * 14;
       break;
     case "wipe":
-      tOut = `scale(${1 - 0.05 * pout})`;
+      tOut = `translateZ(${-pout * 160}px)`;
       oOut = 1 - pout * 0.7;
       break;
     case "rise":
-      tOut = `translateY(${-pout * 220}px)`;
+      tOut = `translateY(${-pout * 360}px) translateZ(${-pout * 200}px) rotateX(${-pout * 48}deg)`;
       oOut = 1 - pout;
       break;
   }
 
   const blur = blurIn + blurOut;
   return (
-    <AbsoluteFill
-      style={{
-        opacity: Math.min(oIn, oOut),
-        transform: `${tIn} ${tOut} ${cam}`,
-        filter: blur > 0.3 ? `blur(${blur.toFixed(1)}px)` : undefined,
-        clipPath: clip,
-        // A wipe brings its own paper so the scene underneath is covered inside the circle.
-        background: clip ? theme.bg : undefined,
-      }}
-    >
-      {children}
-      {enter === "wipe" && pin < 1 && <WipeRing p={pin} />}
+    // The camera: perspective from slightly above the middle of the frame.
+    <AbsoluteFill style={{ perspective: 1700, perspectiveOrigin: "50% 42%" }}>
+      <AbsoluteFill
+        style={{
+          opacity: Math.min(oIn, oOut),
+          transform: `${tIn} ${tOut} ${cam}`,
+          filter: blur > 0.3 ? `blur(${blur.toFixed(1)}px)` : undefined,
+          clipPath: clip,
+          // A wipe brings its own paper so the scene underneath is covered inside the circle.
+          background: clip ? theme.bg : undefined,
+        }}
+      >
+        {children}
+        {enter === "wipe" && pin < 1 && <WipeRing p={pin} />}
+      </AbsoluteFill>
     </AbsoluteFill>
   );
 };
@@ -123,7 +138,7 @@ export const Traveller: React.FC<{
 }> = ({ x1, y1, x2, y2, from, period = 42, offset = 0, size = 11 }) => {
   const f = useCurrentFrame();
   if (f < from) return null;
-  const t = (((f - from + offset) % period) + period) % period / period;
+  const t = ((((f - from + offset) % period) + period) % period) / period;
   const k = Easing.inOut(Easing.sin)(t);
   const fade = Math.min(1, t * 6, (1 - t) * 6);
   return (
