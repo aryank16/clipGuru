@@ -7,6 +7,7 @@ import { transitionAfter } from "./components/motion";
 import { increasing, MIN_BEAT, spreadCues } from "./three/cues";
 import { MODELS } from "./three/models";
 import { timeline } from "./three/Highway";
+import { headingLines } from "./scenes/Scene3DScene";
 import { PRESETS_3D } from "@/lib/storyboard/types";
 
 describe("3D model library", () => {
@@ -22,6 +23,19 @@ describe("3D model library", () => {
     expect(tl.backAt).toBeGreaterThanOrEqual(300);
     // Simulated time never runs backwards.
     expect(tl.sim.every((t, i) => i === 0 || t > tl.sim[i - 1])).toBe(true);
+  });
+
+  it("estimates how many lines a 3D heading wraps to", () => {
+    expect(headingLines("Inside a cell")).toBe(1);
+    expect(headingLines("The pump that never stops")).toBe(2);
+    expect(headingLines("A much longer heading that runs to three full lines here")).toBe(3);
+  });
+
+  it("lands the hit inside a short scene with one late cue", () => {
+    const tl = timeline(120, [100]);
+    const hit = tl.sim.findIndex((t) => t - tl.fireSim >= tl.toHit);
+    expect(hit).toBeGreaterThan(0);
+    expect(hit).toBeLessThanOrEqual(120 - 40);
   });
 
   it("still works with a single cue", () => {

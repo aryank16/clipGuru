@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
 import * as THREE from "three";
+import { useThree } from "@react-three/fiber";
 import { interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { theme } from "../theme";
 import { Cinema, Glow, useArrive, type Shot } from "./cinema";
@@ -162,6 +163,12 @@ export const Rocket: React.FC<ModelProps> = ({ cues }) => {
   const t = Math.max(0, f - lift) / fps;
   const y = 0.5 * 2.2 * t * t; // constant acceleration
   const shake = burn > 0 && t === 0 ? Math.sin(f * 2.3) * 0.015 : 0;
+  // After lift-off the camera climbs with the rocket, so it stays in shot as the pad drops away.
+  const camera = useThree((s) => s.camera);
+  if (y > 0) {
+    camera.position.setY(camera.position.y + y * 0.9);
+    camera.lookAt(0, 0.35 + y * 0.9, 0);
+  }
   const r = useMemo(() => rng(3), []);
   const puffs = useMemo(() => Array.from({ length: 22 }, () => [r() * 6.28, r(), r()] as const), [r]);
   return (

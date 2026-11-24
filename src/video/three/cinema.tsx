@@ -3,7 +3,7 @@ import * as THREE from "three";
 import { useThree } from "@react-three/fiber";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import { ThreeCanvas } from "@remotion/three";
-import { Easing, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
+import { Easing, getRemotionEnvironment, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
 import { theme } from "../theme";
 import { VIEW, type Vec3 } from "./studio";
 
@@ -98,6 +98,8 @@ export const Cinema: React.FC<{
   children: React.ReactNode;
 }> = ({ shot, frames, floorY = -2.2, fov = 30, children }) => {
   const { width } = useVideoConfig();
+  // Sharp shadows for the final video; lighter ones for the live preview in the browser.
+  const shadowSize = getRemotionEnvironment().isRendering ? 1024 : 512;
   return (
     <div
       style={{
@@ -114,6 +116,8 @@ export const Cinema: React.FC<{
       }}
     >
       <ThreeCanvas
+        // The live preview is small, so draw it at 1x (phones would otherwise draw 2-3x the pixels).
+        dpr={1}
         width={width}
         height={VIEW.height}
         shadows
@@ -130,8 +134,8 @@ export const Cinema: React.FC<{
           position={[4.5, 9, 6]}
           intensity={2.4}
           castShadow
-          shadow-mapSize-width={1024}
-          shadow-mapSize-height={1024}
+          shadow-mapSize-width={shadowSize}
+          shadow-mapSize-height={shadowSize}
           shadow-bias={-0.0003}
           shadow-radius={6}
         >

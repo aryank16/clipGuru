@@ -40,6 +40,19 @@ const Chip: React.FC<{ text: string; at: number; current: boolean; small: boolea
   );
 };
 
+/** Roughly how many lines the heading wraps to (72 px bold in a 900 px box: about 22 characters a line). */
+export function headingLines(text: string, perLine = 22): number {
+  let lines = 1;
+  let len = 0;
+  for (const w of text.split(/\s+/).filter(Boolean)) {
+    if (len && len + 1 + w.length > perLine) {
+      lines++;
+      len = w.length;
+    } else len += (len ? 1 : 0) + w.length;
+  }
+  return lines;
+}
+
 /** A ready-made 3D shot, with the heading above and each item's chip below as it appears in 3D. */
 export const Scene3DScene: React.FC<SceneProps<T>> = ({ scene, timing }) => {
   const frame = useCurrentFrame();
@@ -58,7 +71,10 @@ export const Scene3DScene: React.FC<SceneProps<T>> = ({ scene, timing }) => {
   const Shot = preset in MODELS ? null : { impact: Impact, orbit: Orbit, globe: Globe, molecule: Molecule, stack: Stack }[preset as "orbit"];
   return (
     <AbsoluteFill>
-      {Shot ? <Shot cues={cues} /> : <ModelShot model={preset as ModelId} cues={cues} frames={frames} />}
+      {/* A 3-line heading reaches down into the 3D view: shrink the shot towards its bottom edge. */}
+      <AbsoluteFill style={headingLines(scene.heading) >= 3 ? { transform: "scale(0.78)", transformOrigin: "50% 1250px" } : undefined}>
+        {Shot ? <Shot cues={cues} /> : <ModelShot model={preset as ModelId} cues={cues} frames={frames} />}
+      </AbsoluteFill>
       <Heading text={scene.heading} />
       <div
         style={{

@@ -30,9 +30,11 @@ const clamp = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
  * time speeds up again on the third cue, or a moment after the bullet is out if that's later.
  */
 export function timeline(frames: number, cues: number[]) {
-  const fire = cues[0] ?? 45;
+  // With fewer than 3 cues (or a short scene) the beats are placed by the scene's length, and the
+  // hit always lands while there's time left to see it.
+  const fire = Math.min(cues[0] ?? Math.round(frames * 0.2), Math.max(10, frames - 110));
   const launch = fire + 10;
-  const hitWanted = Math.max(launch + 30, cues[1] ?? launch + 60);
+  const hitWanted = Math.min(Math.max(launch + 30, cues[1] ?? launch + 60), Math.max(launch + 20, frames - 60));
   const toHit = (START_Z - HALF_W - SKIN) / BULLET_V;
   const crossing = (2 * (HALF_W + SKIN)) / BULLET_V;
   const slow = Math.min(0.2, Math.max(0.015, toHit / (hitWanted - launch)));
@@ -214,8 +216,9 @@ export const Highway: React.FC<ModelProps> = ({ cues, frames }) => {
         <planeGeometry args={[220, 12]} />
         <meshStandardMaterial color="#5A5E66" roughness={0.92} />
       </mesh>
-      {Array.from({ length: 34 }, (_, i) => {
-        const x = -60 + i * dash * 2 - offset;
+      {/* only the stretch of road the camera can see, to keep the live preview light */}
+      {Array.from({ length: 16 }, (_, i) => {
+        const x = -24 + i * dash * 2 - offset;
         return (
           <group key={i}>
             <mesh rotation={[-Math.PI / 2, 0, 0]} position={[x, 0.004, 2.4]} scale={[smear, 1, 1]}>
