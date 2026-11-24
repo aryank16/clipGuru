@@ -15,6 +15,8 @@ export interface StoryboardRepo {
   /** Removes one version by its id (an insert whose project update didn't happen). */
   remove(userId: string, id: string): Promise<void>;
   deleteAllForUser(userId: string): Promise<number>;
+  /** Hard-deletes everything of one project (the daily purge of videos deleted over 30 days ago). */
+  deleteForProject(userId: string, projectId: string): Promise<number>;
   newId(): string;
 }
 
@@ -80,6 +82,10 @@ const mongoRepo: StoryboardRepo = {
   async deleteAllForUser(userId) {
     return (await collection().deleteMany({ userId })).deletedCount;
   },
+
+  async deleteForProject(userId, projectId) {
+    return (await collection().deleteMany({ userId, projectId })).deletedCount;
+  },
 };
 
 // ── Memory (DB_DRIVER=memory) ────────────────────────────────────────────────
@@ -121,6 +127,12 @@ export const memoryStoryboards: StoryboardRepo = {
   async deleteAllForUser(userId) {
     let n = 0;
     for (const [k, r] of store) if (r.userId === userId && store.delete(k)) n++;
+    return n;
+  },
+
+  async deleteForProject(userId, projectId) {
+    let n = 0;
+    for (const [k, r] of store) if (r.userId === userId && r.projectId === projectId && store.delete(k)) n++;
     return n;
   },
 };

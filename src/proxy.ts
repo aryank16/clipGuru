@@ -5,6 +5,8 @@ import { env } from "@/lib/env";
 
 /** Pages a signed-out visitor may open. Everything else in the app needs a session. */
 const AUTH_PAGES = ["/sign-in", "/sign-up", "/forgot-password", "/reset-password"];
+/** Pages anyone may read, signed in or not (Meta's app review links to these). */
+const PUBLIC_PAGES = ["/privacy", "/terms", "/data-deletion"];
 
 /**
  * Fast, optimistic gate: checks only that a session cookie exists.
@@ -21,8 +23,9 @@ export function proxy(request: NextRequest) {
   }
   const hasSession = Boolean(getSessionCookie(request));
   const isAuthPage = AUTH_PAGES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+  const isPublic = PUBLIC_PAGES.includes(pathname);
 
-  if (!hasSession && !isAuthPage) {
+  if (!hasSession && !isAuthPage && !isPublic) {
     const url = new URL("/sign-in", request.url);
     if (pathname !== "/") url.searchParams.set("next", pathname + search);
     return NextResponse.redirect(url);

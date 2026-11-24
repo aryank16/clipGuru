@@ -14,6 +14,10 @@ export interface InstagramRepo {
   save(record: InstagramAccountRecord): Promise<boolean>;
   markReconnectNeeded(userId: string, at: Date): Promise<void>;
   delete(userId: string): Promise<boolean>;
+  /** Stores a renewed token, only if the same Instagram account is still linked (a disconnect in between wins). */
+  updateToken(userId: string, igUserId: string, tokenEnc: string, expiresAt: Date | null, at: Date): Promise<boolean>;
+  /** Across all people: linked accounts not already waiting for a reconnect (the daily health check). */
+  listConnected(limit: number): Promise<InstagramAccountRecord[]>;
 }
 
 // ── MongoDB ──────────────────────────────────────────────────────────────────
@@ -65,6 +69,15 @@ const mongoRepo: InstagramRepo = {
   async delete(userId) {
     return (await collection().deleteOne({ _id: userId })).deletedCount > 0;
   },
+
+  async updateToken(userId, igUserId, tokenEnc, expiresAt, at) {
+    const r = await collection().updateOne({ _id: userId, igUserId }, { $set: { tokenEnc, tokenExpiresAt: expiresAt, updatedAt: at } });
+    return r.matchedCount === 1;
+  },
+
+  async listConnected(limit) {
+    return (await collection().find({ reconnectNeeded: { $ne: true } }).limit(limit).toArray()).map(fromDoc);
+  },
 };
 
 // ── Memory (DB_DRIVER=memory) ────────────────────────────────────────────────
@@ -88,6 +101,15 @@ export const memoryInstagram: InstagramRepo = {
   },
   async delete(userId) {
     return store.delete(userId);
+  },
+  async updateToken(userId, igUserId, tokenEnc, expiresAt, at) {
+    const r = store.get(userId);
+    if (!r || r.igUserId !== igUserId) return false;
+    Object.assign(r, { tokenEnc, tokenExpiresAt: expiresAt, updatedAt: at });
+    return true;
+  },
+  async listConnected(limit) {
+    return [...store.values()].filter((r) => !r.reconnectNeeded).slice(0, limit).map((r) => structuredClone(r));
   },
 };
 

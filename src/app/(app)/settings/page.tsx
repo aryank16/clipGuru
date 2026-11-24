@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { LegalLinks } from "@/components/legal/legal-links";
 import { SettingsForm } from "@/components/settings/settings-form";
 import { PageHeader } from "@/components/shell/page-header";
 import { Card } from "@/components/ui/card";
@@ -23,6 +24,7 @@ export default function SettingsPage({ searchParams }: { searchParams: Search })
       <Suspense fallback={<Card className="h-96 max-w-3xl animate-pulse" />}>
         <Settings searchParams={searchParams} />
       </Suspense>
+      <LegalLinks className="border-t border-hairline pt-6" />
     </div>
   );
 }

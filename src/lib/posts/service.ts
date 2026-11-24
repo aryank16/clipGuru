@@ -167,6 +167,13 @@ export function postService({ posts, projects, renders, storyboards, publisher, 
   }
 
   return {
+    /** Watchdog (every 15 minutes): fails posts whose job was lost, so they can be tried again. Returns how many. */
+    async sweep(limit = 100): Promise<number> {
+      const stuck = await posts.listStuck(new Date(now().getTime() - Math.min(STALE_PUBLISHING_MS, STALE_SCHEDULED_MS)), limit);
+      let n = 0;
+      for (const p of stuck) if ((await expireIfStale(p)).status === "failed") n++;
+      return n;
+    },
     /** POST /api/projects/:id/caption */
     async caption(userId: string, projectId: string, tone?: string): Promise<CaptionSuggestion> {
       const p = await projects.get(userId, projectId);

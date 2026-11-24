@@ -1,4 +1,6 @@
 import { renderRepo } from "@/lib/render/repo";
+import { deleteFiles } from "@/lib/maintenance";
+import { pendingDeletions } from "@/lib/pending-deletions";
 import { NextResponse } from "next/server";
 import { json, parseBody, route } from "@/lib/api/route";
 import { auth } from "@/lib/auth";
@@ -48,9 +50,10 @@ export const DELETE = route(async (req) => {
   await voiceoverRepo().deleteAllForUser(user.id);
   await renderRepo().deleteAllForUser(user.id);
   await instagramRepo().delete(user.id);
-  await storageIfConfigured()
-    ?.deletePrefix(userPrefix(user.id))
-    .catch((err) => console.error("[me] file cleanup failed", err));
+  // Remembered first, so the daily cleanup retries it if this fails.
+  await deleteFiles(storageIfConfigured(), pendingDeletions(), userPrefix(user.id)).catch((err) =>
+    console.error("[me] file cleanup failed; the daily cleanup will retry", err),
+  );
   const ctx = await auth().$context;
   await ctx.internalAdapter.deleteUser(user.id); // also removes sessions and linked sign-in methods
   const res = NextResponse.json({ deleted: true }, { status: 202 });

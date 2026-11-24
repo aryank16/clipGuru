@@ -28,6 +28,10 @@ export interface PostsRepo {
   /** Moves every scheduled post to held (Instagram disconnected). Returns the videos they belong to. */
   holdScheduled(userId: string, at: Date): Promise<string[]>;
   deleteAllForUser(userId: string): Promise<number>;
+  /** Hard-deletes every post of one project (the daily purge). */
+  deleteForProject(userId: string, projectId: string): Promise<number>;
+  /** Across all people: posts still sending since before `before`, or scheduled for before `before` (the watchdog). */
+  listStuck(before: Date, limit: number): Promise<PostRecord[]>;
 }
 
 const isActive = (s: PostStatus) => ACTIVE_POST_STATUSES.includes(s);
@@ -51,6 +55,9 @@ function collection(): Collection<Doc> {
         name: "idempotency",
       },
       { key: { userId: 1, projectId: 1, createdAt: -1 } },
+      // The watchdog's cross-user scans.
+      { key: { status: 1, updatedAt: 1 } },
+      { key: { status: 1, scheduledAt: 1 } },
       { key: { userId: 1, scheduledAt: 1 } },
       { key: { userId: 1, renderId: 1, status: 1 } },
     ])
@@ -167,6 +174,18 @@ const mongoRepo: PostsRepo = {
   async deleteAllForUser(userId) {
     return (await collection().deleteMany({ userId })).deletedCount;
   },
+
+  async deleteForProject(userId, projectId) {
+    return (await collection().deleteMany({ userId, projectId })).deletedCount;
+  },
+
+  async listStuck(before, limit) {
+    const docs = await collection()
+      .find({ $or: [{ status: "publishing", updatedAt: { $lt: before } }, { status: "scheduled", scheduledAt: { $lt: before } }] })
+      .limit(limit)
+      .toArray();
+    return docs.map(fromDoc);
+  },
 };
 
 // ── Memory (DB_DRIVER=memory) ────────────────────────────────────────────────
@@ -264,6 +283,19 @@ export const memoryPosts: PostsRepo = {
     let n = 0;
     for (const [id, p] of store) if (p.userId === userId && store.delete(id)) n++;
     return n;
+  },
+
+  async deleteForProject(userId, projectId) {
+    let n = 0;
+    for (const [id, p] of store) if (p.userId === userId && p.projectId === projectId && store.delete(id)) n++;
+    return n;
+  },
+
+  async listStuck(before, limit) {
+    return [...store.values()]
+      .filter((p) => (p.status === "publishing" && p.updatedAt < before) || (p.status === "scheduled" && p.scheduledAt < before))
+      .slice(0, limit)
+      .map((p) => structuredClone(p));
   },
 };
 

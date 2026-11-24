@@ -30,6 +30,8 @@ export interface InstagramClient {
   loginUrl(opts: { state: string; redirectUri: string; scenario?: string }): string;
   /** Swaps the code from the redirect for an access token. */
   exchange(code: string, redirectUri: string): Promise<{ accessToken: string; expiresAt: Date | null }>;
+  /** Swaps a long-lived token that is nearing its end for a fresh one (about 60 more days). */
+  refresh(accessToken: string): Promise<{ accessToken: string; expiresAt: Date | null }>;
   /** The person's business id and the Instagram professional accounts they shared with the app. */
   accounts(accessToken: string): Promise<{ clientBusinessId: string | null; accounts: IgAccount[] }>;
   /** Hands Meta the video to fetch and process. Returns the container id. */
@@ -104,6 +106,16 @@ export function metaClient(): InstagramClient {
         accessToken: t.access_token,
         expiresAt: t.expires_in ? new Date(Date.now() + t.expires_in * 1000) : null,
       };
+    },
+
+    async refresh(accessToken) {
+      const t = await graph<{ access_token: string; expires_in?: number }>("/oauth/access_token", {
+        grant_type: "fb_exchange_token",
+        client_id: e.META_APP_ID!,
+        client_secret: e.META_APP_SECRET!,
+        fb_exchange_token: accessToken,
+      });
+      return { accessToken: t.access_token, expiresAt: t.expires_in ? new Date(Date.now() + t.expires_in * 1000) : null };
     },
 
     async accounts(accessToken) {
@@ -190,6 +202,9 @@ export function fakeClient(): InstagramClient {
     async exchange(code) {
       if (code === "fake-broken") throw new MetaError("Invalid verification code format.", 400, 100);
       return { accessToken: `token-${code}-${Math.random().toString(36).slice(2)}`, expiresAt: null };
+    },
+    async refresh(token) {
+      return { accessToken: token, expiresAt: new Date(Date.now() + 60 * 24 * 3600_000) };
     },
     async accounts(token) {
       if (token.startsWith("token-fake-noaccount")) return { clientBusinessId: "biz-1", accounts: [] };

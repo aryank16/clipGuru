@@ -21,6 +21,12 @@ function defaultAppUrl(): string {
  */
 const oneToken = z.string().transform((v) => v.trim().split(/\s+/)[0] ?? "");
 
+/** Optional free text: trimmed, and blank counts as not set. */
+const optionalText = z
+  .string()
+  .optional()
+  .transform((v) => v?.trim() || undefined);
+
 const schema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   APP_URL: z.string().url().default(defaultAppUrl),
@@ -71,6 +77,13 @@ const schema = z.object({
   META_APP_SECRET: oneToken.optional(),
   /** The Facebook Login for Business configuration that asks for the Instagram account. */
   META_CONFIG_ID: oneToken.optional(),
+
+  // F16 Launch
+  /** Shown on the Privacy Policy, Terms and data deletion pages as the address to write to. */
+  // Display text only: lenient on purpose, so a blank or mistyped value never breaks the whole app.
+  CONTACT_EMAIL: optionalText,
+  /** Who runs ClipGuru, as shown on the legal pages, e.g. "Jane Doe, Berlin, Germany". */
+  OPERATOR_NAME: optionalText,
 });
 
 export type Env = z.infer<typeof schema>;

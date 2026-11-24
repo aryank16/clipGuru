@@ -3,6 +3,21 @@ import { jobDeps } from "../render";
 import { markFailed, renderJob } from "../render/job";
 import { publishDeps } from "../posts";
 import { markPostFailed, publishJob, type PostRequested } from "../posts/job";
+import { chatRepo } from "../chat/repo";
+import { instagramClient } from "../instagram";
+import { open, seal } from "../instagram/crypto";
+import { instagramRepo } from "../instagram/repo";
+import { checkInstagramConnections, purgeDeletedProjects } from "../maintenance";
+import { dbDriver } from "../env";
+import { pendingDeletions } from "../pending-deletions";
+import { postSvc } from "../posts";
+import { postsRepo } from "../posts/repo";
+import { projectsRepo } from "../projects/repo";
+import { renderSvc } from "../render";
+import { renderRepo } from "../render/repo";
+import { storageIfConfigured } from "../storage";
+import { storyboardRepo } from "../storyboard/repo";
+import { voiceoverRepo } from "../voiceover/repo";
 import { inngest, type RenderRequested } from "./client";
 
 /** render/requested → the render job, one step per request. */
@@ -70,4 +85,46 @@ export const publishPost = inngest.createFunction(
   },
 );
 
-export const functions = [renderVideo, publishPost];
+/** Every 15 minutes: fails renders and posts that got stuck, even when nobody has the page open. */
+export const watchdog = inngest.createFunction(
+  { id: "watchdog", triggers: [{ cron: "*/15 * * * *" }], retries: 1, concurrency: [{ limit: 1 }] },
+  async ({ step }) => {
+    const renders = await step.run("stuck-renders", () => renderSvc().sweep());
+    const posts = await step.run("stuck-posts", () => postSvc().sweep());
+    return { renders, posts };
+  },
+);
+
+/** Daily at 03:00 UTC: permanently removes videos deleted more than 30 days ago, with their files. */
+export const purgeTrash = inngest.createFunction(
+  { id: "purge-trash", triggers: [{ cron: "0 3 * * *" }], retries: 2, concurrency: [{ limit: 1 }] },
+  async ({ step }) => {
+    const purged = await step.run("purge", () =>
+      purgeDeletedProjects({
+        projects: projectsRepo(),
+        posts: postsRepo(),
+        chat: chatRepo(),
+        storyboards: storyboardRepo(),
+        voiceovers: voiceoverRepo(),
+        renders: renderRepo(),
+        storage: storageIfConfigured(),
+        storageRequired: dbDriver() !== "memory",
+        pending: pendingDeletions(),
+      }),
+    );
+    return { purged };
+  },
+);
+
+/** Daily at 04:00 UTC: flags Instagram connections that stopped working, so the app asks to reconnect early. */
+export const instagramHealth = inngest.createFunction(
+  { id: "instagram-health", triggers: [{ cron: "0 4 * * *" }], retries: 1, concurrency: [{ limit: 1 }] },
+  async ({ step }) => {
+    const flagged = await step.run("check", () =>
+      checkInstagramConnections({ instagram: instagramRepo(), client: instagramClient(), open, seal }),
+    );
+    return { flagged };
+  },
+);
+
+export const functions = [renderVideo, publishPost, watchdog, purgeTrash, instagramHealth];

@@ -1,4 +1,5 @@
 import { Logo } from "@/components/brand/logo";
+import { LegalLinks } from "@/components/legal/legal-links";
 
 /** Two-column auth layout: brand headline on the left, the form on the right. */
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
@@ -28,6 +29,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           </p>
         </div>
         <div className="w-full max-w-md lg:mx-auto">{children}</div>
+        <LegalLinks className="mt-10 w-full max-w-md justify-center lg:mx-auto" />
       </main>
     </div>
   );

@@ -87,6 +87,16 @@ export function renderService({ renders, projects, storyboards, dispatch, now = 
   }
 
   return {
+    /**
+     * Watchdog (every 15 minutes): fails renders stuck queued or running, even when nobody opens
+     * the video, so the video shows "Try again" instead of spinning. Returns how many it failed.
+     */
+    async sweep(limit = 100): Promise<number> {
+      const stuck = await renders.listStuck(new Date(now().getTime() - Math.min(STALE_QUEUED_MS, STALE_RUNNING_MS)), limit);
+      let n = 0;
+      for (const r of stuck) if ((await expireIfStale(r)).status === "failed") n++;
+      return n;
+    },
     /** POST /api/projects/:id/renders: makes the video of the current storyboard version. */
     async create(userId: string, projectId: string): Promise<Render> {
       const p = await projects.get(userId, projectId);

@@ -34,6 +34,10 @@ export interface ProjectsRepo {
   setRenderState(userId: string, id: string, state: RenderState, now: Date): Promise<void>;
   /** Hard-deletes every project of a user (account deletion). Returns how many went. */
   deleteAllForUser(userId: string): Promise<number>;
+  /** Across all people: projects deleted before `before` (the daily purge). */
+  listDeletedBefore(before: Date, limit: number): Promise<ProjectRecord[]>;
+  /** Hard-deletes one project, only if it is in the trash. */
+  purge(userId: string, id: string): Promise<boolean>;
   newId(): string;
 }
 
@@ -78,6 +82,16 @@ const mongoRepo: ProjectsRepo = {
 
   async deleteAllForUser(userId) {
     return (await collection().deleteMany({ userId })).deletedCount;
+  },
+
+  async listDeletedBefore(before, limit) {
+    return (await collection().find({ deletedAt: { $type: "date", $lt: before } }).sort({ deletedAt: 1 }).limit(limit).toArray()).map(fromDoc);
+  },
+
+  async purge(userId, id) {
+    const _id = oid(id);
+    if (!_id) return false;
+    return (await collection().deleteOne({ _id, userId, deletedAt: { $type: "date" } })).deletedCount === 1;
   },
 
   async setRenderState(userId, id, state, now) {
