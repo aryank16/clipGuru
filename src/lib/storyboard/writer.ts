@@ -9,6 +9,7 @@ import { resolveIcon, SUGGESTED_ICONS } from "./icons";
 import {
   cap3d,
   flatten3d,
+  MAX_3D_NARRATION,
   MAX_3D_SCENES,
   PRESETS_3D,
   repairCues,
@@ -297,7 +298,7 @@ export async function rewriteScene(current: Storyboard, index: number, instructi
   if (!scene) throw new ApiError("AI_UNAVAILABLE", "That scene didn't come out right. Try again.");
   // The rest of the video may already use up the 3D scenes.
   const others = current.scenes.filter((s, i) => i !== index && s.type === "scene3d").length;
-  return others >= MAX_3D_SCENES ? flatten3d(scene) : scene;
+  return others >= MAX_3D_SCENES || (scene.type === "scene3d" && scene.narration.length > MAX_3D_NARRATION) ? flatten3d(scene) : scene;
 }
 
 export const geminiWriter: StoryboardWriter = {

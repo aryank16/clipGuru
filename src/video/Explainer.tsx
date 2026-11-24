@@ -8,6 +8,7 @@ import {
   useVideoConfig,
 } from "remotion";
 import type { Scene, SceneTiming, VideoProps } from "./types";
+import { cap3d } from "@/lib/storyboard/types";
 import { theme } from "./theme";
 import { computeSceneTimings } from "./timing";
 import { Captions } from "./components/Captions";
@@ -56,8 +57,11 @@ const ProgressBar: React.FC = () => {
   );
 };
 
-export const Explainer: React.FC<VideoProps> = ({ storyboard, words, audioSrc, durationSec }) => {
+export const Explainer: React.FC<VideoProps> = ({ storyboard: stored, words, audioSrc, durationSec }) => {
   const { fps } = useVideoConfig();
+  // Whatever was saved (older versions, undo, AI rewrites), never film more or longer 3D scenes
+  // than the render machine has time for.
+  const storyboard = useMemo(() => ({ ...stored, scenes: cap3d(stored.scenes) }), [stored]);
   const timings = useMemo(
     () => computeSceneTimings(storyboard.scenes, words, durationSec),
     [storyboard, words, durationSec],
