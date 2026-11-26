@@ -6,7 +6,7 @@ import { WORDS_PER_SECOND, type Storyboard } from "../storyboard/types";
 import type { Storage } from "../storage";
 import { VOICES } from "../voices";
 import type { VoiceoverRepo } from "./repo";
-import type { Tts } from "./tts";
+import { VoiceQuotaError, type Tts } from "./tts";
 import {
   MAX_SECONDS,
   MAX_SPEED,
@@ -98,6 +98,12 @@ export function voiceoverService({ projects, storyboards, voiceovers, storage, t
         rec = await voice.synthesize(text, p.voiceId, speed);
       } catch (err) {
         console.error("[voiceover] recording failed", err);
+        if (err instanceof VoiceQuotaError) {
+          throw new ApiError(
+            "VOICE_CREDITS_USED_UP",
+            "ClipGuru's voice credits for this month are used up, so new voiceovers can't be recorded yet. Videos you already made still work.",
+          );
+        }
         throw new ApiError("VOICE_UNAVAILABLE", "Couldn't record the voice just now. Try again in a minute.");
       }
       if (!rec.words.length) throw new ApiError("VOICE_UNAVAILABLE", "The recording came back empty. Try again.");

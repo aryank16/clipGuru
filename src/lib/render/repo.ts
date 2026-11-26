@@ -25,6 +25,8 @@ export interface RenderRepo {
   countActive(userId: string): Promise<number>;
   listActive(userId: string): Promise<RenderRecord[]>;
   countSince(userId: string, since: Date): Promise<number>;
+  /** Renders made since `since` that didn't fail (failed ones don't count towards the monthly limit). */
+  countMadeSince(userId: string, since: Date): Promise<number>;
   deleteAllForUser(userId: string): Promise<number>;
   /** Hard-deletes every render of one project (the daily purge). */
   deleteForProject(userId: string, projectId: string): Promise<number>;
@@ -131,6 +133,10 @@ const mongoRepo: RenderRepo = {
     return collection().countDocuments({ userId, createdAt: { $gte: since } });
   },
 
+  async countMadeSince(userId, since) {
+    return collection().countDocuments({ userId, createdAt: { $gte: since }, status: { $ne: "failed" } });
+  },
+
   async deleteAllForUser(userId) {
     return (await collection().deleteMany({ userId })).deletedCount;
   },
@@ -199,6 +205,10 @@ export const memoryRenders: RenderRepo = {
 
   async countSince(userId, since) {
     return [...store.values()].filter((r) => r.userId === userId && r.createdAt >= since).length;
+  },
+
+  async countMadeSince(userId, since) {
+    return [...store.values()].filter((r) => r.userId === userId && r.createdAt >= since && r.status !== "failed").length;
   },
 
   async deleteAllForUser(userId) {

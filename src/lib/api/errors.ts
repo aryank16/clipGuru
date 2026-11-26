@@ -28,6 +28,8 @@ export const ERROR_STATUS = {
   INSTAGRAM_RECONNECT_NEEDED: 409,
   CONTENT_BLOCKED: 422,
   LIMIT_REACHED: 429,
+  /** The app's voice service is out of credits for the month: not the person's doing, and retrying won't help. */
+  VOICE_CREDITS_USED_UP: 429,
   AI_UNAVAILABLE: 503,
   VOICE_UNAVAILABLE: 503,
   RENDER_UNAVAILABLE: 503,

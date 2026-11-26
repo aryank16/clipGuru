@@ -186,3 +186,22 @@ describe("voiceover service", () => {
     expect(await repo.memoryVoiceovers.countSince(A, new Date(0))).toBe(1);
   });
 });
+
+describe("voices", () => {
+  it("spots ElevenLabs running out of credits", async () => {
+    const body = '{"detail":{"status":"quota_exceeded","message":"This request exceeds your quota of 10000."}}';
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(body, { status: 401 }));
+    await expect(tts.elevenLabs("k", "m").synthesize("Hello there", "v", 1)).rejects.toBeInstanceOf(tts.VoiceQuotaError);
+    fetchMock.mockResolvedValue(new Response("boom", { status: 500 }));
+    const other = await tts.elevenLabs("k", "m").synthesize("Hello there", "v", 1).catch((e) => e);
+    expect(other).not.toBeInstanceOf(tts.VoiceQuotaError);
+    fetchMock.mockRestore();
+  });
+
+  it("the test voice times every word, never fails on words, and is kept apart from real recordings", async () => {
+    const rec = await tts.testTts.synthesize("This will not fail at all", "v", 1);
+    expect(rec.words.map((w) => w.text)).toEqual(["This", "will", "not", "fail", "at", "all"]);
+    expect(rec.contentType).toBe("audio/wav");
+    expect(tts.testTts.model).not.toBe(tts.fakeTts.model);
+  });
+});

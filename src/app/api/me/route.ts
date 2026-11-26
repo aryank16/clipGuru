@@ -1,3 +1,4 @@
+import { renderSvc } from "@/lib/render";
 import { renderRepo } from "@/lib/render/repo";
 import { deleteFiles } from "@/lib/maintenance";
 import { pendingDeletions } from "@/lib/pending-deletions";
@@ -15,13 +16,13 @@ import { postsRepo } from "@/lib/posts/repo";
 import { projectsRepo } from "@/lib/projects/repo";
 import { requireApiSession } from "@/lib/session";
 
-/** GET /api/me — the signed-in user and their Instagram link. Limits fill in later. */
+/** GET /api/me — the signed-in user, their Instagram link, and this month's video count. */
 export const GET = route(async (req) => {
   const { user } = await requireApiSession(req);
   return json({
     user: toMe(user),
     instagram: await instagramSvc().status(user.id),
-    limits: { rendersRunning: 0, rendersToday: 0, maxRunning: 3, maxPerDay: 10 },
+    videos: await renderSvc().usage(user.id),
   });
 });
 

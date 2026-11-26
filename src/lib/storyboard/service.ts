@@ -92,6 +92,7 @@ export function storyboardService({ projects, storyboards, writer, now = () => n
         ? new ApiError("STORYBOARD_EXISTS", "This video already has a storyboard.")
         : new ApiError("REV_CONFLICT", undefined, { currentRev: latest.rev });
     };
+    let rev = p.rev;
     if (!(await storyboards.insert(record))) {
       // Version N+1 exists but the project still points at N: either another save is between its
       // insert and its project update (milliseconds), or one died there and left an orphan. Give
@@ -100,6 +101,12 @@ export function storyboardService({ projects, storyboards, writer, now = () => n
       const latest = await projects.get(p.userId, p.id);
       const orphan = latest && latest.rev === p.rev ? await storyboards.get(p.userId, p.id, record.version) : null;
       if (!orphan) throw await conflict();
+      // Claim the project first (a rev bump that only succeeds if nobody moved it). A slow save that
+      // still owns the "orphan" then fails its own project update instead of pointing the project at
+      // a version this save is about to replace.
+      const claimed = await projects.update(p.userId, p.id, p.rev, {}, now());
+      if (!claimed) throw await conflict();
+      rev = claimed.rev;
       await storyboards.remove(p.userId, orphan.id);
       if (!(await storyboards.insert(record))) throw await conflict();
     }
@@ -109,7 +116,7 @@ export function storyboardService({ projects, storyboards, writer, now = () => n
       updated = await projects.update(
         p.userId,
         p.id,
-        p.rev,
+        rev,
         first
           ? { currentVersion: 1, status: "storyboard", step: "storyboard", briefLockedAt: t }
           : { currentVersion: record.version },

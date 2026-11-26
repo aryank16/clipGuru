@@ -7,6 +7,12 @@ import { useEnter } from "../components/anim";
 import { KineticText } from "../components/Text";
 import type { SceneProps } from "./common";
 
+/** Smaller type for longer titles, so even a long one stays above the rule and subtitle. */
+export function titleSize(title: string): number {
+  const n = title.trim().length;
+  return n <= 24 ? 96 : n <= 40 ? 80 : n <= 60 ? 66 : 56;
+}
+
 export const TitleScene: React.FC<SceneProps<T>> = ({ scene }) => {
   const disc = useEnter(0, 18);
   const sub = useEnter(22, 20);
@@ -40,7 +46,7 @@ export const TitleScene: React.FC<SceneProps<T>> = ({ scene }) => {
           isolation: "isolate",
         }}
       >
-        <KineticText text={scene.title} at={10} size={96} letterSpacing={-2} lineHeight={1.08} stagger={4} />
+        <KineticText text={scene.title} at={10} size={titleSize(scene.title)} letterSpacing={-2} lineHeight={1.08} stagger={4} />
       </div>
       <div
         style={{

@@ -219,6 +219,37 @@ describe("storyboard recovery", () => {
     expect(out.version).toMatchObject({ version: 2, changedScenes: [1] });
     expect((await svc().get(A, p.id)).storyboard.scenes[1].narration).toBe("Light bends in raindrops.");
   });
+
+  it("a slow save whose version was cleared can no longer move the project", async () => {
+    const p = await projectWithBrief();
+    const v1 = await svc().generate(A, p.id, p.rev);
+    // A slow save inserted version 2 and hasn't updated the project yet.
+    const mine = await repo.memoryStoryboards.get(A, p.id, 1);
+    await repo.memoryStoryboards.insert({ ...mine!, id: "slow", version: 2, parentVersion: 1 });
+    // It wakes up right after this save has cleared its version and inserted a new one.
+    let slowMoved: unknown = "not yet";
+    let inserts = 0;
+    const storyboards = {
+      ...repo.memoryStoryboards,
+      insert: async (r: Parameters<typeof repo.memoryStoryboards.insert>[0]) => {
+        const ok = await repo.memoryStoryboards.insert(r);
+        if (++inserts === 2) {
+          slowMoved = await projects.memoryProjects.update(A, p.id, v1.rev, { currentVersion: 2 }, new Date());
+          if (!slowMoved) await repo.memoryStoryboards.remove(A, "slow"); // what a losing save does
+        }
+        return ok;
+      },
+    };
+    const racing = svcMod.storyboardService({ projects: projects.memoryProjects, storyboards, writer: writer.geminiWriter });
+    const sb = structuredClone(v1.version.storyboard);
+    sb.scenes[1].narration = "Light bends in raindrops.";
+    const out = await racing.save(A, p.id, { rev: v1.rev, baseVersion: 1, storyboard: sb });
+    expect(slowMoved).toBeNull();
+    const project = (await projects.memoryProjects.get(A, p.id))!;
+    expect(project.rev).toBe(out.rev);
+    const current = await repo.memoryStoryboards.get(A, p.id, project.currentVersion);
+    expect(current?.storyboard.scenes[1].narration).toBe("Light bends in raindrops.");
+  });
 });
 
 describe("storyboard chat", () => {

@@ -94,10 +94,16 @@ export function StoryboardStep({
   project,
   initialVersion,
   initialMessages,
+  videosLeft = null,
+  testVoice = false,
 }: {
   project: Project;
   initialVersion: StoryboardVersion;
   initialMessages: ChatMessage[];
+  /** Videos the person can still make this month; null when there is no limit. */
+  videosLeft?: number | null;
+  /** The dev preview's free test voice is on: the video gets soft ticks instead of speech. */
+  testVoice?: boolean;
 }) {
   const [version, setVersion] = useState(initialVersion);
   const [storyboard, setStoryboard] = useState<Storyboard>(initialVersion.storyboard);
@@ -511,7 +517,18 @@ export function StoryboardStep({
               ) : generating ? (
                 "Your video is being made."
               ) : (
-                `Makes the MP4 with ${voiceName}’s voice. Takes a few minutes.`
+                <>
+                  {testVoice
+                    ? "Makes the MP4 with the test voice (soft ticks, no speech). Takes a few minutes."
+                    : `Makes the MP4 with ${voiceName}’s voice. Takes a few minutes.`}
+                  {videosLeft !== null && (
+                    <span className="block">
+                      {videosLeft === 0
+                        ? "You’ve used this month’s videos."
+                        : `${videosLeft} ${videosLeft === 1 ? "video" : "videos"} left this month.`}
+                    </span>
+                  )}
+                </>
               )}
             </p>
           </div>

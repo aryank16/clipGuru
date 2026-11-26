@@ -45,8 +45,9 @@ export const StatScene: React.FC<SceneProps<T>> = ({ scene, timing }) => {
           top: 660 + dy,
           fontFamily: theme.font,
           fontWeight: 700,
-          fontSize: 230,
+          fontSize: statSize(scene.value),
           letterSpacing: -6,
+          whiteSpace: "nowrap",
           color: theme.accent,
           opacity: p,
           fontVariantNumeric: "tabular-nums",
@@ -73,3 +74,8 @@ export const StatScene: React.FC<SceneProps<T>> = ({ scene, timing }) => {
     </AbsoluteFill>
   );
 };
+
+/** The big number at 230 px, shrunk so a longer value like "149.6M km" still fits on one line. */
+export function statSize(value: string): number {
+  return Math.max(110, Math.min(230, Math.floor(1000 / (Math.max(1, value.length) * 0.6))));
+}

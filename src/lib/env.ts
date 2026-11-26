@@ -62,6 +62,11 @@ const schema = z.object({
   // F9 Voiceover
   ELEVENLABS_API_KEY: oneToken.optional(),
   ELEVENLABS_MODEL: z.string().default("eleven_multilingual_v2"),
+  /**
+   * "test" swaps ElevenLabs for a free placeholder voice (soft ticks, no speech), so the dev preview can
+   * be tested without spending voice credits. Ignored on production.
+   */
+  VOICE_DRIVER: z.enum(["elevenlabs", "test"]).optional(),
   /** Cloudflare R2 (S3 API) for audio and video files. All four are needed. */
   R2_ACCOUNT_ID: oneToken.optional(),
   R2_ACCESS_KEY_ID: oneToken.optional(),
@@ -71,6 +76,8 @@ const schema = z.object({
   // F10 Render pipeline. INNGEST_EVENT_KEY and INNGEST_SIGNING_KEY are read by the Inngest SDK itself.
   /** "sandbox" renders on Vercel Sandbox (the default on Vercel); "fake" pretends (local tests only). */
   RENDER_DRIVER: z.enum(["sandbox", "fake"]).optional(),
+  /** Videos each person can make per calendar month (UTC). 0 means no limit. */
+  VIDEOS_PER_MONTH: z.coerce.number().int().min(0).default(10),
 
   // F12 Instagram (Instagram API with Unified Login, a Meta app owned by a business portfolio)
   META_APP_ID: oneToken.optional(),
@@ -121,9 +128,13 @@ export function aiDriver(): "gemini" | "fake" {
   return env().AI_DRIVER === "fake" && dbDriver() === "memory" ? "fake" : "gemini";
 }
 
-/** Who records the voice: ElevenLabs, the fake voice (local tests only), or nobody yet. */
-export function voiceDriver(): "elevenlabs" | "fake" | null {
+/**
+ * Who records the voice: ElevenLabs, the fake voice (local tests only), the free test voice (asked for,
+ * never on production), or nobody yet.
+ */
+export function voiceDriver(): "elevenlabs" | "fake" | "test" | null {
   if (aiDriver() === "fake") return "fake";
+  if (env().VOICE_DRIVER === "test" && process.env.VERCEL_ENV !== "production") return "test";
   return env().ELEVENLABS_API_KEY ? "elevenlabs" : null;
 }
 

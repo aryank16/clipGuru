@@ -21,11 +21,33 @@ type Deps = {
   storyboards: StoryboardRepo;
   /** Hands the render to the background job (Inngest, or the in-process runner locally). */
   dispatch(render: RenderRecord): Promise<void>;
+  /** Videos each person can make per calendar month (UTC); 0 or unset means no limit. */
+  videosPerMonth?: number;
   now?: () => Date;
 };
 
+/** How many videos the person has made this month, out of how many. `max` null means no limit. */
+export type VideoUsage = { used: number; max: number | null; left: number | null; resetsAt: string };
+
+/** The first moment of the calendar month (UTC) that `t` is in, and of the next one. */
+export function monthOf(t: Date): { start: Date; next: Date } {
+  return {
+    start: new Date(Date.UTC(t.getUTCFullYear(), t.getUTCMonth(), 1)),
+    next: new Date(Date.UTC(t.getUTCFullYear(), t.getUTCMonth() + 1, 1)),
+  };
+}
+
+const resetDay = (d: Date) => d.toLocaleDateString("en-GB", { day: "numeric", month: "long", timeZone: "UTC" });
+
 /** Renders from the API Design (Renders section). */
-export function renderService({ renders, projects, storyboards, dispatch, now = () => new Date() }: Deps) {
+export function renderService({ renders, projects, storyboards, dispatch, videosPerMonth = 0, now = () => new Date() }: Deps) {
+  async function usage(userId: string, t: Date): Promise<VideoUsage> {
+    const { start, next } = monthOf(t);
+    const used = await renders.countMadeSince(userId, start);
+    const max = videosPerMonth > 0 ? videosPerMonth : null;
+    return { used, max, left: max === null ? null : Math.max(0, max - used), resetsAt: next.toISOString() };
+  }
+
   /** How many of the person's renders are really running, after failing any that are stuck. */
   async function activeCount(userId: string): Promise<number> {
     const n = await renders.countActive(userId);
@@ -48,6 +70,14 @@ export function renderService({ renders, projects, storyboards, dispatch, now = 
         max: RENDERS_PER_DAY,
         retryAfterSec: 3600,
       });
+    }
+    const u = await usage(userId, t);
+    if (u.left === 0) {
+      throw new ApiError(
+        "LIMIT_REACHED",
+        `You've made all ${u.max} of this month's videos. More become available on ${resetDay(new Date(u.resetsAt))}.`,
+        { limit: "videos_per_month", max: u.max, resetsAt: u.resetsAt },
+      );
     }
   }
 
@@ -87,6 +117,10 @@ export function renderService({ renders, projects, storyboards, dispatch, now = 
   }
 
   return {
+    /** This month's video count and limit, for the Generate button. */
+    usage(userId: string): Promise<VideoUsage> {
+      return usage(userId, now());
+    },
     /**
      * Watchdog (every 15 minutes): fails renders stuck queued or running, even when nobody opens
      * the video, so the video shows "Try again" instead of spinning. Returns how many it failed.

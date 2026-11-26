@@ -1,6 +1,6 @@
 import "server-only";
 import { ApiError } from "../api/errors";
-import { renderDriver } from "../env";
+import { env, renderDriver } from "../env";
 import { inngest } from "../inngest/client";
 import { projectsRepo } from "../projects/repo";
 import { storage } from "../storage";
@@ -51,5 +51,11 @@ async function dispatch(r: RenderRecord) {
 }
 
 export function renderSvc() {
-  return renderService({ renders: renderRepo(), projects: projectsRepo(), storyboards: storyboardRepo(), dispatch });
+  return renderService({
+    renders: renderRepo(),
+    projects: projectsRepo(),
+    storyboards: storyboardRepo(),
+    dispatch,
+    videosPerMonth: env().VIDEOS_PER_MONTH,
+  });
 }

@@ -389,3 +389,65 @@ describe("stuck renders", () => {
   });
 });
 
+
+describe("monthly video limit", () => {
+  const monthly = (max: number, at: string) =>
+    svcMod.renderService({
+      renders: repo.memoryRenders,
+      projects: projects.memoryProjects,
+      storyboards: sbRepo.memoryStoryboards,
+      dispatch: async () => {},
+      videosPerMonth: max,
+      now: () => new Date(at),
+    });
+
+  it("counts this month's videos, leaves out failed ones, and stops at the limit", async () => {
+    const p = await projectWithStoryboard();
+    const r = await monthly(2, "2026-11-26T12:00:00Z").create(A, p.id);
+    expect(await monthly(2, "2026-11-26T12:00:00Z").usage(A)).toEqual({
+      used: 1,
+      max: 2,
+      left: 1,
+      resetsAt: "2026-12-01T00:00:00.000Z",
+    });
+    // A failed video doesn't use up the allowance.
+    await repo.memoryRenders.update(r.id, { status: "failed" });
+    expect((await monthly(2, "2026-11-26T12:00:00Z").usage(A)).used).toBe(0);
+    // Two made videos (a ready one and one from another project) reach the limit.
+    await repo.memoryRenders.insert({ ...(await repo.memoryRenders.byId(r.id))!, id: "old1", projectId: "other1", status: "ready" });
+    await repo.memoryRenders.insert({ ...(await repo.memoryRenders.byId(r.id))!, id: "old2", projectId: "other2", status: "ready" });
+    await expect(monthly(2, "2026-11-26T12:00:00Z").create(A, p.id)).rejects.toMatchObject({
+      code: "LIMIT_REACHED",
+      details: { limit: "videos_per_month", max: 2 },
+      message: expect.stringContaining("1 December"),
+    });
+    // Another person isn't affected, and the next month starts afresh.
+    expect((await monthly(2, "2026-11-26T12:00:00Z").usage(B)).left).toBe(2);
+    expect((await monthly(2, "2026-12-01T00:00:01Z").usage(A)).used).toBe(0);
+  });
+
+  it("has no limit when set to 0", async () => {
+    const p = await projectWithStoryboard();
+    expect(await monthly(0, "2026-11-26T12:00:00Z").usage(A)).toMatchObject({ max: null, left: null });
+    await expect(monthly(0, "2026-11-26T12:00:00Z").create(A, p.id)).resolves.toMatchObject({ status: "queued" });
+  });
+
+  it("fails the video straight away, with a clear message, when the voice credits are used up", async () => {
+    const p = await projectWithStoryboard();
+    const r = await service().create(A, p.id);
+    const out = { model: "x", synthesize: async () => Promise.reject(new tts.VoiceQuotaError("quota_exceeded")) };
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const voicesOut = voSvc.voiceoverService({
+      projects: projects.memoryProjects,
+      storyboards: sbRepo.memoryStoryboards,
+      voiceovers: voRepo.memoryVoiceovers,
+      storage: () => storage.memoryStorage,
+      tts: () => out,
+    });
+    await job.renderJob(steps().s, r.id, deps({ recordVoice: async (u, pid, v) => (await voicesOut.create(u, pid, v)).voiceover }));
+    expect(await repo.memoryRenders.byId(r.id)).toMatchObject({
+      status: "failed",
+      error: { code: "VOICE_CREDITS_USED_UP", stage: "voice", message: expect.stringContaining("voice credits") },
+    });
+  });
+});

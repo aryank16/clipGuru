@@ -6,6 +6,14 @@ export type Tts = {
   synthesize(text: string, voiceId: string, speed: number): Promise<Recording>;
 };
 
+/** The voice service has no credits left this month (ElevenLabs "quota_exceeded"). Retrying won't help. */
+export class VoiceQuotaError extends Error {
+  constructor(detail: string) {
+    super(`Voice credits used up: ${detail}`);
+    this.name = "VoiceQuotaError";
+  }
+}
+
 export type Recording = { audio: Uint8Array; contentType: string; words: Word[]; durationSec: number };
 
 type Alignment = {
@@ -54,7 +62,11 @@ export function elevenLabs(apiKey: string, model: string): Tts {
           signal: AbortSignal.timeout(50_000),
         },
       );
-      if (!res.ok) throw new Error(`ElevenLabs ${res.status}: ${(await res.text()).slice(0, 300)}`);
+      if (!res.ok) {
+        const body = (await res.text()).slice(0, 300);
+        if (body.includes("quota_exceeded")) throw new VoiceQuotaError(body);
+        throw new Error(`ElevenLabs ${res.status}: ${body}`);
+      }
       const json = (await res.json()) as { audio_base64: string; alignment: Alignment };
       const words = alignmentToWords(json.alignment);
       const last = words[words.length - 1]?.end ?? 0;
@@ -77,16 +89,32 @@ export const fakeTts: Tts = {
   async synthesize(text, _voiceId, speed) {
     await new Promise((r) => setTimeout(r, 600));
     if (/\bfail\b/i.test(text)) throw new Error("fake voice outage");
-    const step = 1 / (2.45 * speed);
-    const words: Word[] = text
-      .trim()
-      .split(/\s+/)
-      .filter(Boolean)
-      .map((t, i) => ({ text: t, start: round(0.2 + i * step), end: round(0.2 + i * step + step * 0.8) }));
-    const durationSec = words[words.length - 1]?.end ?? 0;
-    return { audio: wav(durationSec + 1, words), contentType: "audio/wav", words, durationSec };
+    return placeholder(text, speed);
   },
 };
+
+/**
+ * The free test voice for the dev preview (VOICE_DRIVER=test): the same quiet track with a soft tick per
+ * word, so the whole flow can be tried without spending voice credits. Its own model name keeps its
+ * recordings apart from real ones.
+ */
+export const testTts: Tts = {
+  model: "test-voice",
+  async synthesize(text, _voiceId, speed) {
+    return placeholder(text, speed);
+  },
+};
+
+function placeholder(text: string, speed: number): Recording {
+  const step = 1 / (2.45 * speed);
+  const words: Word[] = text
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((t, i) => ({ text: t, start: round(0.2 + i * step), end: round(0.2 + i * step + step * 0.8) }));
+  const durationSec = words[words.length - 1]?.end ?? 0;
+  return { audio: wav(durationSec + 1, words), contentType: "audio/wav", words, durationSec };
+}
 
 function wav(seconds: number, words: Word[]): Uint8Array {
   const rate = 8000;

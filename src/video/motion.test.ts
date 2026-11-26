@@ -74,3 +74,15 @@ describe("scene transitions", () => {
     expect([0, 1, 2, 3, 4].map(transitionAfter)).toEqual(["push", "zoom", "wipe", "rise", "push"]);
   });
 });
+
+describe("text fitting", () => {
+  it("shrinks long titles and long stat values", async () => {
+    const { titleSize } = await import("./scenes/TitleScene");
+    const { statSize } = await import("./scenes/StatScene");
+    expect(titleSize("How rainbows form")).toBe(96);
+    expect(titleSize("x".repeat(80))).toBeLessThan(titleSize("x".repeat(30)));
+    expect(statSize("72%")).toBe(230);
+    expect(statSize("149.6M km")).toBeLessThan(230);
+    expect(statSize("x".repeat(16))).toBe(110);
+  });
+});
