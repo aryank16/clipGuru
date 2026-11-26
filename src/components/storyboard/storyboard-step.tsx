@@ -538,9 +538,15 @@ export function StoryboardStep({
       {!generateInView ? (
         <div className="fixed inset-x-0 bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-20 px-4 lg:hidden">
           <div className="mx-auto flex max-w-md items-center gap-3 rounded-xl border border-hairline bg-surface/95 p-2 pl-4 shadow-[0_8px_24px_-12px_rgba(32,30,28,0.35)] backdrop-blur">
-            <p className="min-w-0 flex-1 truncate text-sm text-taupe">
-              {generating ? "Your video is being made." : `${scenes.length} scenes · ${voiceName}’s voice`}
-            </p>
+            {makeError ? (
+              <p role="alert" className="min-w-0 flex-1 text-xs leading-snug text-danger">
+                {makeError}
+              </p>
+            ) : (
+              <p className="min-w-0 flex-1 truncate text-sm text-taupe">
+                {generating ? "Your video is being made." : `${scenes.length} scenes · ${voiceName}’s voice`}
+              </p>
+            )}
             <Button
               size="sm"
               onClick={generating ? () => router.push(`/videos/${project.id}/video`) : makeVideo}

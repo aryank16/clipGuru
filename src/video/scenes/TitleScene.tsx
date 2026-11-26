@@ -68,7 +68,7 @@ export const TitleScene: React.FC<SceneProps<T>> = ({ scene }) => {
             textAlign: "center",
             fontFamily: theme.font,
             fontWeight: 500,
-            fontSize: 42,
+            fontSize: scene.subtitle.length > 80 ? 36 : 42,
             color: theme.muted,
             opacity: sub,
           }}

@@ -71,6 +71,11 @@ export function renderService({ renders, projects, storyboards, dispatch, videos
         retryAfterSec: 3600,
       });
     }
+    await monthly(userId, t);
+  }
+
+  /** The monthly allowance: a new video, or trying a failed one again, needs one left. */
+  async function monthly(userId: string, t: Date) {
     const u = await usage(userId, t);
     if (u.left === 0) {
       throw new ApiError(
@@ -207,6 +212,7 @@ export function renderService({ renders, projects, storyboards, dispatch, videos
       if (await activeFor(userId, r.projectId)) await running(userId, r.projectId);
       const t = now();
       if ((await activeCount(userId)) >= RENDERS_RUNNING_MAX) await limits(userId, t);
+      await monthly(userId, t); // a failed video didn't count; trying it again does
       const updated = await renders.update(
         id,
         { status: "queued", stage: "voice", progress: 0, error: null, attempts: r.attempts + 1, updatedAt: t, finishedAt: null },

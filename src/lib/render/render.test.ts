@@ -426,6 +426,17 @@ describe("monthly video limit", () => {
     expect((await monthly(2, "2026-12-01T00:00:01Z").usage(A)).used).toBe(0);
   });
 
+  it("counts a failed video again when it is retried, so retrying can't go over the limit", async () => {
+    const p = await projectWithStoryboard();
+    const svc1 = monthly(1, "2026-11-26T12:00:00Z");
+    const r = await svc1.create(A, p.id);
+    await repo.memoryRenders.update(r.id, { status: "failed" });
+    await projects.memoryProjects.setRenderState(A, p.id, { status: "attention", step: "generate", latestRenderId: r.id }, new Date());
+    const other = await projectWithStoryboard();
+    await svc1.create(A, other.id); // uses the one video of the month
+    await expect(svc1.retry(A, r.id)).rejects.toMatchObject({ code: "LIMIT_REACHED", details: { limit: "videos_per_month" } });
+  });
+
   it("has no limit when set to 0", async () => {
     const p = await projectWithStoryboard();
     expect(await monthly(0, "2026-11-26T12:00:00Z").usage(A)).toMatchObject({ max: null, left: null });

@@ -168,9 +168,11 @@ export function VideoStep({ project, initialRender }: { project: Project; initia
               <p className="text-sm text-taupe" role="status">
                 {offline
                   ? "Can’t reach ClipGuru right now. The video keeps going; this page catches up when you’re back online."
-                  : render.status === "failed"
-                    ? "Trying again reuses the voiceover, so it starts faster."
-                    : "You can leave this page. The video keeps going and shows up in My videos when it’s done."}
+                  : render.status === "failed" && render.error?.code === "VOICE_CREDITS_USED_UP"
+                    ? "Trying again won’t work until the voice credits reset."
+                    : render.status === "failed"
+                      ? "Trying again reuses the voiceover, so it starts faster."
+                      : "You can leave this page. The video keeps going and shows up in My videos when it’s done."}
               </p>
             </section>
           )}
