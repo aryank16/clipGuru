@@ -171,8 +171,9 @@ export function InstagramSection({ status, result }: { status: InstagramStatus; 
       ) : (
         <>
           <p className="text-taupe">
-            Connect the Instagram Business or Creator account you want to post to. You log in with Instagram (or Facebook)
-            and choose the account; ClipGuru only asks to publish to it.
+            Connect the Instagram Business or Creator account you want to post to. Meta opens a sign-in window: choose the{" "}
+            <strong className="font-medium text-espresso">Instagram</strong> option (no Facebook account needed), then pick the
+            account. ClipGuru only asks to publish to it.
           </p>
           {status.available ? (
             <a href={connectHref(pathname)} className={buttonClasses("primary", "md", "w-fit")}>

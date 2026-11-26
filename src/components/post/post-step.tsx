@@ -272,7 +272,10 @@ function Target({ instagram, projectId }: { instagram: InstagramStatus; projectI
         </h2>
         {instagram.available ? (
           <>
-            <p className="text-sm">Connect your Instagram professional account to post this video.</p>
+            <p className="text-sm">
+              Connect your Instagram professional account to post this video. In Meta’s window, choose the Instagram
+              option; you don’t need a Facebook account.
+            </p>
             <a href={connectHref(projectId)} className={buttonClasses("primary", "md", "w-fit")}>
               <AtSign className="size-4" aria-hidden /> Connect Instagram
             </a>
