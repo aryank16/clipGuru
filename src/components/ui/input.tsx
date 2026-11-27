@@ -11,7 +11,7 @@ import { cn } from "@/lib/cn";
 export const fieldClasses = cn(
   "w-full rounded-lg border border-line text-[15px] text-ink",
   "placeholder:text-muted/70 transition-colors",
-  "focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/40",
+  "focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus/40",
   "aria-[invalid=true]:border-danger/60",
 );
 
@@ -24,7 +24,7 @@ const inputSizes = {
 
 /** A borderless field that sits inside its own box (the brief's inline fields). */
 const bareClasses =
-  "w-full rounded-md bg-transparent text-[15px] text-ink placeholder:text-muted/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 disabled:opacity-70";
+  "w-full rounded-md bg-transparent text-[15px] text-ink placeholder:text-muted/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-focus/50 disabled:opacity-70";
 
 export type InputProps = Omit<InputHTMLAttributes<HTMLInputElement>, "size"> & {
   size?: keyof typeof inputSizes;

@@ -81,6 +81,7 @@ function createAuth() {
         timeZone: { type: "string", required: false, defaultValue: DEFAULT_TIME_ZONE, input: true },
         defaultVoiceId: { type: "string", required: false, defaultValue: DEFAULT_VOICE_ID, input: false },
         onboardedAt: { type: "date", required: false, input: false },
+        theme: { type: "string", required: false, input: false },
       },
     },
     databaseHooks: {

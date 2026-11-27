@@ -819,7 +819,7 @@ function ChatPanel({
                     mine ? "bg-ink-strong text-on-ink" : "border border-line bg-surface text-ink",
                   )}
                 >
-                  <span className={cn("font-mono text-[11px] uppercase tracking-wider", mine ? "text-accent" : "text-muted")}>
+                  <span className={cn("font-mono text-[11px] uppercase tracking-wider", mine ? "text-accent-on-ink" : "text-muted")}>
                     {mine ? "You" : "ClipGuru"}
                   </span>
                   {text && <p className="whitespace-pre-wrap break-words">{text}</p>}
@@ -828,7 +828,7 @@ function ChatPanel({
                       <Check className="size-4" aria-hidden /> Saved as version {updated.data.version.version}
                     </span>
                   )}
-                  {m.metadata?.failed && <span className={cn("text-xs", mine ? "text-accent" : "text-danger")}>Didn&apos;t get a reply. Try again.</span>}
+                  {m.metadata?.failed && <span className={cn("text-xs", mine ? "text-accent-on-ink" : "text-danger")}>Didn&apos;t get a reply. Try again.</span>}
                 </div>
               </li>
             );
@@ -919,7 +919,7 @@ function VoicePicker({ value, disabled, onPick }: { value: string; disabled: boo
           <label
             key={v.id}
             className={cn(
-              "flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border bg-surface px-4 py-3 transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-accent/50",
+              "flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border bg-surface px-4 py-3 transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-focus",
               on ? "border-accent" : "border-line hover:border-muted/40",
               disabled && "cursor-not-allowed opacity-70",
             )}

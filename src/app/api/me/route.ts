@@ -26,7 +26,7 @@ export const GET = route(async (req) => {
   });
 });
 
-/** PATCH /api/me — name, time zone, default voice, onboarded. */
+/** PATCH /api/me — name, time zone, default voice, theme, onboarded. */
 export const PATCH = route(async (req) => {
   const { user } = await requireApiSession(req);
   const { onboarded, ...rest } = await parseBody(req, patchMeBody);

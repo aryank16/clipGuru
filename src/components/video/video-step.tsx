@@ -114,14 +114,14 @@ export function VideoStep({ project, initialRender }: { project: Project; initia
                 controls
                 playsInline
                 preload="metadata"
-                className="absolute inset-0 size-full bg-ink object-contain"
+                className="absolute inset-0 size-full bg-media object-contain"
               />
             ) : (
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-[radial-gradient(circle,color-mix(in_srgb,var(--color-muted)_18%,transparent)_1px,transparent_1px)] [background-size:18px_18px] p-6 text-center">
                 <span
                   className={cn(
                     "flex size-16 items-center justify-center rounded-xl text-accent",
-                    render.status === "failed" ? "bg-danger/10 text-danger" : "bg-ink",
+                    render.status === "failed" ? "bg-danger/10 text-danger" : "bg-media",
                   )}
                   aria-hidden
                 >
@@ -365,7 +365,7 @@ function CoverPicker({ render, onChange }: { render: Render; onChange: (r: Rende
             >
               {/* eslint-disable-next-line @next/next/no-img-element -- private, signed image */}
               <img src={c.url} alt="" loading="lazy" className="absolute inset-0 size-full object-cover" />
-              <span className="absolute inset-x-1 bottom-1 rounded bg-ink/80 px-1 py-0.5 text-center font-mono text-[10px] text-on-ink">
+              <span className="absolute inset-x-1 bottom-1 rounded bg-media/80 px-1 py-0.5 text-center font-mono text-[10px] text-on-media">
                 {formatDuration(Math.round(c.offsetMs / 1000))}
               </span>
               {chosen && (
@@ -374,8 +374,8 @@ function CoverPicker({ render, onChange }: { render: Render; onChange: (r: Rende
                 </span>
               )}
               {saving && chosen && (
-                <span className="absolute inset-0 flex items-center justify-center bg-ink/30" aria-hidden>
-                  <Loader2 className="size-5 animate-spin text-on-ink" />
+                <span className="absolute inset-0 flex items-center justify-center bg-media/30" aria-hidden>
+                  <Loader2 className="size-5 animate-spin text-on-media" />
                 </span>
               )}
             </Pressable>
@@ -417,7 +417,7 @@ function Stages({ render }: { render: Render }) {
               <span
                 className={cn(
                   "mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md",
-                  done ? "bg-ink text-accent" : failed ? "bg-danger/10 text-danger" : now ? "bg-progress/20 text-progress" : "bg-surface-sunken text-muted",
+                  done ? "bg-ink-strong text-accent-on-ink" : failed ? "bg-danger/10 text-danger" : now ? "bg-progress/20 text-progress" : "bg-surface-sunken text-muted",
                 )}
                 aria-hidden
               >

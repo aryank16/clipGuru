@@ -18,7 +18,7 @@ export const TextButton = forwardRef<
       type={type}
       className={cn(
         "w-fit text-sm font-medium underline-offset-4 transition-colors",
-        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
+        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus",
         "disabled:cursor-not-allowed disabled:opacity-50",
         underline === "always" ? "underline" : "hover:underline",
         tones[tone],

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Anybody, JetBrains_Mono, Public_Sans } from "next/font/google";
+import { themeBootScript } from "@/lib/theme";
 import "./globals.css";
 
 const publicSans = Public_Sans({
@@ -28,7 +29,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       className={`${publicSans.variable} ${anybody.variable} ${jetbrainsMono.variable} h-full antialiased`}
+      // The boot script sets data-theme before React hydrates.
+      suppressHydrationWarning
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
+      </head>
       <body className="min-h-full bg-canvas text-ink">{children}</body>
     </html>
   );

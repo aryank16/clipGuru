@@ -37,7 +37,7 @@ export const Chip = forwardRef<HTMLButtonElement, ChipProps>(function Chip(
       aria-selected={role === "tab" ? selected : undefined}
       className={cn(
         "min-h-9 border px-3 transition-colors disabled:opacity-60",
-        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
+        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus",
         l.base,
         selected ? l.on : l.off,
         className,

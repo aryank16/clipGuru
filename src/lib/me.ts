@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { isValidTimeZone } from "./defaults";
+import { DEFAULT_THEME_PREF, isThemePref } from "./theme";
 import { isVoiceId } from "./voices";
 
 export const NAME_MAX = 80;
@@ -15,6 +16,7 @@ export const patchMeBody = z
       .optional(),
     timeZone: z.string().refine(isValidTimeZone, "Pick a time zone from the list.").optional(),
     defaultVoiceId: z.string().refine(isVoiceId, "Pick one of the listed voices.").optional(),
+    theme: z.string().refine(isThemePref, "Pick one of the listed themes.").optional(),
     onboarded: z.literal(true).optional(),
   })
   .strict();
@@ -28,6 +30,7 @@ type UserLike = {
   image?: string | null;
   timeZone?: string | null;
   defaultVoiceId?: string | null;
+  theme?: string | null;
   onboardedAt?: Date | string | null;
 };
 
@@ -40,6 +43,7 @@ export function toMe(u: UserLike) {
     image: u.image ?? null,
     timeZone: u.timeZone ?? "Europe/London",
     defaultVoiceId: u.defaultVoiceId ?? null,
+    theme: isThemePref(u.theme) ? u.theme : DEFAULT_THEME_PREF,
     onboarded: Boolean(u.onboardedAt),
   };
 }

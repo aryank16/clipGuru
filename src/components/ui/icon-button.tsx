@@ -8,7 +8,7 @@ const tones = {
   /** Quiet icon that darkens on hover (inline actions next to text). */
   muted: "text-muted hover:text-ink",
   /** Filled primary (send buttons). */
-  primary: "bg-ink-strong text-on-ink hover:bg-ink",
+  primary: "bg-ink-strong text-on-ink hover:bg-ink-strong-hover",
 } as const;
 
 export type IconButtonProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children"> & {
@@ -30,7 +30,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(functio
       type={type}
       className={cn(
         "inline-flex shrink-0 items-center justify-center rounded-lg transition-colors",
-        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
+        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus",
         "disabled:cursor-not-allowed disabled:opacity-50",
         sizes[size],
         tones[tone],

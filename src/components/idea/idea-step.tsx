@@ -372,7 +372,7 @@ function Chat({
         </p>
       ) : (
         <form
-          className="rounded-xl border border-line bg-surface p-3 shadow-card focus-within:border-accent"
+          className="rounded-xl border border-line bg-surface p-3 shadow-card focus-within:border-focus"
           onSubmit={(e) => {
             e.preventDefault();
             submit();
@@ -495,7 +495,7 @@ function Bubble({
         <span
           className={cn(
             "font-mono text-[11px] uppercase tracking-wider",
-            mine ? "text-accent" : "text-muted",
+            mine ? "text-accent-on-ink" : "text-muted",
           )}
         >
           {mine ? "You" : "ClipGuru"}
@@ -505,7 +505,7 @@ function Bubble({
         </p>
         {failed && (
           <span
-            className={cn("text-xs", mine ? "text-accent" : "text-danger")}
+            className={cn("text-xs", mine ? "text-accent-on-ink" : "text-danger")}
           >
             Didn&apos;t get a reply. Try again.
           </span>

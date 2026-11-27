@@ -20,7 +20,7 @@ export function MenuItem({
       role="menuitem"
       className={cn(
         "flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left text-[15px] hover:bg-surface-sunken/60",
-        "focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-accent",
+        "focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-focus",
         danger ? "text-danger" : "text-ink",
         className,
       )}

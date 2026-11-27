@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { signOut } from "@/lib/auth-client";
+import { forgetTheme } from "@/lib/theme";
 
 /** Signs out and returns to /sign-in. `compact` shows just the icon (sidebar, phone header). */
 export function SignOutButton({ compact = false }: { compact?: boolean }) {
@@ -22,6 +23,7 @@ export function SignOutButton({ compact = false }: { compact?: boolean }) {
       onClick={async () => {
         setBusy(true);
         await signOut();
+        forgetTheme();
         router.replace("/sign-in");
         router.refresh();
       }}

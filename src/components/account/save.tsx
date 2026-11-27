@@ -8,7 +8,7 @@ export type SaveState = "idle" | "saving" | "saved" | "error";
 
 /** PATCH /api/me. Throws with the server's message (first field error, else the error message). */
 export async function patchMe(
-  body: Partial<Pick<Me, "name" | "timeZone" | "defaultVoiceId">> & { onboarded?: true },
+  body: Partial<Pick<Me, "name" | "timeZone" | "defaultVoiceId" | "theme">> & { onboarded?: true },
 ): Promise<Me> {
   const res = await fetch("/api/me", {
     method: "PATCH",

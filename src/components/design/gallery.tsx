@@ -18,7 +18,7 @@ import { Segmented } from "@/components/ui/segmented";
 import { Spinner } from "@/components/ui/spinner";
 import { TextButton } from "@/components/ui/text-button";
 import { Toast } from "@/components/ui/toast";
-import { COLOR_TOKENS, RADIUS_TOKENS, SHADOW_TOKENS, TOKENS_VERSION, type ShadowToken } from "@/design/tokens";
+import { COLOR_TOKENS, RADIUS_TOKENS, SHADOW_TOKENS, THEMES, TOKENS_VERSION, type ShadowToken } from "@/design/tokens";
 import { cn } from "@/lib/cn";
 
 /** Written out in full so Tailwind generates each class. */
@@ -40,10 +40,25 @@ export function DesignGallery() {
   const [when, setWhen] = useState<"now" | "later">("now");
   const [dialog, setDialog] = useState(false);
   const [toast, setToast] = useState(false);
+  const [theme, setTheme] = useState<string>("");
 
   return (
     <div className="flex flex-col gap-8">
       <PageHeader title="Design" count={`Tokens v${TOKENS_VERSION}`} />
+
+      <div role="group" aria-label="Preview theme" className="flex flex-wrap items-center gap-2">
+        <span className="eyebrow mr-1">Preview in</span>
+        <Chip selected={theme === ""} onClick={() => setTheme("")}>
+          Current theme
+        </Chip>
+        {THEMES.map((t) => (
+          <Chip key={t.id} selected={theme === t.id} onClick={() => setTheme(t.id)}>
+            {t.label}
+          </Chip>
+        ))}
+      </div>
+
+      <div data-theme={theme || undefined} className="-m-4 flex flex-col gap-8 rounded-2xl bg-canvas p-4 text-ink">
 
       <Section title="Colours">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
@@ -217,6 +232,7 @@ export function DesignGallery() {
           Deleted “Example”
         </Toast>
       ) : null}
+      </div>
     </div>
   );
 }

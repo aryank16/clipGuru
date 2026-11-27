@@ -145,19 +145,18 @@ export function VideoLibrary({ initial, initialCounts }: { initial: ListPage; in
           <div className="lg:hidden">
             <SearchBox value={query} onChange={setQuery} />
           </div>
-          <div role="tablist" aria-label="Filter videos" className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
+          <div role="group" aria-label="Filter videos" className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
             {PROJECT_FILTERS.map((f) => (
               <Chip
                 key={f}
                 look="solid"
-                role="tab"
                 selected={filter === f}
                 onClick={() => setFilter(f)}
                 className="flex h-11 shrink-0 items-center gap-2 px-4 sm:h-10"
               >
                 {f === "rendering" ? <span className="size-1.5 rounded-full bg-progress" aria-hidden /> : null}
                 {FILTER_LABELS[f]}
-                <span className={cn("font-mono text-xs", filter === f ? "text-accent" : "text-muted")}>{counts[f]}</span>
+                <span className={cn("font-mono text-xs", filter === f ? "text-accent-on-ink" : "text-muted")}>{counts[f]}</span>
               </Chip>
             ))}
           </div>

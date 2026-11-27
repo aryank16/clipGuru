@@ -7,7 +7,7 @@ type Size = "sm" | "md" | "lg";
 
 const variants: Record<Variant, string> = {
   primary:
-    "bg-ink-strong text-on-ink hover:bg-ink shadow-sm disabled:bg-ink-strong/60",
+    "bg-ink-strong text-on-ink hover:bg-ink-strong-hover shadow-sm disabled:bg-ink-strong/60",
   secondary:
     "bg-surface text-ink border border-line hover:bg-surface-hover hover:border-muted/40 shadow-sm",
   ghost: "text-ink hover:bg-surface-sunken/70",
@@ -40,7 +40,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       aria-busy={loading || undefined}
       className={cn(
         "inline-flex items-center justify-center font-medium transition-colors duration-150",
-        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
+        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus",
         "disabled:cursor-not-allowed disabled:opacity-70",
         variants[variant],
         sizes[size],
@@ -58,7 +58,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
 export function buttonClasses(variant: Variant = "primary", size: Size = "md", className?: string) {
   return cn(
     "inline-flex items-center justify-center font-medium transition-colors duration-150",
-    "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
+    "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus",
     variants[variant],
     sizes[size],
     className,

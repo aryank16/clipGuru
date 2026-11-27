@@ -34,7 +34,7 @@ export function VideoCard({
     <article className="group relative flex flex-col gap-3 rounded-xl border border-line bg-surface p-3 shadow-card transition-shadow hover:shadow-raised sm:p-4">
       <Link
         href={`/videos/${project.id}`}
-        className="relative block aspect-[9/16] overflow-hidden rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+        className="relative block aspect-[9/16] overflow-hidden rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
         aria-label={project.title}
       >
         {project.thumbnailUrl ? (

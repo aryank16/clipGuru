@@ -14,7 +14,7 @@ export const Pressable = forwardRef<HTMLButtonElement, ButtonHTMLAttributes<HTML
     <button
       ref={ref}
       type={type}
-      className={cn("focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent", className)}
+      className={cn("focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus", className)}
       {...props}
     />
   );

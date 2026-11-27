@@ -38,7 +38,7 @@ export async function HeaderAccount() {
       <Link
         href="/settings"
         aria-label="Settings"
-        className="flex size-11 items-center justify-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+        className="flex size-11 items-center justify-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
       >
         <Avatar name={user.name} />
       </Link>

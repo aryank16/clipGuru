@@ -5,6 +5,7 @@ import { HeaderAccount, SidebarAccount } from "@/components/shell/account";
 import { InstagramCard, InstagramCardView } from "@/components/shell/instagram-card";
 import { MobileTabs, MobileTabsView } from "@/components/shell/mobile-tabs";
 import { SidebarNav, SidebarNavView } from "@/components/shell/sidebar-nav";
+import { ThemeSync } from "@/components/theme/theme-sync";
 
 /** Signed-in shell: sidebar on desktop, top bar + bottom tabs on phones. */
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -41,6 +42,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <main className="min-w-0 px-4 pt-6 pb-28 sm:px-8 lg:px-14 lg:pt-12 lg:pb-16">{children}</main>
       <Suspense fallback={<MobileTabsView pathname="" />}>
         <MobileTabs />
+      </Suspense>
+      <Suspense fallback={null}>
+        <ThemeSync />
       </Suspense>
     </div>
   );

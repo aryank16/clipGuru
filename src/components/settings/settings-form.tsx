@@ -11,6 +11,7 @@ import { TextButton } from "@/components/ui/text-button";
 import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
 import { InstagramSection, type ConnectResult } from "@/components/instagram/instagram-section";
+import { AppearanceSection } from "@/components/settings/appearance-section";
 import type { InstagramStatus } from "@/lib/instagram/types";
 import type { Me } from "@/lib/me";
 import { NAME_MAX } from "@/lib/me";
@@ -42,6 +43,7 @@ export function SettingsForm({
       <VoiceSection current={me.defaultVoiceId ?? voices[0].id} voices={voices} />
       <TimeZoneSection current={me.timeZone} options={timeZones} />
       <InstagramSection status={instagram} result={instagramResult} />
+      <AppearanceSection current={me.theme} />
       <DeleteSection email={me.email} />
     </div>
   );
@@ -192,7 +194,7 @@ function DeleteSection({ email }: { email: string }) {
   const [open, setOpen] = useState(false);
   return (
     <Card className="flex flex-col gap-5 p-6 sm:p-8">
-      <SectionHeader index="05" eyebrow="Danger zone" title="Delete account" />
+      <SectionHeader index="06" eyebrow="Danger zone" title="Delete account" />
       <div className="flex flex-wrap items-center justify-between gap-4">
         <p className="max-w-lg text-muted">
           Deletes your account and all your videos for good. This can&apos;t be undone.

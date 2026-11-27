@@ -177,7 +177,7 @@ export function PostStep({
           aria-label="Video"
           className="mx-auto flex w-full max-w-[min(22.5rem,calc((100dvh-26.5rem)*9/16))] flex-col gap-3 lg:mx-0 lg:max-w-none"
         >
-          <div className="relative aspect-[9/16] w-full overflow-hidden rounded-xl border border-line bg-ink">
+          <div className="relative aspect-[9/16] w-full overflow-hidden rounded-xl border border-line bg-media">
             {render.videoUrl && (
               <video
                 src={render.videoUrl}
