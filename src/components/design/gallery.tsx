@@ -224,7 +224,7 @@ export function DesignGallery() {
       {toast ? (
         <Toast
           action={
-            <TextButton tone="accent" onClick={() => setToast(false)} className="shrink-0 text-base">
+            <TextButton tone="accent-on-ink" onClick={() => setToast(false)} className="shrink-0 text-base">
               Undo
             </TextButton>
           }

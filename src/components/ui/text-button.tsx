@@ -5,6 +5,8 @@ const tones = {
   muted: "text-muted hover:text-ink",
   ink: "text-ink",
   accent: "font-semibold text-accent",
+  /** Accent on an `ink-strong` fill, e.g. the Undo in a toast. */
+  "accent-on-ink": "font-semibold text-accent-on-ink",
 } as const;
 
 /** A button that reads like a link: for secondary actions inside text ("Undo", "Reset", "Restore"). */

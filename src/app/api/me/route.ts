@@ -15,6 +15,7 @@ import { instagramRepo } from "@/lib/instagram/repo";
 import { postsRepo } from "@/lib/posts/repo";
 import { projectsRepo } from "@/lib/projects/repo";
 import { requireApiSession } from "@/lib/session";
+import { THEME_COOKIE } from "@/lib/theme";
 
 /** GET /api/me — the signed-in user, their Instagram link, and this month's video count. */
 export const GET = route(async (req) => {
@@ -61,5 +62,7 @@ export const DELETE = route(async (req) => {
   for (const name of SESSION_COOKIES) {
     res.cookies.set(name, "", { maxAge: 0, path: "/", secure: name.startsWith("__Secure-") });
   }
+  res.cookies.set(THEME_COOKIE, "", { maxAge: 0, path: "/" }); // the next person on this browser starts from the default
+
   return res;
 });

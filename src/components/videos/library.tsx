@@ -230,7 +230,7 @@ export function VideoLibrary({ initial, initialCounts }: { initial: ListPage; in
       {undo ? (
         <Toast
           action={
-            <TextButton tone="accent" onClick={restore} className="shrink-0 text-base">
+            <TextButton tone="accent-on-ink" onClick={restore} className="shrink-0 text-base">
               Undo
             </TextButton>
           }
