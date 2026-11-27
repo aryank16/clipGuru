@@ -43,3 +43,6 @@ next-env.d.ts
 
 # video bundle for the renderer (npm run bundle:video)
 /.remotion-bundle/
+
+# Storybook build output
+storybook-static
