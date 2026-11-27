@@ -23,7 +23,7 @@
 
   ::selection {
     background-color: var(--color-accent);
-    color: var(--color-ink);
+    color: var(--color-on-accent);
   }
 }
 

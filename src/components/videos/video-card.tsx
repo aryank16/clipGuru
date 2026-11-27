@@ -81,6 +81,7 @@ function CardMenu({
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const trigger = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -101,6 +102,8 @@ function CardMenu({
       danger={danger}
       onClick={() => {
         setOpen(false);
+        // Back on the trigger first, so a dialog this opens returns focus here (the item unmounts).
+        trigger.current?.focus();
         run();
       }}
     >
@@ -111,6 +114,7 @@ function CardMenu({
   return (
     <div ref={ref} className="relative -mt-1 -mr-1 shrink-0">
       <IconButton
+        ref={trigger}
         label={`More actions for ${title}`}
         icon={<MoreHorizontal className="size-5" />}
         tone="muted"
