@@ -1,4 +1,4 @@
-/* Generated from src/design/tokens.ts (contract v1.1.0) by `npm run tokens`. Do not edit by hand. */
+/* Generated from src/design/tokens.ts (contract v1.1.1) by `npm run tokens`. Do not edit by hand. */
 
 @theme inline {
   --color-canvas: var(--cg-canvas);
@@ -34,7 +34,7 @@
 }
 
 :root {
-  --cg-tokens-version: "1.1.0";
+  --cg-tokens-version: "1.1.1";
   color-scheme: light;
   --cg-canvas: #f4f1ed;
   --cg-surface: #fbf9f6;
@@ -137,7 +137,7 @@
   --cg-accent: #fed74c;
   --cg-on-accent: #171c1f;
   --cg-focus: #1f4fd8;
-  --cg-progress: #e07b00;
+  --cg-progress: #a85600;
   --cg-success: #006b44;
   --cg-danger: #ba1a1a;
   --cg-media: #171c1f;
@@ -166,9 +166,9 @@
   --cg-accent: #ff8a3d;
   --cg-on-accent: #10201f;
   --cg-focus: #0f4c4a;
-  --cg-progress: #ff8a3d;
-  --cg-success: #0f7a55;
-  --cg-danger: #c2415b;
+  --cg-progress: #b4520f;
+  --cg-success: #0b6b4a;
+  --cg-danger: #a8324a;
   --cg-media: #10201f;
   --cg-on-media: #ffffff;
   --cg-shadow-rgb: 15, 76, 74;

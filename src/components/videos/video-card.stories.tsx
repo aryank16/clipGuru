@@ -2,7 +2,8 @@ import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import type { Project, ProjectStatus } from "@/lib/projects/types";
 import { VideoCard } from "./video-card";
 
-const now = new Date().toISOString();
+// A fixed date, so the cards look the same every time (useful for screenshots).
+const now = "2026-11-27T12:00:00.000Z";
 const project = (status: ProjectStatus, title: string, extra: Partial<Project> = {}): Project => ({
   id: `sb-${status}`,
   title,

@@ -11,7 +11,7 @@
  * is added. Major: a token is renamed or removed (every screen and theme must follow).
  */
 
-export const TOKENS_VERSION = "1.1.0";
+export const TOKENS_VERSION = "1.1.1";
 
 /** Semantic colour roles. Names say what a colour is for, never what it looks like. */
 export const COLOR_TOKENS = [
@@ -170,7 +170,7 @@ export const blueprint: Theme = {
     muted: "#5d6070",
     accent: "#fed74c",
     "on-accent": "#171c1f",
-    progress: "#e07b00",
+    progress: "#a85600",
     success: "#006b44",
     danger: "#ba1a1a",
     focus: "#1f4fd8",
@@ -200,9 +200,9 @@ export const grove: Theme = {
     muted: "#5c6b69",
     accent: "#ff8a3d",
     "on-accent": "#10201f",
-    progress: "#ff8a3d",
-    success: "#0f7a55",
-    danger: "#c2415b",
+    progress: "#b4520f",
+    success: "#0b6b4a",
+    danger: "#a8324a",
     focus: "#0f4c4a",
     media: "#10201f",
     "on-media": "#ffffff",

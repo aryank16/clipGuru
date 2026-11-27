@@ -14,6 +14,8 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Built by scripts/bundle-video.mjs
     ".remotion-bundle/**",
+    // Built by npm run build-storybook
+    "storybook-static/**",
   ]),
 ]);
 
