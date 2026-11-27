@@ -4,7 +4,6 @@ import { cn } from "@/lib/cn";
 const tones = {
   muted: "text-muted hover:text-ink",
   ink: "text-ink",
-  accent: "font-semibold text-accent",
   /** Accent on an `ink-strong` fill, e.g. the Undo in a toast. */
   "accent-on-ink": "font-semibold text-accent-on-ink",
 } as const;

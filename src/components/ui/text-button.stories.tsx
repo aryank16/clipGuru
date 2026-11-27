@@ -6,7 +6,7 @@ const meta = {
   component: TextButton,
   args: { children: "Undo the last change", tone: "muted", underline: "hover" },
   argTypes: {
-    tone: { control: "inline-radio", options: ["muted", "ink", "accent", "accent-on-ink"] },
+    tone: { control: "inline-radio", options: ["muted", "ink", "accent-on-ink"] },
     underline: { control: "inline-radio", options: ["hover", "always"] },
   },
 } satisfies Meta<typeof TextButton>;
@@ -15,7 +15,6 @@ type Story = StoryObj<typeof meta>;
 
 export const Muted: Story = {};
 export const Ink: Story = { args: { tone: "ink", underline: "always", children: "Use this device's time zone" } };
-export const Accent: Story = { args: { tone: "accent", children: "Undo" } };
 /** On a strong fill, as in the delete toast. */
 export const AccentOnInk: Story = {
   args: { tone: "accent-on-ink", children: "Undo" },

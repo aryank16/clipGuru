@@ -58,18 +58,17 @@ export function Dialog({
   }, [locked, onClose]);
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-media/30 p-4 sm:items-center" onMouseDown={() => !locked && onClose()}>
-      <form
-        ref={panel}
-        tabIndex={-1}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-        onSubmit={onSubmit ?? ((e) => e.preventDefault())}
-        onMouseDown={(e) => e.stopPropagation()}
-        className={cn("flex w-full max-w-md flex-col gap-5 rounded-2xl border border-line bg-surface p-6 shadow-xl outline-none", className)}
-      >
-        {children}
-      </form>
+      <div role="dialog" aria-modal="true" aria-labelledby={titleId} className={cn("w-full max-w-md", className)}>
+        <form
+          ref={panel}
+          tabIndex={-1}
+          onSubmit={onSubmit ?? ((e) => e.preventDefault())}
+          onMouseDown={(e) => e.stopPropagation()}
+          className="flex w-full flex-col gap-5 rounded-2xl border border-line bg-surface p-6 shadow-xl outline-none"
+        >
+          {children}
+        </form>
+      </div>
     </div>
   );
 }

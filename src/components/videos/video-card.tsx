@@ -35,7 +35,7 @@ export function VideoCard({
       <Link
         href={`/videos/${project.id}`}
         className="relative block aspect-[9/16] overflow-hidden rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-        aria-label={project.title}
+        aria-label={`${project.title}, ${badge.label}`}
       >
         {project.thumbnailUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
