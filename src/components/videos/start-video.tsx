@@ -37,15 +37,15 @@ export function StartVideo() {
     <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4 text-center">
       {failed ? (
         <>
-          <p className="text-taupe">Couldn&apos;t start a new video.</p>
+          <p className="text-muted">Couldn&apos;t start a new video.</p>
           <Link href="/videos" className={buttonClasses("secondary", "md")}>
             Back to My videos
           </Link>
         </>
       ) : (
         <>
-          <Loader2 className="size-6 animate-spin text-taupe" aria-hidden />
-          <p className="text-taupe">Starting a new video…</p>
+          <Loader2 className="size-6 animate-spin text-muted" aria-hidden />
+          <p className="text-muted">Starting a new video…</p>
         </>
       )}
     </div>

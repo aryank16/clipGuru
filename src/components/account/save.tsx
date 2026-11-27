@@ -21,7 +21,7 @@ export async function patchMe(
 }
 
 export function Status({ state, error }: { state: SaveState; error?: string | null }) {
-  if (state === "saving") return <span className="text-sm text-taupe">Saving…</span>;
+  if (state === "saving") return <span className="text-sm text-muted">Saving…</span>;
   if (state === "saved")
     return (
       <span className="flex items-center gap-1.5 text-sm text-success" role="status">

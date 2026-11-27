@@ -15,7 +15,7 @@ export function SignOutButton({ compact = false }: { compact?: boolean }) {
       variant={compact ? "ghost" : "secondary"}
       // md is 44px tall; cn() doesn't merge classes, so the compact width and padding are forced.
       size="md"
-      className={compact ? "w-11 px-0! text-taupe hover:text-espresso" : undefined}
+      className={compact ? "w-11 px-0! text-muted hover:text-ink" : undefined}
       aria-label={compact ? "Sign out" : undefined}
       title={compact ? "Sign out" : undefined}
       disabled={busy}

@@ -49,7 +49,7 @@ import type { PreviewHandle } from "./preview-player";
 // The player and the scenes only run in the browser.
 const PreviewPlayer = dynamic(() => import("./preview-player"), {
   ssr: false,
-  loading: () => <div className="aspect-[9/16] w-full animate-pulse rounded-lg bg-paper" />,
+  loading: () => <div className="aspect-[9/16] w-full animate-pulse rounded-lg bg-canvas" />,
 });
 
 type Saved = { version: StoryboardVersion; rev: number; warnings: string[]; project?: Project };
@@ -376,17 +376,17 @@ export function StoryboardStep({
     <div className="flex flex-col gap-6 lg:gap-10">
       <StepTabs current="storyboard" projectId={project.id} hasStoryboard hasVideo={project.step === "generate" || project.step === "post"} canPost={canPost(project)} />
 
-      <header className="flex flex-col gap-3 border-b border-hairline pb-6">
+      <header className="flex flex-col gap-3 border-b border-line pb-6">
         <span className="eyebrow">
           Step 2 · Storyboard · {scenes.length} scenes · about {formatDuration(seconds)}
         </span>
         <h1 className="break-words font-display text-3xl font-black uppercase leading-[0.95] tracking-tight sm:text-5xl">
           {project.title}
         </h1>
-        <p className="max-w-2xl text-taupe">
+        <p className="max-w-2xl text-muted">
           Read it through. Edit any line, get a fresh take on a scene, or ask for changes below.
         </p>
-        <p className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-xs uppercase tracking-wide text-taupe">
+        <p className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-xs uppercase tracking-wide text-muted">
           <span>
             Version {version.version} · {version.createdBy === "ai" ? "written by ClipGuru" : "edited by you"}
           </span>
@@ -403,13 +403,13 @@ export function StoryboardStep({
           {notice && (
             <div
               role="alert"
-              className="flex items-start justify-between gap-3 rounded-lg border border-sand-gold bg-sand-gold/15 px-4 py-3 text-sm text-espresso"
+              className="flex items-start justify-between gap-3 rounded-lg border border-accent bg-accent/15 px-4 py-3 text-sm text-ink"
             >
               <span>{notice}</span>
               <button
                 type="button"
                 onClick={() => setNotice(null)}
-                className="-my-2 -mr-2 inline-flex size-10 shrink-0 items-center justify-center rounded-md text-taupe hover:text-espresso"
+                className="-my-2 -mr-2 inline-flex size-10 shrink-0 items-center justify-center rounded-md text-muted hover:text-ink"
               >
                 <X className="size-4" />
                 <span className="sr-only">Dismiss</span>
@@ -454,9 +454,9 @@ export function StoryboardStep({
           <section
             ref={previewBox}
             aria-label="Preview"
-            className="scroll-mt-24 flex flex-col gap-3 rounded-xl border border-hairline bg-surface-warm/60 p-4"
+            className="scroll-mt-24 flex flex-col gap-3 rounded-xl border border-line bg-surface-sunken/60 p-4"
           >
-            <div className="flex items-center justify-between gap-2 font-mono text-xs uppercase tracking-wider text-taupe">
+            <div className="flex items-center justify-between gap-2 font-mono text-xs uppercase tracking-wider text-muted">
               <span>9:16 reel preview</span>
               <span>Scene {String(playing + 1).padStart(2, "0")}</span>
             </div>
@@ -471,8 +471,8 @@ export function StoryboardStep({
               />
             </div>
             {voice ? (
-              <p className="flex items-center justify-center gap-1.5 text-center text-xs text-taupe" role="status">
-                <Mic className="size-3.5 text-sand-gold" aria-hidden />
+              <p className="flex items-center justify-center gap-1.5 text-center text-xs text-muted" role="status">
+                <Mic className="size-3.5 text-accent" aria-hidden />
                 With {voice.voiceName}&rsquo;s voice · {formatDuration(Math.floor(voice.durationSec))}. Press play to listen.
               </p>
             ) : (
@@ -487,7 +487,7 @@ export function StoryboardStep({
                   {recording ? <Loader2 className="size-4 animate-spin" aria-hidden /> : <Mic className="size-4" aria-hidden />}
                   {recording ? `Recording ${voiceName}…` : `Listen with ${voiceName}’s voice`}
                 </Button>
-                <p className="text-center text-xs text-taupe" role="status">
+                <p className="text-center text-xs text-muted" role="status">
                   {voiceError?.key === voiceKey ? (
                     <span className="text-danger">{voiceError.text}</span>
                   ) : recording ? (
@@ -511,7 +511,7 @@ export function StoryboardStep({
               {making ? <Loader2 className="size-4 animate-spin" aria-hidden /> : null}
               {generating ? "See video progress" : "Generate video"} {!making && <ArrowRight className="size-4" />}
             </Button>
-            <p className="text-center text-sm text-taupe" role="status">
+            <p className="text-center text-sm text-muted" role="status">
               {makeError ? (
                 <span className="text-danger">{makeError}</span>
               ) : generating ? (
@@ -537,13 +537,13 @@ export function StoryboardStep({
 
       {!generateInView ? (
         <div className="fixed inset-x-0 bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-20 px-4 lg:hidden">
-          <div className="mx-auto flex max-w-md items-center gap-3 rounded-xl border border-hairline bg-surface/95 p-2 pl-4 shadow-[0_8px_24px_-12px_rgba(32,30,28,0.35)] backdrop-blur">
+          <div className="mx-auto flex max-w-md items-center gap-3 rounded-xl border border-line bg-surface/95 p-2 pl-4 shadow-float backdrop-blur">
             {makeError ? (
               <p role="alert" className="min-w-0 flex-1 text-xs leading-snug text-danger">
                 {makeError}
               </p>
             ) : (
-              <p className="min-w-0 flex-1 truncate text-sm text-taupe">
+              <p className="min-w-0 flex-1 truncate text-sm text-muted">
                 {generating ? "Your video is being made." : `${scenes.length} scenes · ${voiceName}’s voice`}
               </p>
             )}
@@ -609,37 +609,37 @@ function SceneCard({
     if (v !== scene.narration) onChange({ ...scene, narration: v });
   }
 
-  const icon = "inline-flex size-10 items-center justify-center rounded-md text-taupe hover:bg-surface-warm/70 hover:text-espresso disabled:opacity-40 disabled:hover:bg-transparent";
+  const icon = "inline-flex size-10 items-center justify-center rounded-md text-muted hover:bg-surface-sunken/70 hover:text-ink disabled:opacity-40 disabled:hover:bg-transparent";
 
   return (
     <li
       aria-label={`Scene ${n}`}
       className={cn(
-        "relative flex flex-col rounded-xl border bg-surface shadow-[0_1px_2px_rgba(32,30,28,0.04)]",
-        changed ? "border-sand-gold" : "border-hairline",
+        "relative flex flex-col rounded-xl border bg-surface shadow-card",
+        changed ? "border-accent" : "border-line",
         regenerating && "opacity-70",
       )}
     >
       {changed && (
-        <span className="absolute -top-3 right-4 rounded-full bg-espresso-deep px-3 py-0.5 font-mono text-[11px] uppercase tracking-wider text-surface">
+        <span className="absolute -top-3 right-4 rounded-full bg-ink-strong px-3 py-0.5 font-mono text-[11px] uppercase tracking-wider text-on-ink">
           Updated
         </span>
       )}
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-hairline px-4 py-3 sm:px-5">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-line px-4 py-3 sm:px-5">
         <button
           type="button"
           onClick={onPlay}
           title="Play this scene in the preview"
           className={cn(
-            "inline-flex h-10 items-center gap-1.5 rounded px-2 font-mono text-xs font-semibold hover:ring-2 hover:ring-sand-gold/50",
-            playing ? "bg-espresso-deep text-surface" : changed ? "bg-sand-gold/50 text-espresso" : "bg-surface-warm text-espresso",
+            "inline-flex h-10 items-center gap-1.5 rounded px-2 font-mono text-xs font-semibold hover:ring-2 hover:ring-accent/50",
+            playing ? "bg-ink-strong text-on-ink" : changed ? "bg-accent/50 text-ink" : "bg-surface-sunken text-ink",
           )}
         >
           <Play className="size-3" aria-hidden />
           SC {String(n).padStart(2, "0")}
           <span className="sr-only">: play scene {n} in the preview</span>
         </button>
-        <span className="font-mono text-xs uppercase tracking-wider text-taupe">{SCENE_LABELS[scene.type]}</span>
+        <span className="font-mono text-xs uppercase tracking-wider text-muted">{SCENE_LABELS[scene.type]}</span>
         {scene.type === "stat" && <span className="font-display text-lg font-black">{scene.value}</span>}
         <label htmlFor={`scene-${n}-heading`} className="sr-only">
           Scene {n} heading
@@ -653,9 +653,9 @@ function SceneCard({
           onBlur={saveHeading}
           onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
           autoComplete="off"
-          className="min-w-40 flex-1 basis-40 rounded-md bg-transparent px-1 py-1 text-[17px] font-semibold text-espresso focus:outline-none focus-visible:ring-2 focus-visible:ring-sand-gold/50 disabled:opacity-100"
+          className="min-w-40 flex-1 basis-40 rounded-md bg-transparent px-1 py-1 text-[17px] font-semibold text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 disabled:opacity-100"
         />
-        <span className="ml-auto font-mono text-sm text-taupe">{sceneSeconds(scene).toFixed(1)} s</span>
+        <span className="ml-auto font-mono text-sm text-muted">{sceneSeconds(scene).toFixed(1)} s</span>
         <div className="-mr-2 flex items-center">
           <button type="button" className={icon} disabled={busy} onClick={onRegenerate} title="New take on this scene">
             {regenerating ? <Loader2 className="size-4 animate-spin" /> : <RefreshCw className="size-4" />}
@@ -684,7 +684,7 @@ function SceneCard({
 
       <div className="px-4 py-4 sm:px-5">
         {regenerating ? (
-          <p className="flex items-center gap-2 text-[15px] text-taupe">
+          <p className="flex items-center gap-2 text-[15px] text-muted">
             <Loader2 className="size-4 animate-spin" aria-hidden /> Writing a new take…
           </p>
         ) : editing ? (
@@ -705,7 +705,7 @@ function SceneCard({
                   setEditing(false);
                 }
               }}
-              className="field-sizing-content min-h-16 w-full resize-none rounded-md bg-paper/60 px-2 py-1.5 text-[16px] leading-relaxed text-espresso focus:outline-none focus-visible:ring-2 focus-visible:ring-sand-gold/50"
+              className="field-sizing-content min-h-16 w-full resize-none rounded-md bg-canvas/60 px-2 py-1.5 text-[16px] leading-relaxed text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
             />
           </>
         ) : (
@@ -713,23 +713,23 @@ function SceneCard({
             type="button"
             disabled={busy}
             onClick={() => setEditing(true)}
-            className="group -mx-2 w-[calc(100%+1rem)] rounded-md px-2 py-1.5 text-left text-[16px] leading-relaxed text-espresso hover:bg-paper/60 disabled:hover:bg-transparent"
+            className="group -mx-2 w-[calc(100%+1rem)] rounded-md px-2 py-1.5 text-left text-[16px] leading-relaxed text-ink hover:bg-canvas/60 disabled:hover:bg-transparent"
           >
             <span className="sr-only">Edit the narration of scene {n}: </span>
             &ldquo;
             {cueMarks(scene).map((w, i) => (
               <span key={i}>
                 {i > 0 && " "}
-                {w.cue ? <span className="underline decoration-sand-gold decoration-2 underline-offset-4">{w.word}</span> : w.word}
+                {w.cue ? <span className="underline decoration-accent decoration-2 underline-offset-4">{w.word}</span> : w.word}
               </span>
             ))}
             &rdquo;
-            <Pencil className="ml-2 inline size-3.5 text-taupe opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100" aria-hidden />
+            <Pencil className="ml-2 inline size-3.5 text-muted opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100" aria-hidden />
           </button>
         )}
       </div>
 
-      <div className="flex items-start gap-2 border-t border-hairline px-4 py-3 font-mono text-xs text-taupe sm:px-5">
+      <div className="flex items-start gap-2 border-t border-line px-4 py-3 font-mono text-xs text-muted sm:px-5">
         <Eye className="mt-px size-4 shrink-0" aria-hidden />
         <span className="flex-1 break-words">{sceneVisual(scene)}</span>
         <span className="hidden whitespace-nowrap uppercase tracking-wider sm:inline">
@@ -796,10 +796,10 @@ function ChatPanel({
                 <div
                   className={cn(
                     "flex max-w-[85%] flex-col gap-1 rounded-xl px-4 py-3 text-[15px] leading-relaxed",
-                    mine ? "bg-espresso-deep text-surface" : "border border-hairline bg-surface text-espresso",
+                    mine ? "bg-ink-strong text-on-ink" : "border border-line bg-surface text-ink",
                   )}
                 >
-                  <span className={cn("font-mono text-[11px] uppercase tracking-wider", mine ? "text-sand-gold" : "text-taupe")}>
+                  <span className={cn("font-mono text-[11px] uppercase tracking-wider", mine ? "text-accent" : "text-muted")}>
                     {mine ? "You" : "ClipGuru"}
                   </span>
                   {text && <p className="whitespace-pre-wrap break-words">{text}</p>}
@@ -808,13 +808,13 @@ function ChatPanel({
                       <Check className="size-4" aria-hidden /> Saved as version {updated.data.version.version}
                     </span>
                   )}
-                  {m.metadata?.failed && <span className={cn("text-xs", mine ? "text-sand-gold" : "text-danger")}>Didn&apos;t get a reply. Try again.</span>}
+                  {m.metadata?.failed && <span className={cn("text-xs", mine ? "text-accent" : "text-danger")}>Didn&apos;t get a reply. Try again.</span>}
                 </div>
               </li>
             );
           })}
           {waiting && (
-            <li className="flex items-center gap-2 text-sm text-taupe">
+            <li className="flex items-center gap-2 text-sm text-muted">
               <Loader2 className="size-4 animate-spin" aria-hidden /> Thinking…
             </li>
           )}
@@ -837,15 +837,15 @@ function ChatPanel({
               type="button"
               disabled={busy}
               onClick={() => onSend(s)}
-              className="flex min-h-10 items-center gap-1.5 rounded-lg border border-hairline bg-surface px-3 text-sm text-espresso hover:border-taupe/40 disabled:opacity-60"
+              className="flex min-h-10 items-center gap-1.5 rounded-lg border border-line bg-surface px-3 text-sm text-ink hover:border-muted/40 disabled:opacity-60"
             >
-              <Sparkles className="size-4 text-taupe" aria-hidden /> {s}
+              <Sparkles className="size-4 text-muted" aria-hidden /> {s}
             </button>
           ))}
         </div>
       )}
 
-      <div className="flex flex-col gap-3 rounded-xl border border-hairline bg-surface p-3 shadow-[0_8px_24px_-12px_rgba(32,30,28,0.25)] lg:sticky lg:bottom-6">
+      <div className="flex flex-col gap-3 rounded-xl border border-line bg-surface p-3 shadow-raised lg:sticky lg:bottom-6">
         <form
           className="flex items-end gap-2"
           onSubmit={(e) => {
@@ -856,7 +856,7 @@ function ChatPanel({
           <label htmlFor="storyboard-chat-input" className="sr-only">
             Ask for changes
           </label>
-          <Sparkles className="mb-3.5 ml-1 hidden size-4 shrink-0 text-taupe sm:block" aria-hidden />
+          <Sparkles className="mb-3.5 ml-1 hidden size-4 shrink-0 text-muted sm:block" aria-hidden />
           <textarea
             id="storyboard-chat-input"
             value={draft}
@@ -865,22 +865,22 @@ function ChatPanel({
             maxLength={CHAT_TEXT_MAX}
             rows={1}
             placeholder="Ask for changes, e.g. make scene 3 simpler…"
-            className="field-sizing-content max-h-40 min-h-11 w-full resize-none bg-transparent px-2 py-2.5 text-[15px] placeholder:text-taupe/70 focus:outline-none"
+            className="field-sizing-content max-h-40 min-h-11 w-full resize-none bg-transparent px-2 py-2.5 text-[15px] placeholder:text-muted/70 focus:outline-none"
           />
           <button
             type="submit"
             disabled={busy || !draft.trim()}
-            className="inline-flex h-11 shrink-0 items-center gap-1.5 rounded-lg bg-espresso-deep px-4 text-sm font-medium text-surface hover:bg-espresso disabled:opacity-50"
+            className="inline-flex h-11 shrink-0 items-center gap-1.5 rounded-lg bg-ink-strong px-4 text-sm font-medium text-on-ink hover:bg-ink disabled:opacity-50"
           >
             Send {busy && !undoing ? <Loader2 className="size-4 animate-spin" /> : <ArrowUp className="size-4" />}
           </button>
         </form>
-        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-hairline pt-2">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-line pt-2">
           <button
             type="button"
             disabled={busy || !canUndo}
             onClick={onUndo}
-            className="inline-flex min-h-11 items-center gap-1.5 rounded-md px-2 font-mono text-xs uppercase tracking-wide text-taupe hover:text-espresso disabled:opacity-50"
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-md px-2 font-mono text-xs uppercase tracking-wide text-muted hover:text-ink disabled:opacity-50"
           >
             {undoing ? <Loader2 className="size-4 animate-spin" /> : <Undo2 className="size-4" />} Undo last change
           </button>
@@ -901,8 +901,8 @@ function VoicePicker({ value, disabled, onPick }: { value: string; disabled: boo
           <label
             key={v.id}
             className={cn(
-              "flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border bg-surface px-4 py-3 transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-sand-gold/50",
-              on ? "border-sand-gold" : "border-hairline hover:border-taupe/40",
+              "flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border bg-surface px-4 py-3 transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-accent/50",
+              on ? "border-accent" : "border-line hover:border-muted/40",
               disabled && "cursor-not-allowed opacity-70",
             )}
           >
@@ -915,19 +915,19 @@ function VoicePicker({ value, disabled, onPick }: { value: string; disabled: boo
               onChange={() => onPick(v.id)}
               className="sr-only"
             />
-            <span className="flex size-10 items-center justify-center rounded-full bg-surface-warm text-taupe" aria-hidden>
+            <span className="flex size-10 items-center justify-center rounded-full bg-surface-sunken text-muted" aria-hidden>
               <Mic className="size-4" />
             </span>
             <span className="flex flex-1 flex-col">
               <span className="font-medium">{v.name}</span>
-              <span className="text-sm text-taupe">
+              <span className="text-sm text-muted">
                 {v.accent} {v.gender} · {v.description}
               </span>
             </span>
             <span
               className={cn(
                 "flex size-5 items-center justify-center rounded-full border",
-                on ? "border-espresso-deep bg-espresso-deep text-surface" : "border-hairline",
+                on ? "border-ink-strong bg-ink-strong text-on-ink" : "border-line",
               )}
               aria-hidden
             >

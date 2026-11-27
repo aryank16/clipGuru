@@ -150,13 +150,13 @@ export function VideoLibrary({ initial, initialCounts }: { initial: ListPage; in
                 className={cn(
                   "flex h-11 shrink-0 items-center sm:h-10 gap-2 rounded-lg border px-4 text-[15px] transition-colors",
                   filter === f
-                    ? "border-espresso-deep bg-espresso-deep text-surface"
-                    : "border-hairline bg-surface text-espresso hover:border-taupe/40",
+                    ? "border-ink-strong bg-ink-strong text-on-ink"
+                    : "border-line bg-surface text-ink hover:border-muted/40",
                 )}
               >
-                {f === "rendering" ? <span className="size-1.5 rounded-full bg-render-orange" aria-hidden /> : null}
+                {f === "rendering" ? <span className="size-1.5 rounded-full bg-progress" aria-hidden /> : null}
                 {FILTER_LABELS[f]}
-                <span className={cn("font-mono text-xs", filter === f ? "text-sand-gold" : "text-taupe")}>{counts[f]}</span>
+                <span className={cn("font-mono text-xs", filter === f ? "text-accent" : "text-muted")}>{counts[f]}</span>
               </button>
             ))}
           </div>
@@ -230,10 +230,10 @@ export function VideoLibrary({ initial, initialCounts }: { initial: ListPage; in
       {undo ? (
         <div
           role="status"
-          className="fixed inset-x-4 bottom-24 z-40 mx-auto flex max-w-md items-center justify-between gap-4 rounded-xl bg-espresso-deep px-5 py-3.5 text-surface shadow-lg lg:bottom-8"
+          className="fixed inset-x-4 bottom-24 z-40 mx-auto flex max-w-md items-center justify-between gap-4 rounded-xl bg-ink-strong px-5 py-3.5 text-on-ink shadow-lg lg:bottom-8"
         >
           <span className="truncate text-[15px]">Deleted “{undo.project.title}”</span>
-          <button type="button" onClick={restore} className="shrink-0 font-semibold text-sand-gold hover:underline">
+          <button type="button" onClick={restore} className="shrink-0 font-semibold text-accent hover:underline">
             Undo
           </button>
         </div>
@@ -246,20 +246,20 @@ function SearchBox({ value, onChange }: { value: string; onChange: (v: string) =
   return (
     <label className="relative flex items-center lg:w-80">
       <span className="sr-only">Search videos</span>
-      <Search className="pointer-events-none absolute left-3.5 size-4 text-taupe" aria-hidden />
+      <Search className="pointer-events-none absolute left-3.5 size-4 text-muted" aria-hidden />
       <input
         type="search"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder="Search by title"
-        className="h-11 w-full rounded-lg border border-hairline bg-surface pr-10 pl-10 text-[15px] text-espresso placeholder:text-taupe/70 focus:border-sand-gold focus:ring-2 focus:ring-sand-gold/40 focus:outline-none [&::-webkit-search-cancel-button]:hidden"
+        className="h-11 w-full rounded-lg border border-line bg-surface pr-10 pl-10 text-[15px] text-ink placeholder:text-muted/70 focus:border-accent focus:ring-2 focus:ring-accent/40 focus:outline-none [&::-webkit-search-cancel-button]:hidden"
       />
       {value ? (
         <button
           type="button"
           aria-label="Clear search"
           onClick={() => onChange("")}
-          className="absolute right-2 flex size-7 items-center justify-center rounded text-taupe hover:text-espresso"
+          className="absolute right-2 flex size-7 items-center justify-center rounded text-muted hover:text-ink"
         >
           <X className="size-4" />
         </button>
@@ -307,14 +307,14 @@ function RenameDialog({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-espresso/30 p-4 sm:items-center" onMouseDown={onClose}>
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink/30 p-4 sm:items-center" onMouseDown={onClose}>
       <form
         role="dialog"
         aria-modal="true"
         aria-labelledby="rename-title"
         onSubmit={save}
         onMouseDown={(e) => e.stopPropagation()}
-        className="flex w-full max-w-md flex-col gap-5 rounded-2xl border border-hairline bg-surface p-6 shadow-xl"
+        className="flex w-full max-w-md flex-col gap-5 rounded-2xl border border-line bg-surface p-6 shadow-xl"
       >
         <h2 id="rename-title" className="text-lg font-semibold">
           Rename video
@@ -334,7 +334,7 @@ function RenameDialog({
             }}
             onFocus={(e) => e.currentTarget.select()}
             aria-invalid={Boolean(error)}
-            className="h-12 w-full rounded-lg border border-hairline bg-paper/40 px-4 text-[15px] focus:border-sand-gold focus:ring-2 focus:ring-sand-gold/40 focus:outline-none aria-[invalid=true]:border-danger/60"
+            className="h-12 w-full rounded-lg border border-line bg-canvas/40 px-4 text-[15px] focus:border-accent focus:ring-2 focus:ring-accent/40 focus:outline-none aria-[invalid=true]:border-danger/60"
           />
           {error ? (
             <p role="alert" className="text-sm text-danger">

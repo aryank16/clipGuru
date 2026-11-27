@@ -1,22 +1,9 @@
 @import "tailwindcss";
 
-/*
- * Atelier Light — ClipGuru's design tokens (from the approved Stitch screens).
- * Warm paper tones, espresso primary, sand-gold accent, render-orange for "in progress".
- */
-@theme {
-  --color-paper: #f4f1ed;
-  --color-surface: #fbf9f6;
-  --color-surface-warm: #ede5da;
-  --color-hairline: #e3dcd3;
-  --color-espresso: #201e1c;
-  --color-espresso-deep: #393025;
-  --color-taupe: #8a7e76;
-  --color-sand-gold: #e9c79e;
-  --color-render-orange: #ff933c;
-  --color-success: #12996b;
-  --color-danger: #b4233c;
+/* Colours, shadows and radii come from the design-token contract (src/design/tokens.ts). */
+@import "./tokens.css";
 
+@theme {
   --font-sans: var(--font-public-sans), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-anybody), var(--font-public-sans), sans-serif;
   --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
@@ -25,8 +12,8 @@
 @layer base {
   html,
   body {
-    background-color: var(--color-paper);
-    color: var(--color-espresso);
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
   }
 
   body {
@@ -35,8 +22,8 @@
   }
 
   ::selection {
-    background-color: var(--color-sand-gold);
-    color: var(--color-espresso);
+    background-color: var(--color-accent);
+    color: var(--color-ink);
   }
 }
 
@@ -45,7 +32,7 @@
   font-size: 11px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--color-taupe);
+  color: var(--color-muted);
 }
 
 /* A bigger hit area on phones without moving anything: padding grows the target, the negative margin gives the space back. */

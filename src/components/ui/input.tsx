@@ -7,9 +7,9 @@ export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputE
       <input
         ref={ref}
         className={cn(
-          "h-14 w-full rounded-lg border border-hairline bg-surface px-4 text-[15px] text-espresso",
-          "placeholder:text-taupe/70 transition-colors",
-          "focus:border-sand-gold focus:outline-none focus:ring-2 focus:ring-sand-gold/40",
+          "h-14 w-full rounded-lg border border-line bg-surface px-4 text-[15px] text-ink",
+          "placeholder:text-muted/70 transition-colors",
+          "focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/40",
           "aria-[invalid=true]:border-danger/60",
           className,
         )}
@@ -36,7 +36,7 @@ export function Field({
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-baseline justify-between">
-        <label htmlFor={htmlFor} className="text-sm font-medium text-espresso">
+        <label htmlFor={htmlFor} className="text-sm font-medium text-ink">
           {label}
         </label>
         {aside}

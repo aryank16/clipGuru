@@ -10,13 +10,13 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
   }, [error]);
   return (
     <html lang="en">
-      <body className="flex min-h-dvh items-center justify-center bg-paper p-6 text-espresso">
+      <body className="flex min-h-dvh items-center justify-center bg-canvas p-6 text-ink">
         <main className="flex max-w-md flex-col items-center gap-4 text-center">
           <h1 className="text-2xl font-bold">ClipGuru hit a problem</h1>
-          <p className="text-taupe">
+          <p className="text-muted">
             Your videos are safe. Reload the page to carry on{error.digest ? ` (code ${error.digest})` : ""}.
           </p>
-          <button type="button" onClick={reset} className="h-11 rounded-lg bg-espresso-deep px-5 font-medium text-surface">
+          <button type="button" onClick={reset} className="h-11 rounded-lg bg-ink-strong px-5 font-medium text-on-ink">
             Reload
           </button>
         </main>

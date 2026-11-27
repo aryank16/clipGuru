@@ -24,7 +24,7 @@ export default function SettingsPage({ searchParams }: { searchParams: Search })
       <Suspense fallback={<Card className="h-96 max-w-3xl animate-pulse" />}>
         <Settings searchParams={searchParams} />
       </Suspense>
-      <LegalLinks className="border-t border-hairline pt-6" />
+      <LegalLinks className="border-t border-line pt-6" />
     </div>
   );
 }

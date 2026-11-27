@@ -10,7 +10,7 @@ import { SidebarNav, SidebarNavView } from "@/components/shell/sidebar-nav";
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-dvh lg:grid lg:grid-cols-[288px_1fr]">
-      <aside className="sticky top-0 hidden h-dvh flex-col justify-between border-r border-hairline bg-surface px-5 py-8 lg:flex">
+      <aside className="sticky top-0 hidden h-dvh flex-col justify-between border-r border-line bg-surface px-5 py-8 lg:flex">
         <div className="flex flex-col gap-10">
           <Link href="/videos" className="px-2">
             <Logo />
@@ -29,7 +29,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-      <header className="sticky top-0 z-20 flex items-center justify-between border-b border-hairline bg-paper/95 px-4 py-3 backdrop-blur sm:px-6 lg:hidden">
+      <header className="sticky top-0 z-20 flex items-center justify-between border-b border-line bg-canvas/95 px-4 py-3 backdrop-blur sm:px-6 lg:hidden">
         <Link href="/videos" className="py-1">
           <Logo />
         </Link>

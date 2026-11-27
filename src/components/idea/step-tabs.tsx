@@ -38,7 +38,7 @@ export function StepTabs({
     <nav aria-label="Video steps" className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <Link
         href="/videos"
-        className="inline-flex min-h-11 w-fit items-center gap-2 text-sm text-taupe hover:text-espresso"
+        className="inline-flex min-h-11 w-fit items-center gap-2 text-sm text-muted hover:text-ink"
       >
         <ArrowLeft className="size-4" /> My videos
       </Link>
@@ -55,7 +55,7 @@ export function StepTabs({
           );
           const cls = cn(
             "font-mono text-[11px] uppercase tracking-wider whitespace-nowrap sm:text-xs",
-            active ? "font-semibold text-espresso" : href ? "text-taupe hover:text-espresso" : "text-taupe/70",
+            active ? "font-semibold text-ink" : href ? "text-muted hover:text-ink" : "text-muted/70",
           );
           return (
             <li
@@ -72,7 +72,7 @@ export function StepTabs({
                   {label}
                 </span>
               )}
-              <span className={cn("h-1 rounded-full", i <= index || href ? "bg-sand-gold" : "bg-hairline")} aria-hidden />
+              <span className={cn("h-1 rounded-full", i <= index || href ? "bg-accent" : "bg-line")} aria-hidden />
             </li>
           );
         })}

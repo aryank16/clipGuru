@@ -29,10 +29,10 @@ export function VideoCard({
 }) {
   const badge = STATUS_BADGE[project.status];
   return (
-    <article className="group relative flex flex-col gap-3 rounded-xl border border-hairline bg-surface p-3 shadow-[0_1px_2px_rgba(32,30,28,0.04)] transition-shadow hover:shadow-[0_8px_24px_-12px_rgba(32,30,28,0.25)] sm:p-4">
+    <article className="group relative flex flex-col gap-3 rounded-xl border border-line bg-surface p-3 shadow-card transition-shadow hover:shadow-raised sm:p-4">
       <Link
         href={`/videos/${project.id}`}
-        className="relative block aspect-[9/16] overflow-hidden rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sand-gold"
+        className="relative block aspect-[9/16] overflow-hidden rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
         aria-label={project.title}
       >
         {project.thumbnailUrl ? (
@@ -50,11 +50,11 @@ export function VideoCard({
       </Link>
       <div className="flex items-start justify-between gap-1 px-0.5 sm:gap-2 sm:px-1">
         <div className="min-w-0">
-          <h3 className="line-clamp-2 text-[15px] leading-snug font-semibold break-words text-espresso sm:text-base" title={project.title}>
+          <h3 className="line-clamp-2 text-[15px] leading-snug font-semibold break-words text-ink sm:text-base" title={project.title}>
             <Link href={`/videos/${project.id}`}>{project.title}</Link>
           </h3>
           <p
-            className={cn("mt-1 truncate text-[13px] sm:text-sm", project.status === "generating" ? "text-render-orange" : "text-taupe")}
+            className={cn("mt-1 truncate text-[13px] sm:text-sm", project.status === "generating" ? "text-progress" : "text-muted")}
             suppressHydrationWarning
           >
             {metaLine(project)}
@@ -102,8 +102,8 @@ function CardMenu({
         run();
       }}
       className={cn(
-        "flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left text-[15px] hover:bg-surface-warm/60",
-        danger ? "text-danger" : "text-espresso",
+        "flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left text-[15px] hover:bg-surface-sunken/60",
+        danger ? "text-danger" : "text-ink",
       )}
     >
       <Icon className="size-4" aria-hidden />
@@ -120,8 +120,8 @@ function CardMenu({
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
         className={cn(
-          "flex size-11 items-center justify-center rounded-md sm:size-9 text-taupe hover:bg-surface-warm/70 hover:text-espresso",
-          open && "bg-surface-warm/70 text-espresso",
+          "flex size-11 items-center justify-center rounded-md sm:size-9 text-muted hover:bg-surface-sunken/70 hover:text-ink",
+          open && "bg-surface-sunken/70 text-ink",
         )}
       >
         <MoreHorizontal className="size-5" />
@@ -129,11 +129,11 @@ function CardMenu({
       {open ? (
         <div
           role="menu"
-          className="absolute right-0 bottom-11 z-20 w-48 rounded-lg border border-hairline bg-surface p-1.5 shadow-[0_12px_32px_-12px_rgba(32,30,28,0.35)]"
+          className="absolute right-0 bottom-11 z-20 w-48 rounded-lg border border-line bg-surface p-1.5 shadow-pop"
         >
           {item("Rename", Pencil, onRename)}
           {item("Duplicate", Copy, onDuplicate)}
-          <div className="my-1 border-t border-hairline" />
+          <div className="my-1 border-t border-line" />
           {item("Delete", Trash2, onDelete, true)}
         </div>
       ) : null}

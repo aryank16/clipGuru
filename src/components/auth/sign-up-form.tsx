@@ -49,13 +49,13 @@ export function SignUpForm({ googleEnabled }: { googleEnabled: boolean }) {
   if (sentTo) {
     return (
       <div className="flex flex-col gap-6">
-        <MailCheck className="size-10 text-espresso" strokeWidth={1.5} />
+        <MailCheck className="size-10 text-ink" strokeWidth={1.5} />
         <AuthHeading>Check your inbox</AuthHeading>
-        <p className="text-taupe">
-          We sent a confirmation link to <span className="font-medium text-espresso">{sentTo}</span>. It expires in 1
+        <p className="text-muted">
+          We sent a confirmation link to <span className="font-medium text-ink">{sentTo}</span>. It expires in 1
           hour. Open it on this device to finish creating your account.
         </p>
-        <Link href="/sign-in" className="tap text-sm font-medium text-espresso hover:underline">
+        <Link href="/sign-in" className="tap text-sm font-medium text-ink hover:underline">
           Back to sign in
         </Link>
       </div>
@@ -97,9 +97,9 @@ export function SignUpForm({ googleEnabled }: { googleEnabled: boolean }) {
           {busy ? "Creating account…" : "Create account"} <ArrowRight className="size-4" />
         </Button>
       </form>
-      <p className="text-center text-sm text-taupe">
+      <p className="text-center text-sm text-muted">
         Already have an account?{" "}
-        <Link href="/sign-in" className="tap font-medium text-espresso hover:underline">
+        <Link href="/sign-in" className="tap font-medium text-ink hover:underline">
           Sign in
         </Link>
       </p>

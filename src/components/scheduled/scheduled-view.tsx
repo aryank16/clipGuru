@@ -74,16 +74,16 @@ export function ScheduledView({ items, timeZone }: { items: ScheduledItem[]; tim
 
   return (
     <div className="flex flex-col gap-10">
-      <section aria-labelledby="week-title" className="rounded-xl border border-hairline bg-surface p-4 sm:p-6">
+      <section aria-labelledby="week-title" className="rounded-xl border border-line bg-surface p-4 sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 id="week-title" className="font-mono text-xs uppercase tracking-[0.12em] text-taupe">
+          <h2 id="week-title" className="font-mono text-xs uppercase tracking-[0.12em] text-muted">
             Week of {days[0].day} {monthLabel}
           </h2>
           <div className="flex items-center gap-1">
             <button
               type="button"
               onClick={() => setMonday(addDays(monday, -7))}
-              className="flex size-11 items-center justify-center rounded-lg text-espresso hover:bg-surface-warm/70"
+              className="flex size-11 items-center justify-center rounded-lg text-ink hover:bg-surface-sunken/70"
               aria-label="Previous week"
             >
               <ChevronLeft className="size-4" />
@@ -92,14 +92,14 @@ export function ScheduledView({ items, timeZone }: { items: ScheduledItem[]; tim
               type="button"
               onClick={() => setMonday(thisMonday)}
               disabled={monday === thisMonday}
-              className="h-11 rounded-lg px-3 font-mono text-xs uppercase tracking-[0.1em] text-espresso hover:bg-surface-warm/70 disabled:text-taupe/60 disabled:hover:bg-transparent"
+              className="h-11 rounded-lg px-3 font-mono text-xs uppercase tracking-[0.1em] text-ink hover:bg-surface-sunken/70 disabled:text-muted/60 disabled:hover:bg-transparent"
             >
               Today
             </button>
             <button
               type="button"
               onClick={() => setMonday(addDays(monday, 7))}
-              className="flex size-11 items-center justify-center rounded-lg text-espresso hover:bg-surface-warm/70"
+              className="flex size-11 items-center justify-center rounded-lg text-ink hover:bg-surface-sunken/70"
               aria-label="Next week"
             >
               <ChevronRight className="size-4" />
@@ -114,30 +114,30 @@ export function ScheduledView({ items, timeZone }: { items: ScheduledItem[]; tim
                 key={d.date}
                 className={cn(
                   "flex flex-col items-center gap-1 rounded-lg py-2.5 sm:py-3",
-                  d.isToday ? "bg-surface-warm ring-1 ring-sand-gold/50" : "",
+                  d.isToday ? "bg-surface-sunken ring-1 ring-accent/50" : "",
                 )}
               >
                 <span className="sr-only">
                   {d.weekday} {d.day}: {total ? `${d.scheduled} scheduled, ${d.posted} posted` : "nothing"}
                 </span>
-                <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-taupe sm:text-[11px]" aria-hidden>
+                <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted sm:text-[11px]" aria-hidden>
                   {d.weekday}
                 </span>
-                <span className="font-mono text-base text-espresso sm:text-lg" aria-hidden>{String(d.day).padStart(2, "0")}</span>
+                <span className="font-mono text-base text-ink sm:text-lg" aria-hidden>{String(d.day).padStart(2, "0")}</span>
                 <span className="flex h-2 items-center gap-1" aria-hidden>
-                  {d.scheduled ? <span className="size-1.5 rounded-full bg-render-orange" /> : null}
-                  {d.posted ? <span className="size-1.5 rounded-full bg-espresso" /> : null}
+                  {d.scheduled ? <span className="size-1.5 rounded-full bg-progress" /> : null}
+                  {d.posted ? <span className="size-1.5 rounded-full bg-ink" /> : null}
                 </span>
               </li>
             );
           })}
         </ol>
-        <p className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-[11px] uppercase tracking-[0.08em] text-taupe">
+        <p className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-[11px] uppercase tracking-[0.08em] text-muted">
           <span className="flex items-center gap-1.5">
-            <span className="size-1.5 rounded-full bg-render-orange" aria-hidden /> Scheduled
+            <span className="size-1.5 rounded-full bg-progress" aria-hidden /> Scheduled
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="size-1.5 rounded-full bg-espresso" aria-hidden /> Posted
+            <span className="size-1.5 rounded-full bg-ink" aria-hidden /> Posted
           </span>
           <span suppressHydrationWarning>Times in {zoneLabel(timeZone, now)}</span>
         </p>
@@ -157,7 +157,7 @@ export function ScheduledView({ items, timeZone }: { items: ScheduledItem[]; tim
             <PostRow key={p.id} item={byId.get(p.id)!} timeZone={timeZone} now={now} onChange={() => router.refresh()} />
           ))
         ) : (
-          <p className="rounded-xl border border-dashed border-hairline px-5 py-6 text-sm text-taupe">
+          <p className="rounded-xl border border-dashed border-line px-5 py-6 text-sm text-muted">
             Nothing waiting to go out. Schedule a video from step 4 of any ready video.
           </p>
         )}
@@ -179,10 +179,10 @@ function PostList({ title, count, note, children }: { title: string; count: numb
   return (
     <section aria-labelledby={id} className="flex flex-col gap-3">
       <div className="flex items-baseline justify-between gap-3">
-        <h2 id={id} className="flex items-baseline gap-2 text-sm font-semibold uppercase tracking-[0.08em] text-espresso">
-          {title} <span className="font-mono text-xs font-normal text-taupe">[{String(count).padStart(2, "0")}]</span>
+        <h2 id={id} className="flex items-baseline gap-2 text-sm font-semibold uppercase tracking-[0.08em] text-ink">
+          {title} <span className="font-mono text-xs font-normal text-muted">[{String(count).padStart(2, "0")}]</span>
         </h2>
-        {note ? <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-taupe">{note}</span> : null}
+        {note ? <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-muted">{note}</span> : null}
       </div>
       <ul className="flex flex-col gap-3">{children}</ul>
     </section>
@@ -244,32 +244,32 @@ function PostRow({ item, timeZone, now, onChange }: { item: ScheduledItem; timeZ
     <li
       className={cn(
         "flex flex-col gap-4 rounded-xl border bg-surface p-3 sm:flex-row sm:items-center sm:p-4",
-        needsAttention ? "border-render-orange/50 border-l-4" : "border-hairline",
+        needsAttention ? "border-progress/50 border-l-4" : "border-line",
       )}
     >
       <div className="flex min-w-0 flex-1 items-start gap-4">
-        <div className="relative aspect-[9/16] w-14 shrink-0 overflow-hidden rounded-md bg-surface-warm sm:w-16">
+        <div className="relative aspect-[9/16] w-14 shrink-0 overflow-hidden rounded-md bg-surface-sunken sm:w-16">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={item.thumbnailUrl} alt="" className="size-full object-cover" loading="lazy" />
         </div>
         <div className="flex min-w-0 flex-col gap-1.5">
           <p className="flex flex-wrap items-center gap-x-2 gap-y-1">
             <Badge tone={status.tone}>{status.label}</Badge>
-            <span className="font-mono text-xs text-taupe" suppressHydrationWarning>
+            <span className="font-mono text-xs text-muted" suppressHydrationWarning>
               {when}
               {formatInZone(at, timeZone, now)}
             </span>
           </p>
-          <h3 className="text-[15px] leading-snug font-semibold break-words text-espresso sm:text-base">
+          <h3 className="text-[15px] leading-snug font-semibold break-words text-ink sm:text-base">
             {videoHref ? (
               <Link href={videoHref} className="tap hover:underline">
                 {item.title}
               </Link>
             ) : (
-              <span className="text-taupe">Deleted video</span>
+              <span className="text-muted">Deleted video</span>
             )}
           </h3>
-          {item.igUsername ? <p className="truncate font-mono text-xs text-taupe">@{item.igUsername} · Instagram Reels</p> : null}
+          {item.igUsername ? <p className="truncate font-mono text-xs text-muted">@{item.igUsername} · Instagram Reels</p> : null}
           {needsAttention ? (
             <p className="flex items-start gap-1.5 text-sm text-danger">
               <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden /> {attentionText(item)}
@@ -306,7 +306,7 @@ function PostRow({ item, timeZone, now, onChange }: { item: ScheduledItem; timeZ
         ) : null}
         {confirming ? (
           <>
-            <span className="text-sm text-espresso">{verb} this post?</span>
+            <span className="text-sm text-ink">{verb} this post?</span>
             <Button type="button" variant="danger" size="sm" className="min-h-11 sm:min-h-0" onClick={cancel} disabled={busy} aria-busy={busy}>
               {busy ? <Loader2 className="size-3.5 animate-spin" aria-hidden /> : null} Yes, {verb.toLowerCase()}
             </Button>
@@ -316,10 +316,10 @@ function PostRow({ item, timeZone, now, onChange }: { item: ScheduledItem; timeZ
           </>
         ) : null}
         {locked ? (
-          <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-taupe">Locked: going out soon</span>
+          <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-muted">Locked: going out soon</span>
         ) : null}
         {item.status === "publishing" ? (
-          <span className="flex items-center gap-1.5 text-sm text-taupe">
+          <span className="flex items-center gap-1.5 text-sm text-muted">
             <Loader2 className="size-3.5 animate-spin" aria-hidden /> Posting now…
           </span>
         ) : null}

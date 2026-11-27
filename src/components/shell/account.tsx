@@ -6,7 +6,7 @@ import { requirePageSession } from "@/lib/session";
 function Avatar({ name }: { name: string }) {
   return (
     <span
-      className="flex size-9 shrink-0 items-center justify-center rounded-full bg-sand-gold font-mono text-xs font-medium text-espresso"
+      className="flex size-9 shrink-0 items-center justify-center rounded-full bg-accent font-mono text-xs font-medium text-on-accent"
       aria-hidden
     >
       {initials(name)}
@@ -22,7 +22,7 @@ export async function SidebarAccount() {
       <Avatar name={user.name} />
       <div className="flex min-w-0 flex-1 flex-col">
         <span className="truncate text-sm font-medium">{user.name}</span>
-        <span className="truncate text-xs text-taupe">{user.email}</span>
+        <span className="truncate text-xs text-muted">{user.email}</span>
       </div>
       <SignOutButton compact />
     </div>
@@ -38,7 +38,7 @@ export async function HeaderAccount() {
       <Link
         href="/settings"
         aria-label="Settings"
-        className="flex size-11 items-center justify-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sand-gold"
+        className="flex size-11 items-center justify-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
       >
         <Avatar name={user.name} />
       </Link>

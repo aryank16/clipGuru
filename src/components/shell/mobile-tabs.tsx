@@ -23,7 +23,7 @@ export function MobileTabsView({ pathname }: { pathname: string }) {
         aria-current={active ? "page" : undefined}
         className={cn(
           "flex flex-col items-center gap-1 py-2 text-[11px]",
-          active ? "font-semibold text-espresso" : "text-taupe",
+          active ? "font-semibold text-ink" : "text-muted",
         )}
       >
         <Icon className="size-5" strokeWidth={active ? 2 : 1.6} aria-hidden />
@@ -34,7 +34,7 @@ export function MobileTabsView({ pathname }: { pathname: string }) {
   return (
     <nav
       aria-label="Main"
-      className="fixed inset-x-0 bottom-0 z-30 border-t border-hairline bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
+      className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
     >
       <div className="mx-auto grid max-w-md grid-cols-3 items-end px-2">
         {tab(videos)}
@@ -42,7 +42,7 @@ export function MobileTabsView({ pathname }: { pathname: string }) {
           <Link
             href="/new"
             aria-label="New video"
-            className="-mt-6 mb-2 flex size-14 items-center justify-center rounded-full bg-espresso-deep text-surface shadow-[0_8px_20px_-6px_rgba(32,30,28,0.5)] ring-4 ring-paper"
+            className="-mt-6 mb-2 flex size-14 items-center justify-center rounded-full bg-ink-strong text-on-ink shadow-fab ring-4 ring-canvas"
           >
             <Plus className="size-6" aria-hidden />
           </Link>

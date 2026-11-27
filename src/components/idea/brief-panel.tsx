@@ -16,9 +16,9 @@ import {
 } from "@/lib/brief";
 import { cn } from "@/lib/cn";
 
-const fieldBox = "flex flex-col gap-2 rounded-lg border border-hairline bg-paper/40 px-4 py-3";
+const fieldBox = "flex flex-col gap-2 rounded-lg border border-line bg-canvas/40 px-4 py-3";
 const control =
-  "w-full rounded-md bg-transparent text-[15px] text-espresso placeholder:text-taupe/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-sand-gold/50 disabled:opacity-70";
+  "w-full rounded-md bg-transparent text-[15px] text-ink placeholder:text-muted/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 disabled:opacity-70";
 
 /**
  * The brief beside the chat. The chat fills it in; every field can be edited by hand and saves on
@@ -52,7 +52,7 @@ export function BriefPanel({
   return (
     <section
       aria-labelledby="brief-heading"
-      className="flex flex-col gap-5 rounded-xl border border-hairline bg-surface p-5 shadow-[0_1px_2px_rgba(32,30,28,0.04)] sm:p-6"
+      className="flex flex-col gap-5 rounded-xl border border-line bg-surface p-5 shadow-card sm:p-6"
     >
       <div className="flex items-center justify-between gap-3">
         <div className="flex flex-col gap-1">
@@ -68,7 +68,7 @@ export function BriefPanel({
             onClick={() => setOpen((o) => !o)}
             aria-expanded={open}
             aria-controls="brief-fields"
-            className="inline-flex size-11 items-center justify-center rounded-lg text-taupe hover:bg-surface-warm/70 lg:hidden"
+            className="inline-flex size-11 items-center justify-center rounded-lg text-muted hover:bg-surface-sunken/70 lg:hidden"
           >
             <ChevronDown className={cn("size-5 transition-transform", open && "rotate-180")} />
             <span className="sr-only">{open ? "Hide brief" : "Show brief"}</span>
@@ -112,7 +112,7 @@ export function BriefPanel({
         <Length value={brief.length} disabled={locked} onSave={(length) => save({ ...brief, length })} />
         <div className={cn(fieldBox, "flex-row items-center justify-between")}>
           <span className="eyebrow">Format</span>
-          <span className="w-fit rounded bg-espresso-deep px-2 py-0.5 font-mono text-xs uppercase tracking-wide text-surface">
+          <span className="w-fit rounded bg-ink-strong px-2 py-0.5 font-mono text-xs uppercase tracking-wide text-on-ink">
             9:16 vertical
           </span>
         </div>
@@ -124,7 +124,7 @@ export function BriefPanel({
             <Link href={storyboardHref} className={buttonClasses("primary", "lg", "w-full uppercase tracking-wide")}>
               Open storyboard <ArrowRight className="size-4" />
             </Link>
-            <p className="flex items-center justify-center gap-1.5 text-center text-sm text-taupe">
+            <p className="flex items-center justify-center gap-1.5 text-center text-sm text-muted">
               <Lock className="size-3.5" aria-hidden /> The brief is locked now that the storyboard exists.
             </p>
           </>
@@ -143,7 +143,7 @@ export function BriefPanel({
                 {writeError}
               </p>
             ) : (
-              <p className="text-center text-sm text-taupe">
+              <p className="text-center text-sm text-muted">
                 {ready
                   ? "Your brief is ready. The brief locks once the storyboard is written."
                   : "Add a topic and at least one key point to continue."}
@@ -162,13 +162,13 @@ function BriefSummary({ brief, className }: { brief: Brief; className?: string }
     ["Audience", brief.audience],
     ["Key point", brief.keyPoints[0] ?? ""],
   ].filter(([, v]) => v);
-  if (!rows.length) return <p className={cn("text-sm text-taupe", className)}>Fills in as you chat.</p>;
+  if (!rows.length) return <p className={cn("text-sm text-muted", className)}>Fills in as you chat.</p>;
   return (
     <dl className={cn("grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-[15px]", className)}>
       {rows.map(([k, v]) => (
         <div key={k} className="contents">
           <dt className="font-medium">{k}</dt>
-          <dd className="break-words text-espresso/90">{v}</dd>
+          <dd className="break-words text-ink/90">{v}</dd>
         </div>
       ))}
     </dl>
@@ -253,11 +253,11 @@ function KeyPoints({ points, disabled, onSave }: { points: string[]; disabled: b
       <span className="eyebrow" aria-hidden>
         Key points
       </span>
-      {drafts.length === 0 && <p className="text-sm text-taupe">What should viewers remember?</p>}
+      {drafts.length === 0 && <p className="text-sm text-muted">What should viewers remember?</p>}
       <ol className="flex flex-col gap-1.5">
         {drafts.map((p, i) => (
           <li key={i} className="flex items-start gap-2">
-            <span className="pt-0.5 font-mono text-xs text-taupe">{String(i + 1).padStart(2, "0")}</span>
+            <span className="pt-0.5 font-mono text-xs text-muted">{String(i + 1).padStart(2, "0")}</span>
             <textarea
               aria-label={`Key point ${i + 1}`}
               value={p}
@@ -272,7 +272,7 @@ function KeyPoints({ points, disabled, onSave }: { points: string[]; disabled: b
               type="button"
               disabled={disabled}
               onClick={() => commit(drafts.filter((_, j) => j !== i))}
-              className="-my-2 -mr-2 inline-flex size-9 shrink-0 items-center justify-center rounded-md text-taupe hover:bg-surface-warm/70 hover:text-espresso disabled:opacity-50"
+              className="-my-2 -mr-2 inline-flex size-9 shrink-0 items-center justify-center rounded-md text-muted hover:bg-surface-sunken/70 hover:text-ink disabled:opacity-50"
             >
               <X className="size-4" />
               <span className="sr-only">Remove key point {i + 1}</span>
@@ -285,7 +285,7 @@ function KeyPoints({ points, disabled, onSave }: { points: string[]; disabled: b
           type="button"
           disabled={disabled || drafts.some((d) => !d.trim())}
           onClick={() => setDrafts([...drafts, ""])}
-          className="flex w-fit items-center gap-1.5 rounded-md py-1 text-sm text-taupe hover:text-espresso disabled:opacity-50"
+          className="flex w-fit items-center gap-1.5 rounded-md py-1 text-sm text-muted hover:text-ink disabled:opacity-50"
         >
           <Plus className="size-4" /> Add a point
         </button>
@@ -320,15 +320,15 @@ function Length({ value, disabled, onSave }: { value: VideoLength; disabled: boo
             className={cn(
               "min-h-9 whitespace-nowrap rounded-md border px-2 font-mono text-xs transition-colors disabled:opacity-60 sm:text-sm",
               value === id
-                ? "border-sand-gold bg-sand-gold/30 font-medium text-espresso"
-                : "border-hairline text-taupe hover:border-taupe/40 hover:text-espresso",
+                ? "border-accent bg-accent/30 font-medium text-ink"
+                : "border-line text-muted hover:border-muted/40 hover:text-ink",
             )}
           >
             {VIDEO_LENGTHS[id].label}
           </button>
         ))}
       </div>
-      <p className="text-xs text-taupe">{LENGTH_HINTS[value]}</p>
+      <p className="text-xs text-muted">{LENGTH_HINTS[value]}</p>
     </fieldset>
   );
 }
@@ -352,15 +352,15 @@ function Tone({ value, disabled, onSave }: { value: string; disabled: boolean; o
             className={cn(
               "min-h-9 rounded-md border px-3 text-sm transition-colors disabled:opacity-60",
               value === t
-                ? "border-sand-gold bg-sand-gold/30 font-medium text-espresso"
-                : "border-hairline text-taupe hover:border-taupe/40 hover:text-espresso",
+                ? "border-accent bg-accent/30 font-medium text-ink"
+                : "border-line text-muted hover:border-muted/40 hover:text-ink",
             )}
           >
             {t}
           </button>
         ))}
         {custom && (
-          <span className="flex min-h-9 items-center rounded-md border border-sand-gold bg-sand-gold/30 px-3 text-sm font-medium">
+          <span className="flex min-h-9 items-center rounded-md border border-accent bg-accent/30 px-3 text-sm font-medium">
             {value}
           </span>
         )}

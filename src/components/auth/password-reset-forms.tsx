@@ -38,7 +38,7 @@ export function ForgotPasswordForm() {
       <div className="flex flex-col gap-6">
         <MailCheck className="size-10" strokeWidth={1.5} />
         <AuthHeading>Check your inbox</AuthHeading>
-        <p className="text-taupe">
+        <p className="text-muted">
           If an account exists for that email, a reset link is on its way. It works once and expires in 1 hour.
         </p>
         <Link href="/sign-in" className="tap text-sm font-medium hover:underline">
@@ -52,7 +52,7 @@ export function ForgotPasswordForm() {
     <div className="flex flex-col gap-8">
       <div className="flex flex-col gap-3">
         <AuthHeading>Reset password</AuthHeading>
-        <p className="text-taupe">Enter your email and we&apos;ll send you a link to choose a new password.</p>
+        <p className="text-muted">Enter your email and we&apos;ll send you a link to choose a new password.</p>
       </div>
       <form onSubmit={onSubmit} className="flex flex-col gap-5" noValidate>
         <Field label="Email" htmlFor="email">
@@ -63,7 +63,7 @@ export function ForgotPasswordForm() {
           {busy ? "Sending…" : "Send reset link"} <ArrowRight className="size-4" />
         </Button>
       </form>
-      <Link href="/sign-in" className="tap self-center text-center text-sm text-taupe hover:text-espresso">
+      <Link href="/sign-in" className="tap self-center text-center text-sm text-muted hover:text-ink">
         Back to sign in
       </Link>
     </div>
@@ -83,7 +83,7 @@ export function ResetPasswordForm() {
     return (
       <div className="flex flex-col gap-6">
         <AuthHeading>Link expired</AuthHeading>
-        <p className="text-taupe">{authErrorMessage("INVALID_TOKEN")}</p>
+        <p className="text-muted">{authErrorMessage("INVALID_TOKEN")}</p>
         <Link href="/forgot-password" className={buttonClasses("primary", "lg", "w-full")}>
           Get a new link
         </Link>
@@ -95,7 +95,7 @@ export function ResetPasswordForm() {
     return (
       <div className="flex flex-col gap-6">
         <AuthHeading>Password changed</AuthHeading>
-        <p className="text-taupe">You can now sign in with your new password.</p>
+        <p className="text-muted">You can now sign in with your new password.</p>
         <Link href="/sign-in" className={buttonClasses("primary", "lg", "w-full")}>
           Sign in <ArrowRight className="size-4" />
         </Link>

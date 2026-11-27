@@ -6,12 +6,12 @@ export function Thumbnail({ seed }: { seed: string }) {
   let h = 0;
   for (const ch of seed) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
   const variant = h % 5;
-  const ink = "var(--color-espresso)";
-  const gold = "var(--color-sand-gold)";
-  const faint = "var(--color-taupe)";
+  const ink = "var(--color-ink)";
+  const gold = "var(--color-accent)";
+  const faint = "var(--color-muted)";
   return (
     <svg viewBox="0 0 90 160" className="size-full" aria-hidden>
-      <rect width="90" height="160" fill="var(--color-surface-warm)" />
+      <rect width="90" height="160" fill="var(--color-surface-sunken)" />
       {variant === 0 && (
         <g fill="none" strokeWidth="1.4">
           <path d="M18 112 Q45 108 62 60" stroke={ink} />
@@ -26,7 +26,7 @@ export function Thumbnail({ seed }: { seed: string }) {
           <circle cx="45" cy="80" r="20" stroke={ink} />
           <circle cx="45" cy="80" r="11" stroke={gold} />
           <circle cx="45" cy="80" r="3" fill={ink} stroke="none" />
-          <circle cx="56" cy="80" r="2.2" fill="var(--color-render-orange)" stroke="none" />
+          <circle cx="56" cy="80" r="2.2" fill="var(--color-progress)" stroke="none" />
         </g>
       )}
       {variant === 2 && (

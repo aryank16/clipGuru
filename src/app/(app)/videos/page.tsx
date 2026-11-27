@@ -32,10 +32,10 @@ async function Library() {
 function LibrarySkeleton() {
   return (
     <div className="flex flex-col gap-8" aria-busy>
-      <div className="h-[61px] border-b border-hairline" />
+      <div className="h-[61px] border-b border-line" />
       <div className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 xl:grid-cols-4">
         {Array.from({ length: 4 }, (_, i) => (
-          <div key={i} className="aspect-[9/19] animate-pulse rounded-xl border border-hairline bg-surface" />
+          <div key={i} className="aspect-[9/19] animate-pulse rounded-xl border border-line bg-surface" />
         ))}
       </div>
     </div>

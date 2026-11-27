@@ -170,7 +170,7 @@ export function PostStep({
           aria-label="Video"
           className="mx-auto flex w-full max-w-[min(22.5rem,calc((100dvh-26.5rem)*9/16))] flex-col gap-3 lg:mx-0 lg:max-w-none"
         >
-          <div className="relative aspect-[9/16] w-full overflow-hidden rounded-xl border border-hairline bg-espresso">
+          <div className="relative aspect-[9/16] w-full overflow-hidden rounded-xl border border-line bg-ink">
             {render.videoUrl && (
               <video
                 src={render.videoUrl}
@@ -182,7 +182,7 @@ export function PostStep({
               />
             )}
           </div>
-          <p className="flex items-center justify-center gap-1.5 font-mono text-xs uppercase tracking-wider text-taupe lg:justify-start">
+          <p className="flex items-center justify-center gap-1.5 font-mono text-xs uppercase tracking-wider text-muted lg:justify-start">
             <Info className="size-3.5" aria-hidden />
             Reel · 9:16{render.durationSec ? ` · ${formatDuration(Math.round(render.durationSec))}` : ""}
           </p>
@@ -234,13 +234,13 @@ function Header({ post, title }: { post: Post | null; title: string }) {
   const heading =
     s === "posted" ? "Posted." : s === "scheduled" ? "Scheduled" : s === "publishing" ? "Posting to Instagram" : s === "failed" || s === "held" ? "Not posted yet" : "Post to Instagram";
   return (
-    <header className="flex flex-col gap-3 border-b border-hairline pb-6">
+    <header className="flex flex-col gap-3 border-b border-line pb-6">
       <span className="eyebrow flex items-center gap-2">
-        {s === "publishing" && <span className="size-2 rounded-full bg-render-orange" aria-hidden />}
+        {s === "publishing" && <span className="size-2 rounded-full bg-progress" aria-hidden />}
         Step 4 · Post · {eyebrow}
       </span>
       <h1 className="break-words font-display text-3xl font-black uppercase leading-[0.95] tracking-tight sm:text-5xl">{heading}</h1>
-      <p className="max-w-2xl truncate text-taupe sm:whitespace-normal">{title}</p>
+      <p className="max-w-2xl truncate text-muted sm:whitespace-normal">{title}</p>
     </header>
   );
 }
@@ -248,16 +248,16 @@ function Header({ post, title }: { post: Post | null; title: string }) {
 function ConnectBanner({ result }: { result: Exclude<ConnectResult, null> }) {
   if (result.ok) {
     return (
-      <p role="status" className="flex items-center gap-2 rounded-xl border border-hairline bg-surface p-4 text-sm">
-        <Check className="size-4 text-sand-gold" aria-hidden /> Instagram is connected. You can post now.
+      <p role="status" className="flex items-center gap-2 rounded-xl border border-line bg-surface p-4 text-sm">
+        <Check className="size-4 text-accent" aria-hidden /> Instagram is connected. You can post now.
       </p>
     );
   }
   const t = CONNECT_ERROR_TEXT[result.reason];
   return (
-    <div role="alert" className="flex flex-col gap-1 rounded-xl border border-sand-gold bg-sand-gold/15 p-4 text-sm">
+    <div role="alert" className="flex flex-col gap-1 rounded-xl border border-accent bg-accent/15 p-4 text-sm">
       <span className="font-medium">{t.title}</span>
-      <span className="text-espresso/80">{t.text}</span>
+      <span className="text-ink/80">{t.text}</span>
     </div>
   );
 }
@@ -266,7 +266,7 @@ function ConnectBanner({ result }: { result: Exclude<ConnectResult, null> }) {
 function Target({ instagram, projectId }: { instagram: InstagramStatus; projectId: string }) {
   if (!instagram.connected) {
     return (
-      <section aria-labelledby="target-h" className="flex flex-col gap-3 rounded-xl border border-sand-gold bg-sand-gold/15 p-5">
+      <section aria-labelledby="target-h" className="flex flex-col gap-3 rounded-xl border border-accent bg-accent/15 p-5">
         <h2 id="target-h" className="font-mono text-xs font-semibold uppercase tracking-wider">
           Instagram account
         </h2>
@@ -290,7 +290,7 @@ function Target({ instagram, projectId }: { instagram: InstagramStatus; projectI
   return (
     <section
       aria-labelledby="target-h"
-      className={cn("flex flex-col gap-3 rounded-xl border p-5", reconnect ? "border-sand-gold bg-sand-gold/15" : "border-hairline bg-surface")}
+      className={cn("flex flex-col gap-3 rounded-xl border p-5", reconnect ? "border-accent bg-accent/15" : "border-line bg-surface")}
     >
       <h2 id="target-h" className="font-mono text-xs font-semibold uppercase tracking-wider">
         Posting to
@@ -298,15 +298,15 @@ function Target({ instagram, projectId }: { instagram: InstagramStatus; projectI
       <div className="flex flex-wrap items-center gap-3">
         {instagram.avatarUrl ? (
           // eslint-disable-next-line @next/next/no-img-element -- Instagram's own picture URL
-          <img src={instagram.avatarUrl} alt="" className="size-10 rounded-full border border-hairline object-cover" />
+          <img src={instagram.avatarUrl} alt="" className="size-10 rounded-full border border-line object-cover" />
         ) : (
-          <span className="flex size-10 items-center justify-center rounded-full bg-surface-warm" aria-hidden>
-            <AtSign className="size-5 text-taupe" />
+          <span className="flex size-10 items-center justify-center rounded-full bg-surface-sunken" aria-hidden>
+            <AtSign className="size-5 text-muted" />
           </span>
         )}
         <span className="flex min-w-0 flex-col">
           <span className="truncate font-medium">@{instagram.username}</span>
-          <span className="text-sm text-taupe">{reconnect ? "Needs reconnecting before it can post" : "Instagram Reel"}</span>
+          <span className="text-sm text-muted">{reconnect ? "Needs reconnecting before it can post" : "Instagram Reel"}</span>
         </span>
         {reconnect && (
           <a href={connectHref(projectId)} className={buttonClasses("primary", "sm", "ml-auto")}>
@@ -475,7 +475,7 @@ function Compose({
   return (
     <>
       {outdated && (
-        <p role="status" className="rounded-xl border border-sand-gold bg-sand-gold/15 p-4 text-sm">
+        <p role="status" className="rounded-xl border border-accent bg-accent/15 p-4 text-sm">
           You’ve changed the storyboard since this video was made. This posts the video as it is now (version {render.version}). To post the
           changes, make the video again from the storyboard first.
         </p>
@@ -483,7 +483,7 @@ function Compose({
 
       <Target instagram={instagram} projectId={pid} />
 
-      <section aria-labelledby="caption-h" className="flex flex-col gap-4 rounded-xl border border-hairline bg-surface p-5 sm:p-6">
+      <section aria-labelledby="caption-h" className="flex flex-col gap-4 rounded-xl border border-line bg-surface p-5 sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 id="caption-h" className="font-mono text-xs font-semibold uppercase tracking-wider">
             Caption
@@ -504,7 +504,7 @@ function Compose({
           placeholder={writing ? "Writing a caption…" : "What should people know about this video?"}
           aria-invalid={tooLong || undefined}
           aria-describedby="caption-count"
-          className="w-full resize-y rounded-lg border border-hairline bg-surface px-4 py-3 text-[15px] leading-relaxed text-espresso placeholder:text-taupe/70 focus:border-sand-gold focus:outline-none focus:ring-2 focus:ring-sand-gold/40 aria-[invalid=true]:border-danger/60"
+          className="w-full resize-y rounded-lg border border-line bg-surface px-4 py-3 text-[15px] leading-relaxed text-ink placeholder:text-muted/70 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/40 aria-[invalid=true]:border-danger/60"
         />
         <div className="flex flex-col gap-2">
           <label htmlFor="hashtags" className="text-sm font-medium">
@@ -517,10 +517,10 @@ function Compose({
             placeholder="#science #explained"
             aria-invalid={tooManyTags || undefined}
             aria-describedby="caption-count"
-            className="h-12 w-full rounded-lg border border-hairline bg-surface px-4 text-[15px] text-espresso placeholder:text-taupe/70 focus:border-sand-gold focus:outline-none focus:ring-2 focus:ring-sand-gold/40 aria-[invalid=true]:border-danger/60"
+            className="h-12 w-full rounded-lg border border-line bg-surface px-4 text-[15px] text-ink placeholder:text-muted/70 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/40 aria-[invalid=true]:border-danger/60"
           />
         </div>
-        <p id="caption-count" className="flex flex-wrap justify-between gap-2 font-mono text-xs uppercase tracking-wider text-taupe" aria-live="polite">
+        <p id="caption-count" className="flex flex-wrap justify-between gap-2 font-mono text-xs uppercase tracking-wider text-muted" aria-live="polite">
           <span className={cn(tooLong && "font-semibold text-danger")}>
             {length.toLocaleString("en-GB")} / {CAPTION_MAX.toLocaleString("en-GB")} characters
           </span>
@@ -537,30 +537,30 @@ function Compose({
         )}
       </section>
 
-      <section aria-labelledby="cover-h" className="flex items-center gap-4 rounded-xl border border-hairline bg-surface p-5">
+      <section aria-labelledby="cover-h" className="flex items-center gap-4 rounded-xl border border-line bg-surface p-5">
         {render.thumbnailUrl && (
           // eslint-disable-next-line @next/next/no-img-element -- private, signed image
-          <img src={render.thumbnailUrl} alt="" className="aspect-[9/16] w-14 shrink-0 rounded-md border border-hairline object-cover" />
+          <img src={render.thumbnailUrl} alt="" className="aspect-[9/16] w-14 shrink-0 rounded-md border border-line object-cover" />
         )}
         <div className="flex min-w-0 flex-col gap-1">
           <h2 id="cover-h" className="font-mono text-xs font-semibold uppercase tracking-wider">
             Cover
           </h2>
-          <p className="text-sm text-taupe">The Reel uses the cover you chose in step 3.</p>
+          <p className="text-sm text-muted">The Reel uses the cover you chose in step 3.</p>
           <Link href={`/videos/${pid}/video`} className="tap w-fit text-sm font-medium underline-offset-4 hover:underline">
             Change cover
           </Link>
         </div>
       </section>
 
-      <section aria-labelledby="when-h" className="flex flex-col gap-4 rounded-xl border border-hairline bg-surface p-5 sm:p-6">
+      <section aria-labelledby="when-h" className="flex flex-col gap-4 rounded-xl border border-line bg-surface p-5 sm:p-6">
         <h2 id="when-h" className="font-mono text-xs font-semibold uppercase tracking-wider">
           When
         </h2>
         <div
           role="radiogroup"
           aria-labelledby="when-h"
-          className="grid grid-cols-2 gap-2 rounded-lg bg-surface-warm p-1 sm:max-w-sm"
+          className="grid grid-cols-2 gap-2 rounded-lg bg-surface-sunken p-1 sm:max-w-sm"
           onKeyDown={(e) => {
             if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key)) return;
             e.preventDefault();
@@ -578,8 +578,8 @@ function Compose({
               tabIndex={mode === m ? 0 : -1}
               onClick={() => changeWhen({ mode: m })}
               className={cn(
-                "h-11 rounded-md text-sm font-medium transition-colors sm:h-10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sand-gold",
-                mode === m ? "bg-surface shadow-sm" : "text-taupe hover:text-espresso",
+                "h-11 rounded-md text-sm font-medium transition-colors sm:h-10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
+                mode === m ? "bg-surface shadow-sm" : "text-muted hover:text-ink",
               )}
             >
               {m === "now" ? "Post now" : "Schedule"}
@@ -596,7 +596,7 @@ function Compose({
                   value={slot.date}
                   min={utcToZoned(new Date(clock), timeZone).date}
                   onChange={(e) => changeWhen({ slot: { ...slot, date: e.target.value } })}
-                  className="h-12 rounded-lg border border-hairline bg-surface px-3 text-[15px] font-normal focus:border-sand-gold focus:outline-none focus:ring-2 focus:ring-sand-gold/40"
+                  className="h-12 rounded-lg border border-line bg-surface px-3 text-[15px] font-normal focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/40"
                 />
               </label>
               <label className="flex flex-col gap-1 text-sm font-medium">
@@ -605,11 +605,11 @@ function Compose({
                   type="time"
                   value={slot.time}
                   onChange={(e) => changeWhen({ slot: { ...slot, time: e.target.value } })}
-                  className="h-12 rounded-lg border border-hairline bg-surface px-3 text-[15px] font-normal focus:border-sand-gold focus:outline-none focus:ring-2 focus:ring-sand-gold/40"
+                  className="h-12 rounded-lg border border-line bg-surface px-3 text-[15px] font-normal focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/40"
                 />
               </label>
             </div>
-            <p className="text-sm text-taupe">
+            <p className="text-sm text-muted">
               Your time zone: {timeZone.replace(/_/g, " ")} ({zone}).{" "}
               <Link href="/settings" className="tap underline-offset-4 hover:underline">
                 Change
@@ -625,7 +625,7 @@ function Compose({
       </section>
 
       {askRepost && (
-        <div role="alert" className="flex flex-col gap-3 rounded-xl border border-sand-gold bg-sand-gold/15 p-5 text-sm">
+        <div role="alert" className="flex flex-col gap-3 rounded-xl border border-accent bg-accent/15 p-5 text-sm">
           <span>{askRepost}</span>
           <div className="flex flex-wrap gap-2">
             <Button onClick={() => submit(true)} disabled={busy} aria-busy={busy}>
@@ -639,7 +639,7 @@ function Compose({
       )}
 
       {error && (
-        <div role="alert" className="flex flex-col gap-2 rounded-xl border border-sand-gold bg-sand-gold/15 p-4 text-sm">
+        <div role="alert" className="flex flex-col gap-2 rounded-xl border border-accent bg-accent/15 p-4 text-sm">
           <span>{error.message}</span>
           {(error.code === "INSTAGRAM_NOT_CONNECTED" || error.code === "INSTAGRAM_RECONNECT_NEEDED") && (
             <a href={connectHref(pid)} className="w-fit font-medium underline underline-offset-4">
@@ -665,7 +665,7 @@ function Compose({
           )}
           {mode === "now" ? "Post now" : "Schedule post"}
         </Button>
-        {!canPublish && <p className="text-sm text-taupe">Connect Instagram above to post.</p>}
+        {!canPublish && <p className="text-sm text-muted">Connect Instagram above to post.</p>}
       </div>
     </>
   );
@@ -711,7 +711,7 @@ function Status({
   }
 
   const excerpt = (
-    <section aria-label="Post" className="flex flex-col gap-3 rounded-xl border border-hairline bg-surface p-5 sm:p-6">
+    <section aria-label="Post" className="flex flex-col gap-3 rounded-xl border border-line bg-surface p-5 sm:p-6">
       <dl className="flex flex-col">
         <Row k="Account" v={account} />
         <Row
@@ -720,7 +720,7 @@ function Status({
         />
       </dl>
       {(post.caption || post.hashtags.length > 0) && (
-        <p className="line-clamp-4 whitespace-pre-line border-t border-hairline pt-3 text-sm text-taupe">{fullCaption(post.caption, post.hashtags)}</p>
+        <p className="line-clamp-4 whitespace-pre-line border-t border-line pt-3 text-sm text-muted">{fullCaption(post.caption, post.hashtags)}</p>
       )}
     </section>
   );
@@ -733,11 +733,11 @@ function Status({
   if (post.status === "publishing" || (post.status === "scheduled" && new Date(post.scheduledAt).getTime() <= now)) {
     return (
       <>
-        <section role="status" className="flex items-start gap-3 rounded-xl border border-sand-gold bg-sand-gold/10 p-5">
-          <Loader2 className="mt-0.5 size-5 shrink-0 animate-spin text-render-orange" aria-hidden />
+        <section role="status" className="flex items-start gap-3 rounded-xl border border-accent bg-accent/10 p-5">
+          <Loader2 className="mt-0.5 size-5 shrink-0 animate-spin text-progress" aria-hidden />
           <span className="flex flex-col gap-1">
             <span className="font-medium">Sending your Reel to {account}</span>
-            <span className="text-sm text-taupe">Instagram processes the video first. This usually takes under a minute. You can leave this page.</span>
+            <span className="text-sm text-muted">Instagram processes the video first. This usually takes under a minute. You can leave this page.</span>
           </span>
         </section>
         {excerpt}
@@ -760,7 +760,7 @@ function Status({
           </Link>
         </div>
         {excerpt}
-        <button type="button" onClick={onCompose} className="w-fit text-sm font-medium text-taupe underline-offset-4 hover:text-espresso hover:underline">
+        <button type="button" onClick={onCompose} className="w-fit text-sm font-medium text-muted underline-offset-4 hover:text-ink hover:underline">
           Post this video again
         </button>
       </>
@@ -771,13 +771,13 @@ function Status({
     const locked = post.editableUntil ? new Date(post.editableUntil).getTime() <= now : true;
     return (
       <>
-        <section className="flex items-start gap-3 rounded-xl border border-hairline bg-surface p-5">
-          <CalendarClock className="mt-0.5 size-5 shrink-0 text-sand-gold" aria-hidden />
+        <section className="flex items-start gap-3 rounded-xl border border-line bg-surface p-5">
+          <CalendarClock className="mt-0.5 size-5 shrink-0 text-accent" aria-hidden />
           <span className="flex flex-col gap-1">
             <span className="font-medium">
               Goes out {formatInZone(new Date(post.scheduledAt), zone)} ({zoneLabel(zone, new Date(post.scheduledAt))})
             </span>
-            <span className="text-sm text-taupe">ClipGuru posts it to {account} at that time. You don’t need to keep this page open.</span>
+            <span className="text-sm text-muted">ClipGuru posts it to {account} at that time. You don’t need to keep this page open.</span>
           </span>
         </section>
         {excerpt}
@@ -791,7 +791,7 @@ function Status({
           >
             {busy === "cancel" && <Loader2 className="size-4 animate-spin" aria-hidden />} Cancel scheduled post
           </Button>
-          <p className="text-sm text-taupe">
+          <p className="text-sm text-muted">
             {locked ? "It’s too close to the posting time to cancel." : `You can cancel until ${LOCK_BEFORE_MS / 60_000} minutes before.`}
           </p>
           {errorLine}
@@ -806,12 +806,12 @@ function Status({
   const needsAccount = held || post.error?.code === "IG_RECONNECT";
   return (
     <>
-      <section role="alert" className="flex flex-col gap-3 rounded-xl border border-sand-gold bg-sand-gold/15 p-5 sm:p-6">
+      <section role="alert" className="flex flex-col gap-3 rounded-xl border border-accent bg-accent/15 p-5 sm:p-6">
         <span className="flex items-center gap-2 font-medium">
           <AlertTriangle className="size-4" aria-hidden />
           {held ? "On hold: Instagram needs reconnecting" : "Instagram didn’t take this post"}
         </span>
-        <span className="text-sm text-espresso/80">{post.error?.message ?? "The post didn’t go out."}</span>
+        <span className="text-sm text-ink/80">{post.error?.message ?? "The post didn’t go out."}</span>
         {needsAccount && !igReady && (
           <a href={connectHref(projectId)} className={buttonClasses("primary", "md", "w-fit")}>
             <AtSign className="size-4" aria-hidden /> {instagram.connected ? "Reconnect Instagram" : "Connect Instagram"}
@@ -861,8 +861,8 @@ function Status({
 
 function Row({ k, v }: { k: string; v: string }) {
   return (
-    <div className="flex items-baseline justify-between gap-4 border-b border-hairline py-3 first:pt-0 last:border-b-0 last:pb-0">
-      <dt className="text-taupe">{k}</dt>
+    <div className="flex items-baseline justify-between gap-4 border-b border-line py-3 first:pt-0 last:border-b-0 last:pb-0">
+      <dt className="text-muted">{k}</dt>
       <dd className="min-w-0 text-right font-medium">{v}</dd>
     </div>
   );

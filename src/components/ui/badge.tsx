@@ -4,11 +4,11 @@ import { cn } from "@/lib/cn";
 export type Tone = "neutral" | "dark" | "progress" | "success" | "muted" | "danger";
 
 const tones: Record<Tone, string> = {
-  neutral: "bg-surface text-espresso border border-hairline",
-  dark: "bg-espresso-deep text-surface",
-  progress: "bg-surface text-espresso border border-hairline",
+  neutral: "bg-surface text-ink border border-line",
+  dark: "bg-ink-strong text-on-ink",
+  progress: "bg-surface text-ink border border-line",
   success: "bg-success/10 text-success border border-success/30",
-  muted: "bg-surface text-taupe border border-hairline",
+  muted: "bg-surface text-muted border border-line",
   danger: "bg-danger/10 text-danger border border-danger/30",
 };
 
@@ -22,7 +22,7 @@ export function Badge({ tone = "neutral", children, className }: { tone?: Tone; 
         className,
       )}
     >
-      {tone === "progress" ? <span className="size-1.5 rounded-full bg-render-orange" aria-hidden /> : null}
+      {tone === "progress" ? <span className="size-1.5 rounded-full bg-progress" aria-hidden /> : null}
       {children}
     </span>
   );

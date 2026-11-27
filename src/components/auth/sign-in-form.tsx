@@ -63,7 +63,7 @@ export function SignInForm({ googleEnabled }: { googleEnabled: boolean }) {
           label="Password"
           htmlFor="password"
           aside={
-            <Link href="/forgot-password" className="tap text-sm text-taupe hover:text-espresso">
+            <Link href="/forgot-password" className="tap text-sm text-muted hover:text-ink">
               Forgot password?
             </Link>
           }
@@ -79,9 +79,9 @@ export function SignInForm({ googleEnabled }: { googleEnabled: boolean }) {
           {busy ? "Signing in…" : "Sign in"} <ArrowRight className="size-4" />
         </Button>
       </form>
-      <p className="text-center text-sm text-taupe">
+      <p className="text-center text-sm text-muted">
         New here?{" "}
-        <Link href="/sign-up" className="tap font-medium text-espresso hover:underline">
+        <Link href="/sign-up" className="tap font-medium text-ink hover:underline">
           Create an account
         </Link>
       </p>

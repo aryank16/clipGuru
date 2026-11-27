@@ -6,11 +6,11 @@ type Size = "sm" | "md" | "lg";
 
 const variants: Record<Variant, string> = {
   primary:
-    "bg-espresso-deep text-surface hover:bg-espresso shadow-sm disabled:bg-espresso-deep/60",
+    "bg-ink-strong text-on-ink hover:bg-ink shadow-sm disabled:bg-ink-strong/60",
   secondary:
-    "bg-surface text-espresso border border-hairline hover:bg-white hover:border-taupe/40 shadow-sm",
-  ghost: "text-espresso hover:bg-surface-warm/70",
-  danger: "bg-surface text-danger border border-hairline hover:border-danger/40 hover:bg-white",
+    "bg-surface text-ink border border-line hover:bg-surface-hover hover:border-muted/40 shadow-sm",
+  ghost: "text-ink hover:bg-surface-sunken/70",
+  danger: "bg-surface text-danger border border-line hover:border-danger/40 hover:bg-surface-hover",
 };
 
 const sizes: Record<Size, string> = {
@@ -35,7 +35,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       type={type}
       className={cn(
         "inline-flex items-center justify-center font-medium transition-colors duration-150",
-        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sand-gold",
+        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
         "disabled:cursor-not-allowed disabled:opacity-70",
         variants[variant],
         sizes[size],
@@ -50,7 +50,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
 export function buttonClasses(variant: Variant = "primary", size: Size = "md", className?: string) {
   return cn(
     "inline-flex items-center justify-center font-medium transition-colors duration-150",
-    "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sand-gold",
+    "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
     variants[variant],
     sizes[size],
     className,

@@ -60,7 +60,7 @@ export function VoicePicker({
             key={v.id}
             className={cn(
               "flex items-center gap-4 rounded-xl border px-4 py-4 transition-colors sm:px-5",
-              on ? "border-sand-gold bg-sand-gold/10" : "border-hairline hover:border-taupe/40",
+              on ? "border-accent bg-accent/10" : "border-line hover:border-muted/40",
             )}
           >
             <button
@@ -73,20 +73,20 @@ export function VoicePicker({
               <span
                 className={cn(
                   "flex size-5 shrink-0 items-center justify-center rounded-full border-2",
-                  on ? "border-espresso" : "border-taupe/50",
+                  on ? "border-ink" : "border-muted/50",
                 )}
                 aria-hidden
               >
-                {on ? <span className="size-2.5 rounded-full bg-espresso" /> : null}
+                {on ? <span className="size-2.5 rounded-full bg-ink" /> : null}
               </span>
               <span className="min-w-0">
                 <span className="block font-semibold">
                   {v.name}
-                  <span className="ml-2 font-normal text-taupe">
+                  <span className="ml-2 font-normal text-muted">
                     {v.accent} {v.gender}
                   </span>
                 </span>
-                <span className="block text-sm text-taupe">{v.description}</span>
+                <span className="block text-sm text-muted">{v.description}</span>
               </span>
             </button>
             <button
@@ -96,8 +96,8 @@ export function VoicePicker({
               className={cn(
                 "flex size-11 shrink-0 items-center justify-center rounded-full border transition-colors",
                 playing === v.id
-                  ? "border-espresso-deep bg-espresso-deep text-surface"
-                  : "border-hairline bg-surface text-espresso hover:border-taupe/40",
+                  ? "border-ink-strong bg-ink-strong text-on-ink"
+                  : "border-line bg-surface text-ink hover:border-muted/40",
               )}
             >
               {playing === v.id ? <Pause className="size-4" /> : <Play className="ml-0.5 size-4" />}

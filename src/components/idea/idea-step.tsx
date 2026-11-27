@@ -223,12 +223,12 @@ export function IdeaStep({
         canPost={canPost(project)}
       />
 
-      <header className="flex flex-col gap-3 border-b border-hairline pb-6">
+      <header className="flex flex-col gap-3 border-b border-line pb-6">
         <span className="eyebrow">Step 1 · Idea</span>
         <h1 className="break-words font-display text-3xl font-black uppercase leading-[0.95] tracking-tight sm:text-5xl">
           {title}
         </h1>
-        <p className="max-w-2xl text-taupe">
+        <p className="max-w-2xl text-muted">
           Talk it through. The brief fills in as you go, and you can edit it any
           time.
         </p>
@@ -313,7 +313,7 @@ function Chat({
           <MessageView key={m.id} message={m} busy={busy || storyboardHref !== null} onPick={onSend} />
         ))}
         {waiting && (
-          <li className="flex items-center gap-2 pl-14 text-sm text-taupe">
+          <li className="flex items-center gap-2 pl-14 text-sm text-muted">
             <Loader2 className="size-4 animate-spin" aria-hidden /> Thinking…
           </li>
         )}
@@ -338,12 +338,12 @@ function Chat({
               type="button"
               disabled={busy}
               onClick={() => onSend(s)}
-              className="flex min-h-10 items-center gap-1.5 rounded-lg border border-hairline bg-surface px-3 text-sm text-espresso hover:border-taupe/40 disabled:opacity-60"
+              className="flex min-h-10 items-center gap-1.5 rounded-lg border border-line bg-surface px-3 text-sm text-ink hover:border-muted/40 disabled:opacity-60"
             >
               {s.startsWith("Give") ? (
-                <Sparkles className="size-4 text-taupe" />
+                <Sparkles className="size-4 text-muted" />
               ) : (
-                <Lightbulb className="size-4 text-taupe" />
+                <Lightbulb className="size-4 text-muted" />
               )}
               {s}
             </button>
@@ -352,12 +352,12 @@ function Chat({
       )}
 
       {storyboardHref ? (
-        <p className="rounded-xl border border-hairline bg-surface px-4 py-3 text-sm text-taupe">
+        <p className="rounded-xl border border-line bg-surface px-4 py-3 text-sm text-muted">
           This chat is closed now that the storyboard exists. To change the
           video,{" "}
           <Link
             href={storyboardHref}
-            className="font-medium text-espresso underline underline-offset-2"
+            className="font-medium text-ink underline underline-offset-2"
           >
             ask for changes on the storyboard
           </Link>
@@ -365,7 +365,7 @@ function Chat({
         </p>
       ) : (
         <form
-          className="rounded-xl border border-hairline bg-surface p-3 shadow-[0_1px_2px_rgba(32,30,28,0.04)] focus-within:border-sand-gold"
+          className="rounded-xl border border-line bg-surface p-3 shadow-card focus-within:border-accent"
           onSubmit={(e) => {
             e.preventDefault();
             submit();
@@ -383,12 +383,12 @@ function Chat({
               maxLength={CHAT_TEXT_MAX}
               rows={2}
               placeholder="Describe your idea, or ask for changes…"
-              className="field-sizing-content max-h-48 min-h-12 w-full resize-none bg-transparent px-2 py-1.5 text-[15px] placeholder:text-taupe/70 focus:outline-none"
+              className="field-sizing-content max-h-48 min-h-12 w-full resize-none bg-transparent px-2 py-1.5 text-[15px] placeholder:text-muted/70 focus:outline-none"
             />
             <button
               type="submit"
               disabled={busy || !draft.trim()}
-              className="inline-flex size-11 shrink-0 items-center justify-center rounded-lg bg-espresso-deep text-surface hover:bg-espresso disabled:opacity-50"
+              className="inline-flex size-11 shrink-0 items-center justify-center rounded-lg bg-ink-strong text-on-ink hover:bg-ink disabled:opacity-50"
             >
               {busy ? (
                 <Loader2 className="size-5 animate-spin" />
@@ -398,7 +398,7 @@ function Chat({
               <span className="sr-only">Send</span>
             </button>
           </div>
-          <p className="hidden px-2 pt-2 text-right font-mono text-[11px] uppercase tracking-wide text-taupe sm:block">
+          <p className="hidden px-2 pt-2 text-right font-mono text-[11px] uppercase tracking-wide text-muted sm:block">
             Enter to send · Shift + Enter for a new line
           </p>
         </form>
@@ -442,12 +442,12 @@ function MessageView({
                   onClick={() =>
                     onPick(`Let's go with "${idea.title}": ${idea.hook}`)
                   }
-                  className="flex h-full w-full flex-col gap-1 rounded-lg border border-hairline bg-surface px-4 py-3 text-left transition-colors hover:border-sand-gold hover:bg-white disabled:opacity-60"
+                  className="flex h-full w-full flex-col gap-1 rounded-lg border border-line bg-surface px-4 py-3 text-left transition-colors hover:border-accent hover:bg-surface-hover disabled:opacity-60"
                 >
-                  <span className="font-medium text-espresso">
+                  <span className="font-medium text-ink">
                     {idea.title}
                   </span>
-                  <span className="text-sm text-taupe">{idea.hook}</span>
+                  <span className="text-sm text-muted">{idea.hook}</span>
                 </button>
               </li>
             ))}
@@ -475,8 +475,8 @@ function Bubble({
         className={cn(
           "hidden size-11 shrink-0 items-center justify-center rounded-lg font-mono text-xs font-bold sm:flex",
           mine
-            ? "bg-sand-gold/60 text-espresso"
-            : "bg-espresso-deep text-surface",
+            ? "bg-accent/60 text-ink"
+            : "bg-ink-strong text-on-ink",
         )}
       >
         {mine ? "YOU" : "CG"}
@@ -485,14 +485,14 @@ function Bubble({
         className={cn(
           "flex max-w-[85%] flex-col gap-1.5 rounded-xl px-4 py-3 sm:px-5 sm:py-4",
           mine
-            ? "bg-espresso-deep text-surface"
-            : "border border-hairline bg-surface text-espresso",
+            ? "bg-ink-strong text-on-ink"
+            : "border border-line bg-surface text-ink",
         )}
       >
         <span
           className={cn(
             "font-mono text-[11px] uppercase tracking-wider",
-            mine ? "text-sand-gold" : "text-taupe",
+            mine ? "text-accent" : "text-muted",
           )}
         >
           {mine ? "You" : "ClipGuru"}
@@ -502,7 +502,7 @@ function Bubble({
         </p>
         {failed && (
           <span
-            className={cn("text-xs", mine ? "text-sand-gold" : "text-danger")}
+            className={cn("text-xs", mine ? "text-accent" : "text-danger")}
           >
             Didn&apos;t get a reply. Try again.
           </span>

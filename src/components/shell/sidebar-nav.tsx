@@ -24,8 +24,8 @@ export function SidebarNavView({ pathname }: { pathname: string }) {
             className={cn(
               "flex h-12 items-center gap-3.5 rounded-xl px-4 text-[15px]",
               active
-                ? "bg-espresso-deep font-semibold text-surface shadow-sm"
-                : "text-espresso/80 hover:bg-surface-warm/60 hover:text-espresso",
+                ? "bg-ink-strong font-semibold text-on-ink shadow-sm"
+                : "text-ink/80 hover:bg-surface-sunken/60 hover:text-ink",
             )}
           >
             <Icon className="size-5" strokeWidth={1.6} aria-hidden />

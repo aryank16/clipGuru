@@ -55,18 +55,18 @@ export function Welcome({ firstName, voices, currentVoice }: { firstName: string
           <br />
           {firstName}.
         </h1>
-        <p className="max-w-xl text-lg text-taupe">Two quick things and you&apos;re ready to make your first explainer.</p>
+        <p className="max-w-xl text-lg text-muted">Two quick things and you&apos;re ready to make your first explainer.</p>
       </header>
 
       <div className="grid gap-5 lg:grid-cols-2">
         <Card className="flex flex-col gap-6 p-6 sm:p-8">
           <div className="flex items-start justify-between gap-4">
-            <span className="font-mono text-4xl text-espresso/80">01</span>
+            <span className="font-mono text-4xl text-ink/80">01</span>
             <Status state={voiceSaver.state} error={voiceSaver.error} />
           </div>
           <div className="flex flex-col gap-2">
             <h2 className="text-2xl font-bold">Pick your narrator</h2>
-            <p className="text-taupe">Play a sample and choose the voice for your videos. You can change it any time in Settings.</p>
+            <p className="text-muted">Play a sample and choose the voice for your videos. You can change it any time in Settings.</p>
           </div>
           <VoicePicker
             current={currentVoice}
@@ -76,10 +76,10 @@ export function Welcome({ firstName, voices, currentVoice }: { firstName: string
         </Card>
 
         <Card className="flex flex-col gap-6 p-6 sm:p-8">
-          <span className="font-mono text-4xl text-espresso/80">02</span>
+          <span className="font-mono text-4xl text-ink/80">02</span>
           <div className="flex flex-col gap-2">
             <h2 className="text-2xl font-bold">Make your first video</h2>
-            <p className="text-taupe">
+            <p className="text-muted">
               Start with a topic you know well. ClipGuru turns it into a short explainer reel, ready to download or post.
             </p>
           </div>
@@ -88,13 +88,13 @@ export function Welcome({ firstName, voices, currentVoice }: { firstName: string
               Start with an idea
               {leaving === "start" ? <Loader2 className="size-4 animate-spin" /> : <ArrowRight className="size-4" />}
             </Button>
-            <p className="text-sm text-taupe">Instagram can be connected later, in Settings.</p>
+            <p className="text-sm text-muted">Instagram can be connected later, in Settings.</p>
           </div>
         </Card>
       </div>
 
       <section className="flex flex-col gap-5" aria-labelledby="how-it-works">
-        <h2 id="how-it-works" className="eyebrow border-b border-hairline pb-4">
+        <h2 id="how-it-works" className="eyebrow border-b border-line pb-4">
           How it works
         </h2>
         <ol className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -102,11 +102,11 @@ export function Welcome({ firstName, voices, currentVoice }: { firstName: string
             <li key={s.title}>
               <Card className="flex h-full flex-col gap-3 bg-surface/60 p-5">
                 <div className="flex items-center justify-between">
-                  <s.icon className="size-5 text-espresso" aria-hidden />
-                  <span className="font-mono text-xs uppercase text-taupe">Step {i + 1}</span>
+                  <s.icon className="size-5 text-ink" aria-hidden />
+                  <span className="font-mono text-xs uppercase text-muted">Step {i + 1}</span>
                 </div>
                 <h3 className="font-semibold">{s.title}</h3>
-                <p className="text-sm text-taupe">{s.text}</p>
+                <p className="text-sm text-muted">{s.text}</p>
               </Card>
             </li>
           ))}

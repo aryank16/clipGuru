@@ -84,16 +84,16 @@ export function VideoStep({ project, initialRender }: { project: Project; initia
     <div className="flex flex-col gap-6 lg:gap-10">
       <StepTabs current="video" projectId={project.id} hasStoryboard hasVideo canPost={render.status === "ready" || canPost(project)} />
 
-      <header className="flex flex-col gap-3 border-b border-hairline pb-6">
+      <header className="flex flex-col gap-3 border-b border-line pb-6">
         <span className="eyebrow flex items-center gap-2">
-          {running && <span className="size-2 rounded-full bg-render-orange" aria-hidden />}
+          {running && <span className="size-2 rounded-full bg-progress" aria-hidden />}
           Step 3 · Video · {render.status === "ready" ? "Ready" : render.status === "failed" ? "Needs attention" : render.stageLabel}
         </span>
         <h1 className="break-words font-display text-3xl font-black uppercase leading-[0.95] tracking-tight sm:text-5xl">
           {render.status === "ready" ? "Your video is ready" : render.status === "failed" ? "The video didn’t finish" : "Making your video"}
         </h1>
         {/* One line on a phone, so the player still fits above the tab bar. */}
-        <p className={cn("max-w-2xl text-taupe", render.status === "ready" && "truncate sm:whitespace-normal")}>
+        <p className={cn("max-w-2xl text-muted", render.status === "ready" && "truncate sm:whitespace-normal")}>
           {render.status === "ready"
             ? `“${project.title}” is made${render.durationSec ? `: ${formatDuration(Math.round(render.durationSec))} long` : ""}, ready to download.`
             : project.title}
@@ -105,7 +105,7 @@ export function VideoStep({ project, initialRender }: { project: Project; initia
           aria-label="Video"
           className="mx-auto flex w-full max-w-[min(22.5rem,calc((100dvh-26.5rem)*9/16))] flex-col gap-3 lg:mx-0 lg:max-w-none"
         >
-          <div className="relative aspect-[9/16] w-full overflow-hidden rounded-xl border border-hairline bg-surface-warm/60">
+          <div className="relative aspect-[9/16] w-full overflow-hidden rounded-xl border border-line bg-surface-sunken/60">
             {render.status === "ready" && render.videoUrl ? (
               <video
                 src={render.videoUrl}
@@ -113,14 +113,14 @@ export function VideoStep({ project, initialRender }: { project: Project; initia
                 controls
                 playsInline
                 preload="metadata"
-                className="absolute inset-0 size-full bg-espresso object-contain"
+                className="absolute inset-0 size-full bg-ink object-contain"
               />
             ) : (
-              <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-[radial-gradient(circle,rgba(138,126,118,0.18)_1px,transparent_1px)] [background-size:18px_18px] p-6 text-center">
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-[radial-gradient(circle,color-mix(in_srgb,var(--color-muted)_18%,transparent)_1px,transparent_1px)] [background-size:18px_18px] p-6 text-center">
                 <span
                   className={cn(
-                    "flex size-16 items-center justify-center rounded-xl text-sand-gold",
-                    render.status === "failed" ? "bg-danger/10 text-danger" : "bg-espresso",
+                    "flex size-16 items-center justify-center rounded-xl text-accent",
+                    render.status === "failed" ? "bg-danger/10 text-danger" : "bg-ink",
                   )}
                   aria-hidden
                 >
@@ -129,12 +129,12 @@ export function VideoStep({ project, initialRender }: { project: Project; initia
                 <span className="font-display text-lg font-black uppercase tracking-tight">
                   {render.status === "failed" ? "Stopped" : `${pct}%`}
                 </span>
-                <span className="font-mono text-xs uppercase tracking-wider text-taupe">9:16 · 1080 × 1920</span>
+                <span className="font-mono text-xs uppercase tracking-wider text-muted">9:16 · 1080 × 1920</span>
               </div>
             )}
           </div>
           {render.status === "ready" && (
-            <p className="flex items-center justify-center gap-1.5 font-mono text-xs uppercase tracking-wider text-taupe lg:justify-start">
+            <p className="flex items-center justify-center gap-1.5 font-mono text-xs uppercase tracking-wider text-muted lg:justify-start">
               <Info className="size-3.5" aria-hidden />
               Made at full 1080 × 1920, the Instagram Reel size
             </p>
@@ -143,12 +143,12 @@ export function VideoStep({ project, initialRender }: { project: Project; initia
 
         <div className="flex min-w-0 flex-col gap-6">
           {render.status !== "ready" && (
-            <section aria-label="Progress" className="flex flex-col gap-4 rounded-xl border border-hairline bg-surface p-5 sm:p-6">
+            <section aria-label="Progress" className="flex flex-col gap-4 rounded-xl border border-line bg-surface p-5 sm:p-6">
               <div className="flex items-center justify-between gap-3">
                 <span className="eyebrow flex items-center gap-2">
                   <Clock className="size-4" aria-hidden /> {render.status === "failed" ? "Stopped" : "Usually 2 to 4 minutes"}
                 </span>
-                <span className="rounded bg-surface-warm px-2 py-0.5 font-mono text-xs font-semibold" aria-live="polite">
+                <span className="rounded bg-surface-sunken px-2 py-0.5 font-mono text-xs font-semibold" aria-live="polite">
                   {pct}%
                 </span>
               </div>
@@ -158,14 +158,14 @@ export function VideoStep({ project, initialRender }: { project: Project; initia
                 aria-valuemin={0}
                 aria-valuemax={100}
                 aria-valuenow={pct}
-                className="h-2 overflow-hidden rounded-full bg-hairline"
+                className="h-2 overflow-hidden rounded-full bg-line"
               >
                 <div
-                  className={cn("h-full rounded-full transition-[width] duration-700", render.status === "failed" ? "bg-danger/60" : "bg-sand-gold")}
+                  className={cn("h-full rounded-full transition-[width] duration-700", render.status === "failed" ? "bg-danger/60" : "bg-accent")}
                   style={{ width: `${Math.max(2, pct)}%` }}
                 />
               </div>
-              <p className="text-sm text-taupe" role="status">
+              <p className="text-sm text-muted" role="status">
                 {offline
                   ? "Can’t reach ClipGuru right now. The video keeps going; this page catches up when you’re back online."
                   : render.status === "failed" && render.error?.code === "VOICE_CREDITS_USED_UP"
@@ -178,10 +178,10 @@ export function VideoStep({ project, initialRender }: { project: Project; initia
           )}
 
           {render.status === "failed" && render.error && (
-            <section role="alert" className="flex flex-col gap-4 rounded-xl border border-sand-gold bg-sand-gold/15 p-5 sm:p-6">
+            <section role="alert" className="flex flex-col gap-4 rounded-xl border border-accent bg-accent/15 p-5 sm:p-6">
               <div className="flex flex-col gap-1">
                 <span className="font-medium">Stopped at: {STAGE_LABELS[render.error.stage].toLowerCase()}</span>
-                <span className="text-sm text-espresso/80">{render.error.message}</span>
+                <span className="text-sm text-ink/80">{render.error.message}</span>
               </div>
               <Button onClick={retry} disabled={retrying} aria-busy={retrying} className="w-fit">
                 {retrying ? <Loader2 className="size-4 animate-spin" aria-hidden /> : <RotateCcw className="size-4" aria-hidden />}
@@ -233,23 +233,23 @@ function Ready({
   return (
     <>
       {outdated && (
-        <p role="status" className="order-first rounded-xl border border-sand-gold bg-sand-gold/15 p-4 text-sm lg:order-none">
+        <p role="status" className="order-first rounded-xl border border-accent bg-accent/15 p-4 text-sm lg:order-none">
           You’ve changed the storyboard since this video was made (it’s version {render.version}). Open the storyboard and
           press Generate video to make the new version.
         </p>
       )}
 
-      <section aria-labelledby="details-h" className="flex flex-col rounded-xl border border-hairline bg-surface p-5 sm:p-6">
-        <div className="flex items-center justify-between gap-3 border-b border-hairline pb-3">
+      <section aria-labelledby="details-h" className="flex flex-col rounded-xl border border-line bg-surface p-5 sm:p-6">
+        <div className="flex items-center justify-between gap-3 border-b border-line pb-3">
           <h2 id="details-h" className="font-mono text-xs font-semibold uppercase tracking-wider">
             Details
           </h2>
-          <span className="rounded border border-hairline px-2 py-0.5 font-mono text-[11px] uppercase tracking-wider text-taupe">MP4</span>
+          <span className="rounded border border-line px-2 py-0.5 font-mono text-[11px] uppercase tracking-wider text-muted">MP4</span>
         </div>
         <dl className="flex flex-col">
           {rows.map(([k, v]) => (
-            <div key={k} className="flex items-baseline justify-between gap-4 border-b border-hairline py-3 last:border-b-0 last:pb-0">
-              <dt className="text-taupe">{k}</dt>
+            <div key={k} className="flex items-baseline justify-between gap-4 border-b border-line py-3 last:border-b-0 last:pb-0">
+              <dt className="text-muted">{k}</dt>
               <dd className="text-right font-medium">{v}</dd>
             </div>
           ))}
@@ -272,7 +272,7 @@ function Ready({
 
       <Link
         href={`/videos/${projectId}/storyboard`}
-        className="tap flex w-fit items-center gap-1.5 text-sm font-medium text-taupe underline-offset-4 hover:text-espresso hover:underline"
+        className="tap flex w-fit items-center gap-1.5 text-sm font-medium text-muted underline-offset-4 hover:text-ink hover:underline"
       >
         Edit storyboard and make it again <ArrowRight className="size-4" aria-hidden />
       </Link>
@@ -325,12 +325,12 @@ function CoverPicker({ render, onChange }: { render: Render; onChange: (r: Rende
   }
 
   return (
-    <section aria-labelledby="cover-h" className="flex flex-col gap-4 rounded-xl border border-hairline bg-surface p-5 sm:p-6">
+    <section aria-labelledby="cover-h" className="flex flex-col gap-4 rounded-xl border border-line bg-surface p-5 sm:p-6">
       <div className="flex flex-col gap-1">
         <h2 id="cover-h" className="font-mono text-xs font-semibold uppercase tracking-wider">
           Cover
         </h2>
-        <p className="text-sm text-taupe">The still people see before they press play. It’s also the thumbnail in My videos.</p>
+        <p className="text-sm text-muted">The still people see before they press play. It’s also the thumbnail in My videos.</p>
       </div>
       <div
         role="radiogroup"
@@ -358,24 +358,24 @@ function CoverPicker({ render, onChange }: { render: Render; onChange: (r: Rende
               aria-label={`Cover ${i + 1}, at ${formatDuration(Math.round(c.offsetMs / 1000))}`}
               onClick={() => choose(i)}
               className={cn(
-                "group relative aspect-[9/16] overflow-hidden rounded-lg border-2 bg-surface-warm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-espresso focus-visible:ring-offset-2",
-                chosen ? "border-sand-gold shadow-sm" : "border-transparent hover:border-hairline",
+                "group relative aspect-[9/16] overflow-hidden rounded-lg border-2 bg-surface-sunken transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2",
+                chosen ? "border-accent shadow-sm" : "border-transparent hover:border-line",
 
               )}
             >
               {/* eslint-disable-next-line @next/next/no-img-element -- private, signed image */}
               <img src={c.url} alt="" loading="lazy" className="absolute inset-0 size-full object-cover" />
-              <span className="absolute inset-x-1 bottom-1 rounded bg-espresso/80 px-1 py-0.5 text-center font-mono text-[10px] text-surface">
+              <span className="absolute inset-x-1 bottom-1 rounded bg-ink/80 px-1 py-0.5 text-center font-mono text-[10px] text-on-ink">
                 {formatDuration(Math.round(c.offsetMs / 1000))}
               </span>
               {chosen && (
-                <span className="absolute right-1 top-1 flex size-5 items-center justify-center rounded-full bg-sand-gold text-espresso" aria-hidden>
+                <span className="absolute right-1 top-1 flex size-5 items-center justify-center rounded-full bg-accent text-on-accent" aria-hidden>
                   <Check className="size-3.5" />
                 </span>
               )}
               {saving && chosen && (
-                <span className="absolute inset-0 flex items-center justify-center bg-espresso/30" aria-hidden>
-                  <Loader2 className="size-5 animate-spin text-surface" />
+                <span className="absolute inset-0 flex items-center justify-center bg-ink/30" aria-hidden>
+                  <Loader2 className="size-5 animate-spin text-on-ink" />
                 </span>
               )}
             </button>
@@ -397,7 +397,7 @@ function CoverPicker({ render, onChange }: { render: Render; onChange: (r: Rende
 function Stages({ render }: { render: Render }) {
   const current = RENDER_STAGES.indexOf(render.stage);
   return (
-    <section aria-label="Steps" className="flex flex-col gap-3 rounded-xl border border-hairline bg-surface p-5 sm:p-6">
+    <section aria-label="Steps" className="flex flex-col gap-3 rounded-xl border border-line bg-surface p-5 sm:p-6">
       <h2 className="font-display text-lg font-black uppercase tracking-tight">How it’s made</h2>
       <ol className="flex flex-col gap-3">
         {RENDER_STAGES.map((s, i) => {
@@ -410,27 +410,27 @@ function Stages({ render }: { render: Render }) {
               aria-current={now ? "step" : undefined}
               className={cn(
                 "flex items-start gap-3 rounded-lg border p-3 sm:p-4",
-                now && !failed ? "border-sand-gold bg-sand-gold/10" : "border-hairline",
+                now && !failed ? "border-accent bg-accent/10" : "border-line",
                 !done && !now && "border-dashed opacity-70",
               )}
             >
               <span
                 className={cn(
                   "mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md",
-                  done ? "bg-espresso text-sand-gold" : failed ? "bg-danger/10 text-danger" : now ? "bg-render-orange/20 text-render-orange" : "bg-surface-warm text-taupe",
+                  done ? "bg-ink text-accent" : failed ? "bg-danger/10 text-danger" : now ? "bg-progress/20 text-progress" : "bg-surface-sunken text-muted",
                 )}
                 aria-hidden
               >
-                {done ? <Check className="size-4" /> : failed ? <AlertTriangle className="size-4" /> : now ? <Loader2 className="size-4 animate-spin" /> : <span className="size-1.5 rounded-full bg-taupe" />}
+                {done ? <Check className="size-4" /> : failed ? <AlertTriangle className="size-4" /> : now ? <Loader2 className="size-4 animate-spin" /> : <span className="size-1.5 rounded-full bg-muted" />}
               </span>
               <span className="flex min-w-0 flex-col gap-0.5">
                 <span className="flex flex-wrap items-center gap-x-2 font-medium">
                   {STAGE_LABELS[s]}
-                  <span className="font-mono text-[11px] uppercase tracking-wider text-taupe">
+                  <span className="font-mono text-[11px] uppercase tracking-wider text-muted">
                     {done ? "Done" : failed ? "Stopped" : now ? "In progress" : "Waiting"}
                   </span>
                 </span>
-                <span className="text-sm text-taupe">{STAGE_NOTES[s]}</span>
+                <span className="text-sm text-muted">{STAGE_NOTES[s]}</span>
               </span>
             </li>
           );

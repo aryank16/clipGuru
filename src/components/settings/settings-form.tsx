@@ -50,9 +50,9 @@ type GoogleState = { enabled: boolean; linked: boolean };
 function GoogleRow({ google }: { google: GoogleState }) {
   if (!google.enabled) return null;
   return (
-    <div className="rounded-lg border border-hairline px-4 py-3.5">
+    <div className="rounded-lg border border-line px-4 py-3.5">
       <p className="text-sm font-medium">Google</p>
-      <p className="text-sm text-taupe">
+      <p className="text-sm text-muted">
         {google.linked
           ? "On. You can sign in with Google."
           : "Off. Use “Continue with Google” on the sign-in page with this email, and it turns on."}
@@ -97,12 +97,12 @@ function AccountSection({ me, hasPassword, google }: { me: Me; hasPassword: bool
             value={name}
             maxLength={NAME_MAX}
             onChange={(e) => setName(e.target.value)}
-            className="h-12 rounded-lg border border-hairline bg-paper/40 px-4 text-[15px] focus:border-sand-gold focus:ring-2 focus:ring-sand-gold/40 focus:outline-none"
+            className="h-12 rounded-lg border border-line bg-canvas/40 px-4 text-[15px] focus:border-accent focus:ring-2 focus:ring-accent/40 focus:outline-none"
           />
         </div>
         <div className="flex flex-col gap-2">
           <span className="text-sm font-medium">Email</span>
-          <p className="flex h-12 items-center truncate rounded-lg border border-hairline bg-surface-warm/40 px-4 text-[15px] text-taupe">
+          <p className="flex h-12 items-center truncate rounded-lg border border-line bg-surface-sunken/40 px-4 text-[15px] text-muted">
             {me.email}
           </p>
         </div>
@@ -113,10 +113,10 @@ function AccountSection({ me, hasPassword, google }: { me: Me; hasPassword: bool
           <Status state={state} error={error} />
         </div>
       </form>
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-hairline px-4 py-3.5">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-line px-4 py-3.5">
         <div>
           <p className="text-sm font-medium">Password</p>
-          <p className="text-sm text-taupe">
+          <p className="text-sm text-muted">
             {hasPassword ? "Change it with a reset link sent to your email." : "You sign in with Google."}
           </p>
         </div>
@@ -136,7 +136,7 @@ function VoiceSection({ current, voices }: { current: string; voices: Voice[] })
   return (
     <Card className="flex flex-col gap-5 p-6 sm:p-8">
       <SectionHeader index="02" eyebrow="Narrator" title="Default voice" aside={<Status state={state} error={error} />} />
-      <p className="text-taupe">New videos start with this voice. You can still change it on each video.</p>
+      <p className="text-muted">New videos start with this voice. You can still change it on each video.</p>
       <VoicePicker
         current={current}
         voices={voices}
@@ -165,7 +165,7 @@ function TimeZoneSection({ current, options }: { current: string; options: TimeZ
   return (
     <Card className="flex flex-col gap-5 p-6 sm:p-8">
       <SectionHeader index="03" eyebrow="Scheduling" title="Time zone" aside={<Status state={state} error={error} />} />
-      <p className="text-taupe">Scheduled Instagram posts go out at the time you pick in this zone.</p>
+      <p className="text-muted">Scheduled Instagram posts go out at the time you pick in this zone.</p>
       <label htmlFor="tz" className="sr-only">
         Time zone
       </label>
@@ -173,7 +173,7 @@ function TimeZoneSection({ current, options }: { current: string; options: TimeZ
         id="tz"
         value={tz}
         onChange={(e) => change(e.target.value)}
-        className="h-12 w-full rounded-lg border border-hairline bg-paper/40 px-3 text-[15px] focus:border-sand-gold focus:ring-2 focus:ring-sand-gold/40 focus:outline-none"
+        className="h-12 w-full rounded-lg border border-line bg-canvas/40 px-3 text-[15px] focus:border-accent focus:ring-2 focus:ring-accent/40 focus:outline-none"
       >
         {options.map((o) => (
           <option key={o.id} value={o.id}>
@@ -200,7 +200,7 @@ function DeleteSection({ email }: { email: string }) {
     <Card className="flex flex-col gap-5 border-danger/25 p-6 sm:p-8">
       <SectionHeader index="05" eyebrow="Danger zone" title="Delete account" />
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <p className="max-w-lg text-taupe">
+        <p className="max-w-lg text-muted">
           Deletes your account and all your videos for good. This can&apos;t be undone.
         </p>
         <Button variant="danger" size="sm" onClick={() => setOpen(true)}>
@@ -243,21 +243,21 @@ function DeleteDialog({ email, onClose }: { email: string; onClose: () => void }
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-espresso/30 p-4 sm:items-center" onMouseDown={() => !busy && onClose()}>
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink/30 p-4 sm:items-center" onMouseDown={() => !busy && onClose()}>
       <form
         role="dialog"
         aria-modal="true"
         aria-labelledby="delete-title"
         onSubmit={confirm}
         onMouseDown={(e) => e.stopPropagation()}
-        className="flex w-full max-w-md flex-col gap-5 rounded-2xl border border-hairline bg-surface p-6 shadow-xl"
+        className="flex w-full max-w-md flex-col gap-5 rounded-2xl border border-line bg-surface p-6 shadow-xl"
       >
         <h2 id="delete-title" className="text-lg font-semibold">
           Delete your account?
         </h2>
-        <p className="text-taupe">
-          This deletes <span className="font-medium text-espresso">{email}</span> and every video in it. Type{" "}
-          <span className="font-mono font-semibold text-espresso">DELETE</span> to confirm.
+        <p className="text-muted">
+          This deletes <span className="font-medium text-ink">{email}</span> and every video in it. Type{" "}
+          <span className="font-mono font-semibold text-ink">DELETE</span> to confirm.
         </p>
         <input
           autoFocus
@@ -265,7 +265,7 @@ function DeleteDialog({ email, onClose }: { email: string; onClose: () => void }
           onChange={(e) => setText(e.target.value)}
           aria-label="Type DELETE to confirm"
           autoComplete="off"
-          className="h-12 rounded-lg border border-hairline bg-paper/40 px-4 font-mono text-[15px] focus:border-danger/60 focus:ring-2 focus:ring-danger/20 focus:outline-none"
+          className="h-12 rounded-lg border border-line bg-canvas/40 px-4 font-mono text-[15px] focus:border-danger/60 focus:ring-2 focus:ring-danger/20 focus:outline-none"
         />
         {error ? (
           <p role="alert" className="text-sm text-danger">

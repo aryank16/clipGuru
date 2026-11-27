@@ -17,17 +17,17 @@ export function InstagramCardView({ tone, line }: { tone: "ok" | "warn" | "off";
   return (
     <Link
       href="/settings#instagram"
-      className="flex items-center gap-3 rounded-xl border border-hairline bg-paper px-4 py-3.5 transition-colors hover:border-taupe/40"
+      className="flex items-center gap-3 rounded-xl border border-line bg-canvas px-4 py-3.5 transition-colors hover:border-muted/40"
     >
       <span
-        className={cn("size-2 shrink-0 rounded-full", tone === "ok" ? "bg-success" : tone === "warn" ? "bg-render-orange" : "bg-taupe/50")}
+        className={cn("size-2 shrink-0 rounded-full", tone === "ok" ? "bg-success" : tone === "warn" ? "bg-progress" : "bg-muted/50")}
         aria-hidden
       />
       <span className="flex min-w-0 flex-1 flex-col">
-        <span className="text-sm font-medium text-espresso">Instagram</span>
-        <span className={cn("truncate text-xs", tone === "warn" ? "text-render-orange" : "text-taupe")}>{line}</span>
+        <span className="text-sm font-medium text-ink">Instagram</span>
+        <span className={cn("truncate text-xs", tone === "warn" ? "text-progress" : "text-muted")}>{line}</span>
       </span>
-      <ChevronRight className="size-4 text-taupe" aria-hidden />
+      <ChevronRight className="size-4 text-muted" aria-hidden />
     </Link>
   );
 }

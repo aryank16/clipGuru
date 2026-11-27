@@ -89,13 +89,13 @@ export function InstagramSection({ status, result }: { status: InstagramStatus; 
       )}
 
       {failure && (
-        <div role="alert" className="flex flex-col gap-3 rounded-xl border border-sand-gold bg-sand-gold/15 p-4 sm:p-5">
+        <div role="alert" className="flex flex-col gap-3 rounded-xl border border-accent bg-accent/15 p-4 sm:p-5">
           <p className="flex items-center gap-2 font-medium">
             <AlertTriangle className="size-4 shrink-0" aria-hidden /> {failure.title}
           </p>
-          <p className="text-sm text-espresso/80">{failure.text}</p>
+          <p className="text-sm text-ink/80">{failure.text}</p>
           {failure.steps && (
-            <ol className="flex list-decimal flex-col gap-1 pl-5 text-sm text-espresso/80">
+            <ol className="flex list-decimal flex-col gap-1 pl-5 text-sm text-ink/80">
               {failure.steps.map((s) => (
                 <li key={s}>{s}</li>
               ))}
@@ -106,24 +106,24 @@ export function InstagramSection({ status, result }: { status: InstagramStatus; 
 
       {status.connected ? (
         <>
-          <div className="flex items-center gap-4 rounded-xl border border-hairline bg-paper/40 p-4">
+          <div className="flex items-center gap-4 rounded-xl border border-line bg-canvas/40 p-4">
             {status.avatarUrl ? (
               // eslint-disable-next-line @next/next/no-img-element -- Instagram's own image link
-              <img src={status.avatarUrl} alt="" className="size-12 shrink-0 rounded-full border border-hairline object-cover" />
+              <img src={status.avatarUrl} alt="" className="size-12 shrink-0 rounded-full border border-line object-cover" />
             ) : (
-              <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-sand-gold/40" aria-hidden>
+              <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-accent/40" aria-hidden>
                 <AtSign className="size-5" />
               </span>
             )}
             <div className="flex min-w-0 flex-col">
               <span className="truncate font-medium">@{status.username}</span>
-              <span className="text-sm text-taupe">
+              <span className="text-sm text-muted">
                 {status.status === "connected" ? "Videos you post go to this account." : "Instagram stopped accepting ClipGuru’s access."}
               </span>
             </div>
           </div>
           {status.status === "reconnect_needed" && (
-            <p className="text-sm text-taupe">Connect again to keep posting. Your scheduled posts wait until you do.</p>
+            <p className="text-sm text-muted">Connect again to keep posting. Your scheduled posts wait until you do.</p>
           )}
           <div className="flex flex-wrap items-center gap-3">
             {status.status === "reconnect_needed" && (
@@ -157,7 +157,7 @@ export function InstagramSection({ status, result }: { status: InstagramStatus; 
               </Button>
             )}
             {status.status === "connected" && (
-              <a href={connectHref(pathname)} className="tap text-sm text-taupe underline-offset-4 hover:text-espresso hover:underline">
+              <a href={connectHref(pathname)} className="tap text-sm text-muted underline-offset-4 hover:text-ink hover:underline">
                 Use a different account
               </a>
             )}
@@ -170,9 +170,9 @@ export function InstagramSection({ status, result }: { status: InstagramStatus; 
         </>
       ) : (
         <>
-          <p className="text-taupe">
+          <p className="text-muted">
             Connect the Instagram Business or Creator account you want to post to. Meta opens a sign-in window: choose the{" "}
-            <strong className="font-medium text-espresso">Instagram</strong> option (no Facebook account needed), then pick the
+            <strong className="font-medium text-ink">Instagram</strong> option (no Facebook account needed), then pick the
             account. ClipGuru only asks to publish to it.
           </p>
           {status.available ? (
@@ -181,7 +181,7 @@ export function InstagramSection({ status, result }: { status: InstagramStatus; 
               {failure ? "Try again" : "Connect Instagram"}
             </a>
           ) : (
-            <p className="text-sm text-taupe">Instagram isn’t set up on this server yet.</p>
+            <p className="text-sm text-muted">Instagram isn’t set up on this server yet.</p>
           )}
         </>
       )}

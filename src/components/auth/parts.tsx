@@ -10,10 +10,10 @@ export function AuthHeading({ children }: { children: React.ReactNode }) {
 
 export function OrDivider() {
   return (
-    <div className="flex items-center gap-4 text-sm text-taupe" role="separator">
-      <span className="h-px flex-1 bg-hairline" />
+    <div className="flex items-center gap-4 text-sm text-muted" role="separator">
+      <span className="h-px flex-1 bg-line" />
       or
-      <span className="h-px flex-1 bg-hairline" />
+      <span className="h-px flex-1 bg-line" />
     </div>
   );
 }
@@ -33,14 +33,14 @@ export function GoogleButton({ enabled, callbackURL }: { enabled: boolean; callb
           if (error) setBusy(false);
         }}
         className={cn(
-          "flex h-14 w-full items-center justify-center gap-3 rounded-lg border border-hairline bg-surface text-[15px] font-medium shadow-sm transition-colors",
-          "hover:bg-white disabled:cursor-not-allowed disabled:opacity-60",
+          "flex h-14 w-full items-center justify-center gap-3 rounded-lg border border-line bg-surface text-[15px] font-medium shadow-sm transition-colors",
+          "hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-60",
         )}
       >
         <GoogleMark />
         {busy ? "Opening Google…" : "Continue with Google"}
       </button>
-      {!enabled ? <p className="text-center text-xs text-taupe">Google sign-in isn&apos;t set up yet.</p> : null}
+      {!enabled ? <p className="text-center text-xs text-muted">Google sign-in isn&apos;t set up yet.</p> : null}
     </div>
   );
 }
@@ -72,10 +72,10 @@ export function StrengthBar({ password }: { password: string }) {
     <div className="flex flex-col gap-1.5" aria-live="polite">
       <div className="grid grid-cols-3 gap-1.5">
         {[1, 2, 3].map((i) => (
-          <span key={i} className={cn("h-1 rounded-full", i <= score ? "bg-sand-gold" : "bg-hairline")} />
+          <span key={i} className={cn("h-1 rounded-full", i <= score ? "bg-accent" : "bg-line")} />
         ))}
       </div>
-      {label ? <span className="text-xs text-taupe">{label}</span> : null}
+      {label ? <span className="text-xs text-muted">{label}</span> : null}
     </div>
   );
 }
