@@ -21,6 +21,7 @@ export function Dialog({
   onClose: () => void;
   onSubmit?: FormEventHandler<HTMLFormElement>;
   locked?: boolean;
+  /** Sizes the dialog box (e.g. max-w-lg). The inner form keeps its own padding and gaps. */
   className?: string;
   children: ReactNode;
 }) {
