@@ -890,7 +890,7 @@ function ChatPanel({
             placeholder="Ask for changes, e.g. make scene 3 simpler…"
             className="field-sizing-content max-h-40 min-h-11 resize-none rounded-none px-2 py-2.5 focus-visible:ring-0"
           />
-          <Button type="submit" size="sm" disabled={busy || !draft.trim()} className="h-11 shrink-0 px-4 disabled:opacity-50 sm:h-11">
+          <Button type="submit" size="sm" disabled={busy || !draft.trim()} className="h-11 shrink-0 px-4 disabled:bg-ink-strong disabled:opacity-50 sm:h-11">
             Send {busy && !undoing ? <Spinner /> : <ArrowUp className="size-4" />}
           </Button>
         </form>
