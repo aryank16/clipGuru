@@ -7,6 +7,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Badge, type Tone } from "@/components/ui/badge";
 import { Button, buttonClasses } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
+import { IconButton } from "@/components/ui/icon-button";
 import { cn } from "@/lib/cn";
 import { addDays, groupPosts, mondayOf, RECENT_DAYS, weekDays } from "@/lib/posts/schedule-view";
 import { LOCK_BEFORE_MS, type Post, type PostStatus } from "@/lib/posts/types";
@@ -80,30 +81,17 @@ export function ScheduledView({ items, timeZone }: { items: ScheduledItem[]; tim
             Week of {days[0].day} {monthLabel}
           </h2>
           <div className="flex items-center gap-1">
-            <button
-              type="button"
-              onClick={() => setMonday(addDays(monday, -7))}
-              className="flex size-11 items-center justify-center rounded-lg text-ink hover:bg-surface-sunken/70"
-              aria-label="Previous week"
-            >
-              <ChevronLeft className="size-4" />
-            </button>
-            <button
-              type="button"
+            <IconButton label="Previous week" icon={<ChevronLeft className="size-4" />} onClick={() => setMonday(addDays(monday, -7))} />
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => setMonday(thisMonday)}
               disabled={monday === thisMonday}
-              className="h-11 rounded-lg px-3 font-mono text-xs uppercase tracking-[0.1em] text-ink hover:bg-surface-sunken/70 disabled:text-muted/60 disabled:hover:bg-transparent"
+              className="h-11 font-mono text-xs uppercase tracking-[0.1em] disabled:text-muted/60 disabled:opacity-100 disabled:hover:bg-transparent sm:h-11"
             >
               Today
-            </button>
-            <button
-              type="button"
-              onClick={() => setMonday(addDays(monday, 7))}
-              className="flex size-11 items-center justify-center rounded-lg text-ink hover:bg-surface-sunken/70"
-              aria-label="Next week"
-            >
-              <ChevronRight className="size-4" />
-            </button>
+            </Button>
+            <IconButton label="Next week" icon={<ChevronRight className="size-4" />} onClick={() => setMonday(addDays(monday, 7))} />
           </div>
         </div>
         <ol className="mt-4 grid grid-cols-7 gap-1 sm:gap-2">

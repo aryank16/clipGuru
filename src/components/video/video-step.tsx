@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { StepTabs } from "@/components/idea/step-tabs";
 import { Button, buttonClasses } from "@/components/ui/button";
+import { Pressable } from "@/components/ui/pressable";
 import { cn } from "@/lib/cn";
 import { canPost, type Project } from "@/lib/projects/types";
 import { RENDER_STAGES, STAGE_LABELS, type Render, type RenderStage } from "@/lib/render/types";
@@ -349,9 +350,8 @@ function CoverPicker({ render, onChange }: { render: Render; onChange: (r: Rende
         {render.covers.map((c, i) => {
           const chosen = i === picked;
           return (
-            <button
+            <Pressable
               key={c.url}
-              type="button"
               role="radio"
               aria-checked={chosen}
               tabIndex={chosen ? 0 : -1}
@@ -378,7 +378,7 @@ function CoverPicker({ render, onChange }: { render: Render; onChange: (r: Rende
                   <Loader2 className="size-5 animate-spin text-on-ink" />
                 </span>
               )}
-            </button>
+            </Pressable>
           );
         })}
       </div>

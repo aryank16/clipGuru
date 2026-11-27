@@ -10,6 +10,11 @@ import { WritingStoryboard } from "@/components/storyboard/writing";
 import { useSaver } from "@/components/account/save";
 import { toBrief, type Brief } from "@/lib/brief";
 import { CHAT_TEXT_MAX, type ChatMessage, type Idea } from "@/lib/chat/types";
+import { Chip } from "@/components/ui/chip";
+import { IconButton } from "@/components/ui/icon-button";
+import { Textarea } from "@/components/ui/input";
+import { Pressable } from "@/components/ui/pressable";
+import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/cn";
 import { canPost, DEFAULT_TITLE, type Project } from "@/lib/projects/types";
 import { BriefPanel } from "./brief-panel";
@@ -333,12 +338,14 @@ function Chat({
         <div className="flex flex-wrap items-center gap-2">
           <span className="eyebrow mr-1">Try</span>
           {STARTERS.map((s) => (
-            <button
+            <Chip
               key={s}
-              type="button"
+              look="solid"
+              selected={false}
+              aria-pressed={undefined}
               disabled={busy}
               onClick={() => onSend(s)}
-              className="flex min-h-10 items-center gap-1.5 rounded-lg border border-line bg-surface px-3 text-sm text-ink hover:border-muted/40 disabled:opacity-60"
+              className="flex min-h-10 items-center gap-1.5 px-3 text-sm"
             >
               {s.startsWith("Give") ? (
                 <Sparkles className="size-4 text-muted" />
@@ -346,7 +353,7 @@ function Chat({
                 <Lightbulb className="size-4 text-muted" />
               )}
               {s}
-            </button>
+            </Chip>
           ))}
         </div>
       )}
@@ -375,7 +382,8 @@ function Chat({
             Message
           </label>
           <div className="flex items-end gap-2">
-            <textarea
+            <Textarea
+              bare
               id="chat-input"
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
@@ -383,20 +391,16 @@ function Chat({
               maxLength={CHAT_TEXT_MAX}
               rows={2}
               placeholder="Describe your idea, or ask for changes…"
-              className="field-sizing-content max-h-48 min-h-12 w-full resize-none bg-transparent px-2 py-1.5 text-[15px] placeholder:text-muted/70 focus:outline-none"
+              className="field-sizing-content max-h-48 min-h-12 resize-none rounded-none px-2 py-1.5 focus-visible:ring-0"
             />
-            <button
+            <IconButton
               type="submit"
+              tone="primary"
+              label="Send"
               disabled={busy || !draft.trim()}
-              className="inline-flex size-11 shrink-0 items-center justify-center rounded-lg bg-ink-strong text-on-ink hover:bg-ink disabled:opacity-50"
-            >
-              {busy ? (
-                <Loader2 className="size-5 animate-spin" />
-              ) : (
-                <ArrowUp className="size-5" />
-              )}
-              <span className="sr-only">Send</span>
-            </button>
+              icon={busy ? <Spinner className="size-5" /> : <ArrowUp className="size-5" />}
+              className="disabled:cursor-default"
+            />
           </div>
           <p className="hidden px-2 pt-2 text-right font-mono text-[11px] uppercase tracking-wide text-muted sm:block">
             Enter to send · Shift + Enter for a new line
@@ -436,8 +440,7 @@ function MessageView({
           <ul className="grid gap-2 sm:grid-cols-2" aria-label="Ideas">
             {ideas.map((idea) => (
               <li key={idea.title}>
-                <button
-                  type="button"
+                <Pressable
                   disabled={busy}
                   onClick={() =>
                     onPick(`Let's go with "${idea.title}": ${idea.hook}`)
@@ -448,7 +451,7 @@ function MessageView({
                     {idea.title}
                   </span>
                   <span className="text-sm text-muted">{idea.hook}</span>
-                </button>
+                </Pressable>
               </li>
             ))}
           </ul>

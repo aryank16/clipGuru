@@ -6,6 +6,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { PageHeader } from "@/components/shell/page-header";
 import { Button, buttonClasses } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Chip } from "@/components/ui/chip";
+import { Dialog } from "@/components/ui/dialog";
+import { IconButton } from "@/components/ui/icon-button";
+import { Input } from "@/components/ui/input";
+import { TextButton } from "@/components/ui/text-button";
+import { Toast } from "@/components/ui/toast";
 import { cn } from "@/lib/cn";
 import {
   FILTER_LABELS,
@@ -141,23 +147,18 @@ export function VideoLibrary({ initial, initialCounts }: { initial: ListPage; in
           </div>
           <div role="tablist" aria-label="Filter videos" className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
             {PROJECT_FILTERS.map((f) => (
-              <button
+              <Chip
                 key={f}
-                type="button"
+                look="solid"
                 role="tab"
-                aria-selected={filter === f}
+                selected={filter === f}
                 onClick={() => setFilter(f)}
-                className={cn(
-                  "flex h-11 shrink-0 items-center sm:h-10 gap-2 rounded-lg border px-4 text-[15px] transition-colors",
-                  filter === f
-                    ? "border-ink-strong bg-ink-strong text-on-ink"
-                    : "border-line bg-surface text-ink hover:border-muted/40",
-                )}
+                className="flex h-11 shrink-0 items-center gap-2 px-4 sm:h-10"
               >
                 {f === "rendering" ? <span className="size-1.5 rounded-full bg-progress" aria-hidden /> : null}
                 {FILTER_LABELS[f]}
                 <span className={cn("font-mono text-xs", filter === f ? "text-accent" : "text-muted")}>{counts[f]}</span>
-              </button>
+              </Chip>
             ))}
           </div>
         </div>
@@ -228,15 +229,15 @@ export function VideoLibrary({ initial, initialCounts }: { initial: ListPage; in
       ) : null}
 
       {undo ? (
-        <div
-          role="status"
-          className="fixed inset-x-4 bottom-24 z-40 mx-auto flex max-w-md items-center justify-between gap-4 rounded-xl bg-ink-strong px-5 py-3.5 text-on-ink shadow-lg lg:bottom-8"
+        <Toast
+          action={
+            <TextButton tone="accent" onClick={restore} className="shrink-0 text-base">
+              Undo
+            </TextButton>
+          }
         >
-          <span className="truncate text-[15px]">Deleted “{undo.project.title}”</span>
-          <button type="button" onClick={restore} className="shrink-0 font-semibold text-accent hover:underline">
-            Undo
-          </button>
-        </div>
+          Deleted “{undo.project.title}”
+        </Toast>
       ) : null}
     </div>
   );
@@ -247,22 +248,21 @@ function SearchBox({ value, onChange }: { value: string; onChange: (v: string) =
     <label className="relative flex items-center lg:w-80">
       <span className="sr-only">Search videos</span>
       <Search className="pointer-events-none absolute left-3.5 size-4 text-muted" aria-hidden />
-      <input
+      <Input
         type="search"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder="Search by title"
-        className="h-11 w-full rounded-lg border border-line bg-surface pr-10 pl-10 text-[15px] text-ink placeholder:text-muted/70 focus:border-accent focus:ring-2 focus:ring-accent/40 focus:outline-none [&::-webkit-search-cancel-button]:hidden"
+        className="h-11 bg-surface pr-10 pl-10 [&::-webkit-search-cancel-button]:hidden"
       />
       {value ? (
-        <button
-          type="button"
-          aria-label="Clear search"
+        <IconButton
+          label="Clear search"
+          icon={<X className="size-4" />}
+          tone="muted"
           onClick={() => onChange("")}
-          className="absolute right-2 flex size-7 items-center justify-center rounded text-muted hover:text-ink"
-        >
-          <X className="size-4" />
-        </button>
+          className="absolute right-2 size-7 rounded"
+        />
       ) : null}
     </label>
   );
@@ -280,12 +280,6 @@ function RenameDialog({
   const [title, setTitle] = useState(project.title);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [onClose]);
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
@@ -307,15 +301,7 @@ function RenameDialog({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink/30 p-4 sm:items-center" onMouseDown={onClose}>
-      <form
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="rename-title"
-        onSubmit={save}
-        onMouseDown={(e) => e.stopPropagation()}
-        className="flex w-full max-w-md flex-col gap-5 rounded-2xl border border-line bg-surface p-6 shadow-xl"
-      >
+    <Dialog titleId="rename-title" onClose={onClose} onSubmit={save}>
         <h2 id="rename-title" className="text-lg font-semibold">
           Rename video
         </h2>
@@ -323,7 +309,8 @@ function RenameDialog({
           <label htmlFor="rename-input" className="sr-only">
             Title
           </label>
-          <input
+          <Input
+            size="md"
             id="rename-input"
             autoFocus
             maxLength={TITLE_MAX}
@@ -334,7 +321,6 @@ function RenameDialog({
             }}
             onFocus={(e) => e.currentTarget.select()}
             aria-invalid={Boolean(error)}
-            className="h-12 w-full rounded-lg border border-line bg-canvas/40 px-4 text-[15px] focus:border-accent focus:ring-2 focus:ring-accent/40 focus:outline-none aria-[invalid=true]:border-danger/60"
           />
           {error ? (
             <p role="alert" className="text-sm text-danger">
@@ -350,7 +336,6 @@ function RenameDialog({
             {saving ? "Saving…" : "Save"}
           </Button>
         </div>
-      </form>
-    </div>
+    </Dialog>
   );
 }

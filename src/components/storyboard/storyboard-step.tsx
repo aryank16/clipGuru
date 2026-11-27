@@ -27,6 +27,12 @@ import { StepTabs } from "@/components/idea/step-tabs";
 import { Button } from "@/components/ui/button";
 import { lengthRange, toBrief, VIDEO_LENGTHS } from "@/lib/brief";
 import { CHAT_TEXT_MAX, type ChatMessage } from "@/lib/chat/types";
+import { Chip } from "@/components/ui/chip";
+import { IconButton } from "@/components/ui/icon-button";
+import { Input, Textarea } from "@/components/ui/input";
+import { Pressable } from "@/components/ui/pressable";
+import { Spinner } from "@/components/ui/spinner";
+import { TextButton } from "@/components/ui/text-button";
 import { cn } from "@/lib/cn";
 import { canPost, type Project } from "@/lib/projects/types";
 import {
@@ -406,14 +412,14 @@ export function StoryboardStep({
               className="flex items-start justify-between gap-3 rounded-lg border border-accent bg-accent/15 px-4 py-3 text-sm text-ink"
             >
               <span>{notice}</span>
-              <button
-                type="button"
+              <IconButton
+                size="md"
+                tone="muted"
+                label="Dismiss"
+                icon={<X className="size-4" />}
                 onClick={() => setNotice(null)}
-                className="-my-2 -mr-2 inline-flex size-10 shrink-0 items-center justify-center rounded-md text-muted hover:text-ink"
-              >
-                <X className="size-4" />
-                <span className="sr-only">Dismiss</span>
-              </button>
+                className="-my-2 -mr-2 rounded-md"
+              />
             </div>
           )}
           <ol className="flex flex-col gap-4" aria-label="Scenes">
@@ -609,7 +615,11 @@ function SceneCard({
     if (v !== scene.narration) onChange({ ...scene, narration: v });
   }
 
-  const icon = "inline-flex size-10 items-center justify-center rounded-md text-muted hover:bg-surface-sunken/70 hover:text-ink disabled:opacity-40 disabled:hover:bg-transparent";
+  const icon = {
+    size: "md",
+    tone: "muted",
+    className: "rounded-md hover:bg-surface-sunken/70 disabled:opacity-40 disabled:hover:bg-transparent",
+  } as const;
 
   return (
     <li
@@ -626,8 +636,7 @@ function SceneCard({
         </span>
       )}
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-line px-4 py-3 sm:px-5">
-        <button
-          type="button"
+        <Pressable
           onClick={onPlay}
           title="Play this scene in the preview"
           className={cn(
@@ -638,13 +647,14 @@ function SceneCard({
           <Play className="size-3" aria-hidden />
           SC {String(n).padStart(2, "0")}
           <span className="sr-only">: play scene {n} in the preview</span>
-        </button>
+        </Pressable>
         <span className="font-mono text-xs uppercase tracking-wider text-muted">{SCENE_LABELS[scene.type]}</span>
         {scene.type === "stat" && <span className="font-display text-lg font-black">{scene.value}</span>}
         <label htmlFor={`scene-${n}-heading`} className="sr-only">
           Scene {n} heading
         </label>
-        <input
+        <Input
+          bare
           id={`scene-${n}-heading`}
           value={heading}
           maxLength={headingMax}
@@ -653,32 +663,42 @@ function SceneCard({
           onBlur={saveHeading}
           onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
           autoComplete="off"
-          className="min-w-40 flex-1 basis-40 rounded-md bg-transparent px-1 py-1 text-[17px] font-semibold text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 disabled:opacity-100"
+          className="w-auto min-w-40 flex-1 basis-40 px-1 py-1 text-[17px] font-semibold disabled:opacity-100"
         />
         <span className="ml-auto font-mono text-sm text-muted">{sceneSeconds(scene).toFixed(1)} s</span>
         <div className="-mr-2 flex items-center">
-          <button type="button" className={icon} disabled={busy} onClick={onRegenerate} title="New take on this scene">
-            {regenerating ? <Loader2 className="size-4 animate-spin" /> : <RefreshCw className="size-4" />}
-            <span className="sr-only">New take on scene {n}</span>
-          </button>
-          <button type="button" className={icon} disabled={busy || index === 0} onClick={() => onMove(-1)} title="Move up">
-            <ArrowUp className="size-4" />
-            <span className="sr-only">Move scene {n} up</span>
-          </button>
-          <button type="button" className={icon} disabled={busy || index === count - 1} onClick={() => onMove(1)} title="Move down">
-            <ArrowDown className="size-4" />
-            <span className="sr-only">Move scene {n} down</span>
-          </button>
-          <button
-            type="button"
-            className={icon}
+          <IconButton
+            {...icon}
+            disabled={busy}
+            onClick={onRegenerate}
+            title="New take on this scene"
+            label={`New take on scene ${n}`}
+            icon={regenerating ? <Spinner /> : <RefreshCw className="size-4" />}
+          />
+          <IconButton
+            {...icon}
+            disabled={busy || index === 0}
+            onClick={() => onMove(-1)}
+            title="Move up"
+            label={`Move scene ${n} up`}
+            icon={<ArrowUp className="size-4" />}
+          />
+          <IconButton
+            {...icon}
+            disabled={busy || index === count - 1}
+            onClick={() => onMove(1)}
+            title="Move down"
+            label={`Move scene ${n} down`}
+            icon={<ArrowDown className="size-4" />}
+          />
+          <IconButton
+            {...icon}
             disabled={busy || count <= MIN_SCENES}
             onClick={onRemove}
             title={count <= MIN_SCENES ? `A storyboard needs at least ${MIN_SCENES} scenes` : "Delete scene"}
-          >
-            <Trash2 className="size-4" />
-            <span className="sr-only">Delete scene {n}</span>
-          </button>
+            label={`Delete scene ${n}`}
+            icon={<Trash2 className="size-4" />}
+          />
         </div>
       </div>
 
@@ -692,7 +712,8 @@ function SceneCard({
             <label htmlFor={`scene-${n}-narration`} className="sr-only">
               Scene {n} narration
             </label>
-            <textarea
+            <Textarea
+              bare
               id={`scene-${n}-narration`}
               autoFocus
               value={narration}
@@ -705,12 +726,11 @@ function SceneCard({
                   setEditing(false);
                 }
               }}
-              className="field-sizing-content min-h-16 w-full resize-none rounded-md bg-canvas/60 px-2 py-1.5 text-[16px] leading-relaxed text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
+              className="field-sizing-content min-h-16 resize-none bg-canvas/60 px-2 py-1.5 text-[16px] leading-relaxed"
             />
           </>
         ) : (
-          <button
-            type="button"
+          <Pressable
             disabled={busy}
             onClick={() => setEditing(true)}
             className="group -mx-2 w-[calc(100%+1rem)] rounded-md px-2 py-1.5 text-left text-[16px] leading-relaxed text-ink hover:bg-canvas/60 disabled:hover:bg-transparent"
@@ -725,7 +745,7 @@ function SceneCard({
             ))}
             &rdquo;
             <Pencil className="ml-2 inline size-3.5 text-muted opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100" aria-hidden />
-          </button>
+          </Pressable>
         )}
       </div>
 
@@ -832,15 +852,17 @@ function ChatPanel({
         <div className="flex flex-wrap items-center gap-2">
           <span className="eyebrow mr-1">Try</span>
           {EXAMPLES.map((s) => (
-            <button
+            <Chip
               key={s}
-              type="button"
+              look="solid"
+              selected={false}
+              aria-pressed={undefined}
               disabled={busy}
               onClick={() => onSend(s)}
-              className="flex min-h-10 items-center gap-1.5 rounded-lg border border-line bg-surface px-3 text-sm text-ink hover:border-muted/40 disabled:opacity-60"
+              className="flex min-h-10 items-center gap-1.5 px-3 text-sm"
             >
               <Sparkles className="size-4 text-muted" aria-hidden /> {s}
-            </button>
+            </Chip>
           ))}
         </div>
       )}
@@ -857,7 +879,8 @@ function ChatPanel({
             Ask for changes
           </label>
           <Sparkles className="mb-3.5 ml-1 hidden size-4 shrink-0 text-muted sm:block" aria-hidden />
-          <textarea
+          <Textarea
+            bare
             id="storyboard-chat-input"
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
@@ -865,25 +888,20 @@ function ChatPanel({
             maxLength={CHAT_TEXT_MAX}
             rows={1}
             placeholder="Ask for changes, e.g. make scene 3 simpler…"
-            className="field-sizing-content max-h-40 min-h-11 w-full resize-none bg-transparent px-2 py-2.5 text-[15px] placeholder:text-muted/70 focus:outline-none"
+            className="field-sizing-content max-h-40 min-h-11 resize-none rounded-none px-2 py-2.5 focus-visible:ring-0"
           />
-          <button
-            type="submit"
-            disabled={busy || !draft.trim()}
-            className="inline-flex h-11 shrink-0 items-center gap-1.5 rounded-lg bg-ink-strong px-4 text-sm font-medium text-on-ink hover:bg-ink disabled:opacity-50"
-          >
-            Send {busy && !undoing ? <Loader2 className="size-4 animate-spin" /> : <ArrowUp className="size-4" />}
-          </button>
+          <Button type="submit" size="sm" disabled={busy || !draft.trim()} className="h-11 shrink-0 px-4 disabled:opacity-50 sm:h-11">
+            Send {busy && !undoing ? <Spinner /> : <ArrowUp className="size-4" />}
+          </Button>
         </form>
         <div className="flex flex-wrap items-center justify-between gap-2 border-t border-line pt-2">
-          <button
-            type="button"
+          <TextButton
             disabled={busy || !canUndo}
             onClick={onUndo}
-            className="inline-flex min-h-11 items-center gap-1.5 rounded-md px-2 font-mono text-xs uppercase tracking-wide text-muted hover:text-ink disabled:opacity-50"
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-md px-2 font-mono text-xs font-normal uppercase tracking-wide hover:no-underline"
           >
-            {undoing ? <Loader2 className="size-4 animate-spin" /> : <Undo2 className="size-4" />} Undo last change
-          </button>
+            {undoing ? <Spinner /> : <Undo2 className="size-4" />} Undo last change
+          </TextButton>
           <div className="px-2">{saveStatus}</div>
         </div>
       </div>

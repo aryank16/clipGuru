@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { signIn } from "@/lib/auth-client";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/cn";
 
 export function AuthHeading({ children }: { children: React.ReactNode }) {
@@ -23,8 +24,9 @@ export function GoogleButton({ enabled, callbackURL }: { enabled: boolean; callb
   const [busy, setBusy] = useState(false);
   return (
     <div className="flex flex-col gap-2">
-      <button
-        type="button"
+      <Button
+        variant="secondary"
+        size="lg"
         disabled={!enabled || busy}
         onClick={async () => {
           setBusy(true);
@@ -32,14 +34,11 @@ export function GoogleButton({ enabled, callbackURL }: { enabled: boolean; callb
           const { error } = await signIn.social({ provider: "google", callbackURL, errorCallbackURL: "/sign-in" });
           if (error) setBusy(false);
         }}
-        className={cn(
-          "flex h-14 w-full items-center justify-center gap-3 rounded-lg border border-line bg-surface text-[15px] font-medium shadow-sm transition-colors",
-          "hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-60",
-        )}
+        className="w-full gap-3 rounded-lg text-[15px] hover:border-line disabled:opacity-60"
       >
         <GoogleMark />
         {busy ? "Opening Google…" : "Continue with Google"}
-      </button>
+      </Button>
       {!enabled ? <p className="text-center text-xs text-muted">Google sign-in isn&apos;t set up yet.</p> : null}
     </div>
   );

@@ -5,6 +5,10 @@ import Link from "next/link";
 import { useState } from "react";
 import { Status, type SaveState } from "@/components/account/save";
 import { Button, buttonClasses } from "@/components/ui/button";
+import { Chip } from "@/components/ui/chip";
+import { IconButton } from "@/components/ui/icon-button";
+import { Input, Textarea } from "@/components/ui/input";
+import { TextButton } from "@/components/ui/text-button";
 import {
   BRIEF_LIMITS,
   briefComplete,
@@ -17,8 +21,6 @@ import {
 import { cn } from "@/lib/cn";
 
 const fieldBox = "flex flex-col gap-2 rounded-lg border border-line bg-canvas/40 px-4 py-3";
-const control =
-  "w-full rounded-md bg-transparent text-[15px] text-ink placeholder:text-muted/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 disabled:opacity-70";
 
 /**
  * The brief beside the chat. The chat fills it in; every field can be edited by hand and saves on
@@ -63,16 +65,14 @@ export function BriefPanel({
         </div>
         <div className="flex items-center gap-2">
           <Status state={saveState} error={saveError} />
-          <button
-            type="button"
+          <IconButton
+            label={open ? "Hide brief" : "Show brief"}
+            icon={<ChevronDown className={cn("size-5 transition-transform", open && "rotate-180")} />}
             onClick={() => setOpen((o) => !o)}
             aria-expanded={open}
             aria-controls="brief-fields"
-            className="inline-flex size-11 items-center justify-center rounded-lg text-muted hover:bg-surface-sunken/70 lg:hidden"
-          >
-            <ChevronDown className={cn("size-5 transition-transform", open && "rotate-180")} />
-            <span className="sr-only">{open ? "Hide brief" : "Show brief"}</span>
-          </button>
+            className="text-muted lg:hidden"
+          />
         </div>
       </div>
 
@@ -207,7 +207,8 @@ function TextField({
     placeholder,
     disabled,
     onBlur: commit,
-    className: cn(control, multiline && "min-h-16 resize-none"),
+    bare: true,
+    className: cn(multiline && "min-h-16 resize-none"),
   };
   return (
     <div className={fieldBox}>
@@ -215,9 +216,9 @@ function TextField({
         {label}
       </label>
       {multiline ? (
-        <textarea {...props} rows={2} onChange={(e) => setDraft(e.target.value)} />
+        <Textarea {...props} rows={2} onChange={(e) => setDraft(e.target.value)} />
       ) : (
-        <input
+        <Input
           {...props}
           autoComplete="off"
           data-1p-ignore
@@ -258,7 +259,8 @@ function KeyPoints({ points, disabled, onSave }: { points: string[]; disabled: b
         {drafts.map((p, i) => (
           <li key={i} className="flex items-start gap-2">
             <span className="pt-0.5 font-mono text-xs text-muted">{String(i + 1).padStart(2, "0")}</span>
-            <textarea
+            <Textarea
+              bare
               aria-label={`Key point ${i + 1}`}
               value={p}
               rows={1}
@@ -266,29 +268,28 @@ function KeyPoints({ points, disabled, onSave }: { points: string[]; disabled: b
               disabled={disabled}
               onChange={(e) => setDrafts(drafts.map((d, j) => (j === i ? e.target.value : d)))}
               onBlur={() => commit(drafts)}
-              className={cn(control, "field-sizing-content resize-none")}
+              className="field-sizing-content resize-none"
             />
-            <button
-              type="button"
+            <IconButton
+              size="sm"
+              tone="muted"
+              label={`Remove key point ${i + 1}`}
+              icon={<X className="size-4" />}
               disabled={disabled}
               onClick={() => commit(drafts.filter((_, j) => j !== i))}
-              className="-my-2 -mr-2 inline-flex size-9 shrink-0 items-center justify-center rounded-md text-muted hover:bg-surface-sunken/70 hover:text-ink disabled:opacity-50"
-            >
-              <X className="size-4" />
-              <span className="sr-only">Remove key point {i + 1}</span>
-            </button>
+              className="-my-2 -mr-2 rounded-md hover:bg-surface-sunken/70"
+            />
           </li>
         ))}
       </ol>
       {drafts.length < BRIEF_LIMITS.points && (
-        <button
-          type="button"
+        <TextButton
           disabled={disabled || drafts.some((d) => !d.trim())}
           onClick={() => setDrafts([...drafts, ""])}
-          className="flex w-fit items-center gap-1.5 rounded-md py-1 text-sm text-muted hover:text-ink disabled:opacity-50"
+          className="flex items-center gap-1.5 rounded-md py-1 font-normal hover:no-underline"
         >
           <Plus className="size-4" /> Add a point
-        </button>
+        </TextButton>
       )}
     </fieldset>
   );
@@ -311,21 +312,15 @@ function Length({ value, disabled, onSave }: { value: VideoLength; disabled: boo
       </span>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         {VIDEO_LENGTH_IDS.map((id) => (
-          <button
+          <Chip
             key={id}
-            type="button"
-            aria-pressed={value === id}
+            selected={value === id}
             disabled={disabled}
             onClick={() => value !== id && onSave(id)}
-            className={cn(
-              "min-h-9 whitespace-nowrap rounded-md border px-2 font-mono text-xs transition-colors disabled:opacity-60 sm:text-sm",
-              value === id
-                ? "border-accent bg-accent/30 font-medium text-ink"
-                : "border-line text-muted hover:border-muted/40 hover:text-ink",
-            )}
+            className="whitespace-nowrap px-2 font-mono text-xs sm:text-sm"
           >
             {VIDEO_LENGTHS[id].label}
-          </button>
+          </Chip>
         ))}
       </div>
       <p className="text-xs text-muted">{LENGTH_HINTS[value]}</p>
@@ -343,21 +338,9 @@ function Tone({ value, disabled, onSave }: { value: string; disabled: boolean; o
       </span>
       <div className="flex flex-wrap gap-2">
         {TONE_PRESETS.map((t) => (
-          <button
-            key={t}
-            type="button"
-            aria-pressed={value === t}
-            disabled={disabled}
-            onClick={() => onSave(value === t ? "" : t)}
-            className={cn(
-              "min-h-9 rounded-md border px-3 text-sm transition-colors disabled:opacity-60",
-              value === t
-                ? "border-accent bg-accent/30 font-medium text-ink"
-                : "border-line text-muted hover:border-muted/40 hover:text-ink",
-            )}
-          >
+          <Chip key={t} selected={value === t} disabled={disabled} onClick={() => onSave(value === t ? "" : t)}>
             {t}
-          </button>
+          </Chip>
         ))}
         {custom && (
           <span className="flex min-h-9 items-center rounded-md border border-accent bg-accent/30 px-3 text-sm font-medium">

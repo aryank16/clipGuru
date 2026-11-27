@@ -84,7 +84,7 @@ export function Welcome({ firstName, voices, currentVoice }: { firstName: string
             </p>
           </div>
           <div className="mt-auto flex flex-col gap-3">
-            <Button size="lg" className="w-full justify-between" disabled={busy} onClick={() => finish("/new", "start")}>
+            <Button size="lg" className="w-full" disabled={busy} onClick={() => finish("/new", "start")}>
               Start with an idea
               {leaving === "start" ? <Loader2 className="size-4 animate-spin" /> : <ArrowRight className="size-4" />}
             </Button>

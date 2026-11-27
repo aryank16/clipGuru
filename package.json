@@ -37,6 +37,7 @@
     "react-dom": "19.3.0",
     "remotion": "4.0.541",
     "server-only": "^0.0.1",
+    "tailwind-merge": "3.7.0",
     "three": "0.170.0",
     "zod": "^4.6.7"
   },

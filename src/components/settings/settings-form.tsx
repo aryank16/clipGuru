@@ -1,10 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { patchMe, Status, useSaver } from "@/components/account/save";
 import { VoicePicker } from "@/components/account/voice-picker";
 import { SignOutButton } from "@/components/auth/sign-out-button";
+import { Dialog } from "@/components/ui/dialog";
+import { Input, Select } from "@/components/ui/input";
+import { TextButton } from "@/components/ui/text-button";
 import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
 import { InstagramSection, type ConnectResult } from "@/components/instagram/instagram-section";
@@ -89,7 +92,8 @@ function AccountSection({ me, hasPassword, google }: { me: Me; hasPassword: bool
           </label>
           {/* The browser must not fill this with the name saved in its own profile: the field shows
               the account's saved name, and a filled-in value would look saved when it isn't. */}
-          <input
+          <Input
+            size="md"
             id="display-name"
             autoComplete="off"
             data-1p-ignore
@@ -97,7 +101,6 @@ function AccountSection({ me, hasPassword, google }: { me: Me; hasPassword: bool
             value={name}
             maxLength={NAME_MAX}
             onChange={(e) => setName(e.target.value)}
-            className="h-12 rounded-lg border border-line bg-canvas/40 px-4 text-[15px] focus:border-accent focus:ring-2 focus:ring-accent/40 focus:outline-none"
           />
         </div>
         <div className="flex flex-col gap-2">
@@ -169,26 +172,17 @@ function TimeZoneSection({ current, options }: { current: string; options: TimeZ
       <label htmlFor="tz" className="sr-only">
         Time zone
       </label>
-      <select
-        id="tz"
-        value={tz}
-        onChange={(e) => change(e.target.value)}
-        className="h-12 w-full rounded-lg border border-line bg-canvas/40 px-3 text-[15px] focus:border-accent focus:ring-2 focus:ring-accent/40 focus:outline-none"
-      >
+      <Select id="tz" value={tz} onChange={(e) => change(e.target.value)}>
         {options.map((o) => (
           <option key={o.id} value={o.id}>
             {o.label}
           </option>
         ))}
-      </select>
+      </Select>
       {browserTz && browserTz !== tz && options.some((o) => o.id === browserTz) ? (
-        <button
-          type="button"
-          onClick={() => change(browserTz)}
-          className="self-start text-sm font-medium underline underline-offset-4"
-        >
+        <TextButton tone="ink" underline="always" onClick={() => change(browserTz)} className="self-start">
           Use this device&apos;s time zone ({browserTz.replaceAll("_", " ")})
-        </button>
+        </TextButton>
       ) : null}
     </Card>
   );
@@ -197,7 +191,7 @@ function TimeZoneSection({ current, options }: { current: string; options: TimeZ
 function DeleteSection({ email }: { email: string }) {
   const [open, setOpen] = useState(false);
   return (
-    <Card className="flex flex-col gap-5 border-danger/25 p-6 sm:p-8">
+    <Card className="flex flex-col gap-5 p-6 sm:p-8">
       <SectionHeader index="05" eyebrow="Danger zone" title="Delete account" />
       <div className="flex flex-wrap items-center justify-between gap-4">
         <p className="max-w-lg text-muted">
@@ -216,12 +210,6 @@ function DeleteDialog({ email, onClose }: { email: string; onClose: () => void }
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && !busy && onClose();
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [busy, onClose]);
 
   async function confirm(e: React.FormEvent) {
     e.preventDefault();
@@ -243,15 +231,7 @@ function DeleteDialog({ email, onClose }: { email: string; onClose: () => void }
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink/30 p-4 sm:items-center" onMouseDown={() => !busy && onClose()}>
-      <form
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="delete-title"
-        onSubmit={confirm}
-        onMouseDown={(e) => e.stopPropagation()}
-        className="flex w-full max-w-md flex-col gap-5 rounded-2xl border border-line bg-surface p-6 shadow-xl"
-      >
+    <Dialog titleId="delete-title" onClose={onClose} onSubmit={confirm} locked={busy}>
         <h2 id="delete-title" className="text-lg font-semibold">
           Delete your account?
         </h2>
@@ -259,13 +239,14 @@ function DeleteDialog({ email, onClose }: { email: string; onClose: () => void }
           This deletes <span className="font-medium text-ink">{email}</span> and every video in it. Type{" "}
           <span className="font-mono font-semibold text-ink">DELETE</span> to confirm.
         </p>
-        <input
+        <Input
+          size="md"
           autoFocus
           value={text}
           onChange={(e) => setText(e.target.value)}
           aria-label="Type DELETE to confirm"
           autoComplete="off"
-          className="h-12 rounded-lg border border-line bg-canvas/40 px-4 font-mono text-[15px] focus:border-danger/60 focus:ring-2 focus:ring-danger/20 focus:outline-none"
+          className="font-mono focus:border-danger/60 focus:ring-danger/20"
         />
         {error ? (
           <p role="alert" className="text-sm text-danger">
@@ -280,7 +261,6 @@ function DeleteDialog({ email, onClose }: { email: string; onClose: () => void }
             {busy ? "Deleting…" : "Delete for good"}
           </Button>
         </div>
-      </form>
-    </div>
+    </Dialog>
   );
 }

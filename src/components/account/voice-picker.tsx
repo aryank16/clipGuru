@@ -2,6 +2,8 @@
 
 import { Pause, Play } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { IconButton } from "@/components/ui/icon-button";
+import { Pressable } from "@/components/ui/pressable";
 import { cn } from "@/lib/cn";
 import type { Voice } from "@/lib/voices";
 
@@ -63,12 +65,11 @@ export function VoicePicker({
               on ? "border-accent bg-accent/10" : "border-line hover:border-muted/40",
             )}
           >
-            <button
-              type="button"
+            <Pressable
               role="radio"
               aria-checked={on}
               onClick={() => choose(v.id)}
-              className="flex min-w-0 flex-1 items-center gap-4 text-left"
+              className="flex min-w-0 flex-1 items-center gap-4 rounded-md text-left"
             >
               <span
                 className={cn(
@@ -88,20 +89,18 @@ export function VoicePicker({
                 </span>
                 <span className="block text-sm text-muted">{v.description}</span>
               </span>
-            </button>
-            <button
-              type="button"
+            </Pressable>
+            <IconButton
               onClick={() => toggle(v)}
-              aria-label={playing === v.id ? `Stop ${v.name} sample` : `Play ${v.name} sample`}
+              label={playing === v.id ? `Stop ${v.name} sample` : `Play ${v.name} sample`}
+              icon={playing === v.id ? <Pause className="size-4" /> : <Play className="ml-0.5 size-4" />}
               className={cn(
-                "flex size-11 shrink-0 items-center justify-center rounded-full border transition-colors",
+                "rounded-full border",
                 playing === v.id
-                  ? "border-ink-strong bg-ink-strong text-on-ink"
-                  : "border-line bg-surface text-ink hover:border-muted/40",
+                  ? "border-ink-strong bg-ink-strong text-on-ink hover:bg-ink-strong"
+                  : "border-line bg-surface text-ink hover:border-muted/40 hover:bg-surface",
               )}
-            >
-              {playing === v.id ? <Pause className="size-4" /> : <Play className="ml-0.5 size-4" />}
-            </button>
+            />
           </div>
         );
       })}

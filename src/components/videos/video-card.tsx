@@ -4,6 +4,8 @@ import { Copy, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
+import { IconButton } from "@/components/ui/icon-button";
+import { Menu, MenuDivider, MenuItem } from "@/components/ui/menu";
 import { cn } from "@/lib/cn";
 import type { Project } from "@/lib/projects/types";
 import { clock, relativeTime } from "@/lib/time";
@@ -94,48 +96,36 @@ function CardMenu({
   }, [open]);
 
   const item = (label: string, Icon: typeof Pencil, run: () => void, danger = false) => (
-    <button
-      type="button"
-      role="menuitem"
+    <MenuItem
+      icon={Icon}
+      danger={danger}
       onClick={() => {
         setOpen(false);
         run();
       }}
-      className={cn(
-        "flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left text-[15px] hover:bg-surface-sunken/60",
-        danger ? "text-danger" : "text-ink",
-      )}
     >
-      <Icon className="size-4" aria-hidden />
       {label}
-    </button>
+    </MenuItem>
   );
 
   return (
     <div ref={ref} className="relative -mt-1 -mr-1 shrink-0">
-      <button
-        type="button"
-        aria-label={`More actions for ${title}`}
+      <IconButton
+        label={`More actions for ${title}`}
+        icon={<MoreHorizontal className="size-5" />}
+        tone="muted"
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
-        className={cn(
-          "flex size-11 items-center justify-center rounded-md sm:size-9 text-muted hover:bg-surface-sunken/70 hover:text-ink",
-          open && "bg-surface-sunken/70 text-ink",
-        )}
-      >
-        <MoreHorizontal className="size-5" />
-      </button>
+        className={cn("rounded-md hover:bg-surface-sunken/70 sm:size-9", open && "bg-surface-sunken/70 text-ink")}
+      />
       {open ? (
-        <div
-          role="menu"
-          className="absolute right-0 bottom-11 z-20 w-48 rounded-lg border border-line bg-surface p-1.5 shadow-pop"
-        >
+        <Menu className="right-0 bottom-11">
           {item("Rename", Pencil, onRename)}
           {item("Duplicate", Copy, onDuplicate)}
-          <div className="my-1 border-t border-line" />
+          <MenuDivider />
           {item("Delete", Trash2, onDelete, true)}
-        </div>
+        </Menu>
       ) : null}
     </div>
   );

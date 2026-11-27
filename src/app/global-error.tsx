@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { Button } from "@/components/ui/button";
 import "./globals.css";
 
 /** Last resort when the root layout itself fails: a plain page with a way to reload. */
@@ -16,9 +17,7 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
           <p className="text-muted">
             Your videos are safe. Reload the page to carry on{error.digest ? ` (code ${error.digest})` : ""}.
           </p>
-          <button type="button" onClick={reset} className="h-11 rounded-lg bg-ink-strong px-5 font-medium text-on-ink">
-            Reload
-          </button>
+          <Button onClick={reset}>Reload</Button>
         </main>
       </body>
     </html>

@@ -20,6 +20,9 @@ import { StepTabs } from "@/components/idea/step-tabs";
 import type { ConnectResult } from "@/components/instagram/instagram-section";
 import { CONNECT_ERROR_TEXT } from "@/components/instagram/messages";
 import { Button, buttonClasses } from "@/components/ui/button";
+import { Input, Textarea } from "@/components/ui/input";
+import { Segmented } from "@/components/ui/segmented";
+import { TextButton } from "@/components/ui/text-button";
 import { cn } from "@/lib/cn";
 import type { InstagramStatus } from "@/lib/instagram/types";
 import {
@@ -38,6 +41,10 @@ import { formatDuration } from "@/lib/storyboard/types";
 import { formatInZone, utcToZoned, zoneLabel, zonedToUtc } from "@/lib/zoned";
 
 const POLL_MS = 3000;
+const WHEN_OPTIONS = [
+  { value: "now", label: "Post now" },
+  { value: "scheduled", label: "Schedule" },
+] as const;
 const connectHref = (projectId: string) => `/api/instagram/connect?returnTo=${encodeURIComponent(`/videos/${projectId}/post`)}`;
 const draftKey = (projectId: string) => `clipguru:caption:${projectId}`;
 
@@ -488,15 +495,15 @@ function Compose({
           <h2 id="caption-h" className="font-mono text-xs font-semibold uppercase tracking-wider">
             Caption
           </h2>
-          <Button variant="secondary" size="sm" onClick={suggest} disabled={writing} aria-busy={writing}>
-            {writing ? <Loader2 className="size-4 animate-spin" aria-hidden /> : <Sparkles className="size-4" aria-hidden />}
+          <Button variant="secondary" size="sm" onClick={suggest} loading={writing}>
+            {writing ? null : <Sparkles className="size-4" aria-hidden />}
             {caption ? "Rewrite with AI" : "Write with AI"}
           </Button>
         </div>
         <label className="sr-only" htmlFor="caption">
           Caption
         </label>
-        <textarea
+        <Textarea
           id="caption"
           value={caption}
           onChange={(e) => setCaption(e.target.value)}
@@ -504,20 +511,21 @@ function Compose({
           placeholder={writing ? "Writing a caption…" : "What should people know about this video?"}
           aria-invalid={tooLong || undefined}
           aria-describedby="caption-count"
-          className="w-full resize-y rounded-lg border border-line bg-surface px-4 py-3 text-[15px] leading-relaxed text-ink placeholder:text-muted/70 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/40 aria-[invalid=true]:border-danger/60"
+          className="resize-y"
         />
         <div className="flex flex-col gap-2">
           <label htmlFor="hashtags" className="text-sm font-medium">
             Hashtags
           </label>
-          <input
+          <Input
+            size="md"
             id="hashtags"
             value={tags}
             onChange={(e) => setTags(e.target.value)}
             placeholder="#science #explained"
             aria-invalid={tooManyTags || undefined}
             aria-describedby="caption-count"
-            className="h-12 w-full rounded-lg border border-line bg-surface px-4 text-[15px] text-ink placeholder:text-muted/70 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/40 aria-[invalid=true]:border-danger/60"
+            className="bg-surface"
           />
         </div>
         <p id="caption-count" className="flex flex-wrap justify-between gap-2 font-mono text-xs uppercase tracking-wider text-muted" aria-live="polite">
@@ -557,55 +565,35 @@ function Compose({
         <h2 id="when-h" className="font-mono text-xs font-semibold uppercase tracking-wider">
           When
         </h2>
-        <div
-          role="radiogroup"
-          aria-labelledby="when-h"
-          className="grid grid-cols-2 gap-2 rounded-lg bg-surface-sunken p-1 sm:max-w-sm"
-          onKeyDown={(e) => {
-            if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key)) return;
-            e.preventDefault();
-            const next = mode === "now" ? "scheduled" : "now";
-            changeWhen({ mode: next });
-            (e.currentTarget.children[next === "now" ? 0 : 1] as HTMLElement | undefined)?.focus();
-          }}
-        >
-          {(["now", "scheduled"] as const).map((m) => (
-            <button
-              key={m}
-              type="button"
-              role="radio"
-              aria-checked={mode === m}
-              tabIndex={mode === m ? 0 : -1}
-              onClick={() => changeWhen({ mode: m })}
-              className={cn(
-                "h-11 rounded-md text-sm font-medium transition-colors sm:h-10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
-                mode === m ? "bg-surface shadow-sm" : "text-muted hover:text-ink",
-              )}
-            >
-              {m === "now" ? "Post now" : "Schedule"}
-            </button>
-          ))}
-        </div>
+        <Segmented
+          labelledBy="when-h"
+          options={WHEN_OPTIONS}
+          value={mode}
+          onChange={(m) => changeWhen({ mode: m })}
+          className="sm:max-w-sm"
+        />
         {mode === "scheduled" && (
           <div className="flex flex-col gap-2">
             <div className="grid grid-cols-2 gap-3 sm:max-w-sm">
               <label className="flex flex-col gap-1 text-sm font-medium">
                 Date
-                <input
+                <Input
+                  size="md"
                   type="date"
                   value={slot.date}
                   min={utcToZoned(new Date(clock), timeZone).date}
                   onChange={(e) => changeWhen({ slot: { ...slot, date: e.target.value } })}
-                  className="h-12 rounded-lg border border-line bg-surface px-3 text-[15px] font-normal focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/40"
+                  className="bg-surface px-3 font-normal"
                 />
               </label>
               <label className="flex flex-col gap-1 text-sm font-medium">
                 Time
-                <input
+                <Input
+                  size="md"
                   type="time"
                   value={slot.time}
                   onChange={(e) => changeWhen({ slot: { ...slot, time: e.target.value } })}
-                  className="h-12 rounded-lg border border-line bg-surface px-3 text-[15px] font-normal focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/40"
+                  className="bg-surface px-3 font-normal"
                 />
               </label>
             </div>
@@ -760,9 +748,7 @@ function Status({
           </Link>
         </div>
         {excerpt}
-        <button type="button" onClick={onCompose} className="w-fit text-sm font-medium text-muted underline-offset-4 hover:text-ink hover:underline">
-          Post this video again
-        </button>
+        <TextButton onClick={onCompose}>Post this video again</TextButton>
       </>
     );
   }
